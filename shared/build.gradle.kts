@@ -46,17 +46,16 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             //put your multiplatform dependencies here
-
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material) // https://github.com/adrielcafe/voyager/issues/185
+            implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.materialIconsExtended)
 
 
-            //UI相关
+            //**************************** UI相关 ************************
             implementation(libs.compose.webviews)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             //页面自适配判断库

@@ -33,6 +33,16 @@ kotlin {
         }
     }
 
+    jvm {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_17) //这修改jdk
+                }
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             //put your multiplatform dependencies here
@@ -198,6 +208,28 @@ kotlin {
             implementation(compose.components.resources)
         }
 
+        jvmMain.dependencies {
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.coroutines)
+            implementation(libs.kotlinx.coroutines.swing)
+            // Toaster for Windows
+            implementation(libs.toast4j)
+            // JNA for Linux
+            implementation("de.jangassen:jfa:1.2.0") {
+                // not excluding this leads to a strange error during build:
+                // > Could not find jna-5.13.0-jpms.jar (net.java.dev.jna:jna:5.13.0)
+                exclude(group = "net.java.dev.jna", module = "jna")
+            }
+
+            // JNA for Windows
+            implementation(libs.jna)
+            implementation(libs.jna.platform)
+
+            //加上可以用预览注解
+            implementation(compose.desktop.common)
+        }
+
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
@@ -226,7 +258,6 @@ kotlin {
         summary = "Some description for a Kotlin/Native module"
         homepage = "Link to a Kotlin/Native module homepage"
         ios.deploymentTarget = "14.1"
-//        podfile = project.file("../ios/Podfile")
         framework {
             baseName = "LiteLibs"
             isStatic = true

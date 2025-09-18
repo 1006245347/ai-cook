@@ -15,10 +15,12 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
+import com.hwj.cook.global.MainApplication
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.printD
+import com.hwj.cook.models.BookNode
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
@@ -36,6 +38,9 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.io.InputStream
+import java.util.zip.ZipInputStream
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
@@ -55,7 +60,7 @@ actual fun createKtorHttpClient(timeout: Long?): HttpClient {
             timeout?.let {
 //                requestTimeoutMillis = timeout
                 connectTimeoutMillis = timeout
-                socketTimeoutMillis=5000
+                socketTimeoutMillis = 5000
             }
         }
         install(SSE) {
@@ -71,7 +76,7 @@ actual fun createKtorHttpClient(timeout: Long?): HttpClient {
         install(Logging) {
 //            level = LogLevel.NONE
 //            level = LogLevel.BODY
-            level= LogLevel.INFO
+            level = LogLevel.INFO
 //            level = LogLevel.NONE //接口日志屏蔽
             logger = object : io.ktor.client.plugins.logging.Logger {
                 override fun log(message: String) {
@@ -132,4 +137,65 @@ actual fun createPermission(
         else -> Permission.STORAGE
     }
     askPermission(p, grantedAction, deniedAction)
+}
+
+actual fun listResourceFiles(path: String): BookNode {
+    val assetManager = MainApplication.appContext.assets
+
+    fun makeNode(dir: String, name: String): BookNode {
+        val files = assetManager.list(dir) ?: emptyArray()
+        val hasChildren = files.isNotEmpty()
+
+        return if (hasChildren) {
+            BookNode(
+                name = name,
+                isDirectory = true,
+                loader = {
+                    files.map { child ->
+                        val childPath = if (dir.isEmpty()) child else "$dir/$child"
+                        makeNode(childPath, child)
+                    }
+                }
+            )
+        } else {
+            BookNode(name = name, isDirectory = false)
+        }
+    }
+
+    return makeNode(path, File(path).name)
+}
+
+actual fun readResourceFile(path: String): String {
+    val stream = object {}.javaClass.getResourceAsStream("/$path")
+        ?: error("Resource not found: $path")
+    return stream.bufferedReader().use { it.readText() }
+}
+
+actual fun loadZipRes() {
+    val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
+        if (!exists()) mkdirs()
+    }.absolutePath
+    val target = File(zipPath)
+//    val zipStream = object {}.javaClass.getResourceAsStream("/resource.zip") ?: error("not found hwj")
+
+    val zipStream = MainApplication.appContext.assets.open("resource.zip")
+    unzipResource(zipStream, target.absolutePath)
+}
+
+fun unzipResource(zipStream: InputStream, targetDir: String) {
+    val target = File(targetDir)
+    ZipInputStream(zipStream).use { zis ->
+        var entry = zis.nextEntry
+        while (entry != null) {
+            val outFile = File(target, entry.name)
+            if (entry.isDirectory) {
+                outFile.mkdirs()
+            } else {
+                outFile.parentFile.mkdirs()
+                outFile.outputStream().use { out -> zis.copyTo(out) }
+            }
+            zis.closeEntry()
+            entry = zis.nextEntry
+        }
+    }
 }

@@ -8,6 +8,9 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.hwj.cook.PlatformWindowStart
+import com.hwj.cook.global.initKermitLog
+import di.initKoin
+import org.koin.core.Koin
 
 
 //编译运行命令 ./gradlew :desktop:run
@@ -19,11 +22,16 @@ import com.hwj.cook.PlatformWindowStart
 
 //control +  option +O       control + C 中断调试
 
+lateinit var koin: Koin
+
 fun main() {
     //依赖注入，不需要new对象，全模版生成。尽量放最前面
-
+    koin = initKoin()
+    koin.loadModules(
+        listOf()
+    )
     //日志
-//    initKermitLog() //这个方法是Utils.kt声明放在koin前面会报错
+    initKermitLog() //这个方法是Utils.kt声明放在koin前面会报错
 
     return application {
         val windowState = rememberWindowState(

@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.OsStatus
+import com.hwj.cook.models.BookNode
 import io.ktor.client.HttpClient
 
 interface Platform {
@@ -29,3 +30,8 @@ expect fun createPermission(
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 )
+
+expect fun listResourceFiles(path: String): BookNode
+expect fun readResourceFile(path: String): String
+expect fun loadZipRes()
+

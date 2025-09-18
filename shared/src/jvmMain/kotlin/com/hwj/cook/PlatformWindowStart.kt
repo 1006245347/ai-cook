@@ -14,6 +14,7 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import com.hwj.cook.capture.LocalMainWindow
+import com.hwj.cook.ui.widget.PlatformAppStart
 import moe.tlaster.precompose.ProvidePreComposeLocals
 import java.awt.Dimension
 
@@ -52,7 +53,7 @@ fun  PlatformWindowStart (    windowState: WindowState, isShowWindowState: Mutab
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-//                            PlatformAppStart()
+                            PlatformAppStart()
                         }
                     }
 //                }

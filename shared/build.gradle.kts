@@ -228,7 +228,6 @@ kotlin {
             implementation(compose.desktop.common)
         }
 
-
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
@@ -257,6 +256,7 @@ kotlin {
         summary = "Some description for a Kotlin/Native module"
         homepage = "Link to a Kotlin/Native module homepage"
         ios.deploymentTarget = "14.1"
+        pod("Zip")
         framework {
             baseName = "LiteLibs"
             isStatic = true

@@ -17,7 +17,9 @@ open class MainApplication : Application() {
             androidContext(androidContext = this@MainApplication)
         }
 
-            initKermitLog()
+        initKermitLog()
+        //采集用户信息的应在用户隐私同意后再初始化
+        UmInitConfig.init()
     }
 
     companion object {

@@ -3,8 +3,11 @@ package di
 
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.data.local.SettingsFactory
+import com.hwj.cook.data.repository.ConversationRepository
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.except.DataSettings
+import com.hwj.cook.ui.viewmodel.ConversationViewModel
+import com.hwj.cook.ui.viewmodel.MainVm
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -40,11 +43,14 @@ val mainModule = module {
     single { DataSettings() }
 
     single { GlobalRepository(get()) }
+    single { ConversationRepository() }
 }
 
 val modelModule = module {
 //    factory { WelcomeScreenModel(get()) }
 //    single { SettingsViewModel(get(), get(), get()) }
+    single { MainVm(get()) }
+    single { ConversationViewModel(get()) }
 }
 
 /**

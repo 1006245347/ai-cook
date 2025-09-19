@@ -93,6 +93,29 @@ actual fun createPermission(
     askPermission(p, grantedAction, deniedAction)
 }
 
+
+
+@OptIn(ExperimentalForeignApi::class)
+actual fun loadZipRes() {
+    val dir = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory,
+        NSUserDomainMask, true
+    ).first() as String
+    val folder = "$dir/files"
+    val fm = NSFileManager.defaultManager
+    if (!fm.fileExistsAtPath(folder)) {
+        fm.createDirectoryAtPath(folder, true, null, null)
+    }
+
+    val resPath = NSBundle.mainBundle.pathForResource("resource", "zip") ?: error("not hwj")
+    unzipResource(resPath, folder)
+}
+
+@OptIn(ExperimentalForeignApi::class)
+fun unzipResource(zipFilePath: String, targetDir: String) {
+
+}
+
 //判断目录是否是文件夹
 @OptIn(ExperimentalForeignApi::class)
 actual fun listResourceFiles(path: String): BookNode {
@@ -137,26 +160,3 @@ actual fun readResourceFile(path: String): String {
         error = null
     ) as String
 }
-
-@OptIn(ExperimentalForeignApi::class)
-actual fun loadZipRes() {
-    val dir = NSSearchPathForDirectoriesInDomains(
-        NSDocumentDirectory,
-        NSUserDomainMask, true
-    ).first() as String
-    val folder = "$dir/files"
-    val fm = NSFileManager.defaultManager
-    if (!fm.fileExistsAtPath(folder)) {
-        fm.createDirectoryAtPath(folder, true, null, null)
-    }
-
-    val resPath = NSBundle.mainBundle.pathForResource("resource", "zip") ?: error("not hwj")
-    unzipResource(resPath, folder)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-fun unzipResource(zipFilePath: String, targetDir: String) {
-
-}
-
-

@@ -1,24 +1,84 @@
 package com.hwj.cook.ui.widget
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.hwj.cook.data.local.ResParse
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.hwj.cook.global.DATA_FIRST_WELCOME
 import com.hwj.cook.global.NavigateRoute
+import com.hwj.cook.global.NavigationScene
+import com.hwj.cook.global.getCacheBoolean
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.globalScope
-import com.hwj.cook.loadZipRes
+import com.hwj.cook.global.saveBoolean
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.PreComposeApp
+import moe.tlaster.precompose.navigation.NavOptions
 import moe.tlaster.precompose.navigation.Navigator
+import moe.tlaster.precompose.navigation.PopUpTo
 import moe.tlaster.precompose.navigation.rememberNavigator
 import org.koin.compose.KoinContext
 
+/**
+ * @author by jason-何伟杰，2025/9/18
+ * des:应用的闪屏页，判断是直接进入主页还是显示欢迎页
+ */
 @Composable
-fun  FirstScreen(navigator: Navigator) {
+fun FirstScreen(navigator: Navigator) {
+    val subScope = rememberCoroutineScope()
+    val firstState = remember { mutableStateOf(true) }
 
-    globalScope.launch {
-
-//    ResParse.loadRecipe()
-        loadZipRes()
+    LaunchedEffect(firstState) {
+        subScope.launch {
+            getCacheBoolean(DATA_FIRST_WELCOME, true).let {
+                firstState.value = it
+            }
+        }
     }
+    Box(Modifier.fillMaxSize()) {
+        if (firstState.value) {
+            navigator.navigate(NavigationScene.Welcome.path)
+        }else{
+            navigator.navigate(NavigationScene.Main.path)
+        }
+    }
+}
+
+@Composable
+fun WelcomeScreen(navigator: Navigator) {
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(true) {
+        scope.launch {
+            saveBoolean(DATA_FIRST_WELCOME, true) //true每次都显示
+            delay(1500)
+            navigator.navigate(NavigationScene.Main.path,NavOptions(
+                popUpTo = PopUpTo.First()
+            ))
+        }
+    }
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+
+        Text(
+            text = "AI Cook", fontWeight = FontWeight.Bold, fontSize = 26.sp,
+            color = Color.Black, modifier = Modifier.absolutePadding(top = 50.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+    }
+
 }
 
 /**

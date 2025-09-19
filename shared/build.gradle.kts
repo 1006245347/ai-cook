@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.api
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -143,7 +144,6 @@ kotlin {
                     )
                 )
             )
-//            implementation(files("../androidApp/libs/TbsFileSdk_dwg_universal_release_1.0.5.6000030.20231109143411.aar"))
 
             implementation(libs.androidx.perference)
             implementation(libs.accompanist.systemUIController)
@@ -188,6 +188,11 @@ kotlin {
             implementation(libs.accompanist.permissions)
             implementation(libs.kotlinx.coroutines.guava)
 
+            //    //友盟统计、bug上报
+            api(files("../androidApp/libs/umeng-apm-v2.0.6.aar"))
+            api(files("../androidApp/libs/umeng-asms-v1.8.7.aar"))
+            api(files("../androidApp/libs/umeng-common-9.8.8.aar"))
+            api(files("../androidApp/libs/uyumao-1.1.4.aar"))
         }
 
         iosMain.dependencies {

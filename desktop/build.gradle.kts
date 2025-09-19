@@ -12,7 +12,6 @@ dependencies {
     implementation(compose.desktop.currentOs)
 }
 
-
 group = "com.hwj.cook"
 version = properties["version"] as String
 

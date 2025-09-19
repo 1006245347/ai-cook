@@ -139,6 +139,36 @@ actual fun createPermission(
     askPermission(p, grantedAction, deniedAction)
 }
 
+
+actual fun loadZipRes() {
+    val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
+        if (!exists()) mkdirs()
+    }.absolutePath
+    val target = File(zipPath)
+//    val zipStream = object {}.javaClass.getResourceAsStream("/resource.zip") ?: error("not found hwj")
+
+    val zipStream = MainApplication.appContext.assets.open("resource.zip")
+    unzipResource(zipStream, target.absolutePath)
+}
+
+fun unzipResource(zipStream: InputStream, targetDir: String) {
+    val target = File(targetDir)
+    ZipInputStream(zipStream).use { zis ->
+        var entry = zis.nextEntry
+        while (entry != null) {
+            val outFile = File(target, entry.name)
+            if (entry.isDirectory) {
+                outFile.mkdirs()
+            } else {
+                outFile.parentFile.mkdirs()
+                outFile.outputStream().use { out -> zis.copyTo(out) }
+            }
+            zis.closeEntry()
+            entry = zis.nextEntry
+        }
+    }
+}
+
 actual fun listResourceFiles(path: String): BookNode {
     val assetManager = MainApplication.appContext.assets
 
@@ -169,33 +199,4 @@ actual fun readResourceFile(path: String): String {
     val stream = object {}.javaClass.getResourceAsStream("/$path")
         ?: error("Resource not found: $path")
     return stream.bufferedReader().use { it.readText() }
-}
-
-actual fun loadZipRes() {
-    val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
-        if (!exists()) mkdirs()
-    }.absolutePath
-    val target = File(zipPath)
-//    val zipStream = object {}.javaClass.getResourceAsStream("/resource.zip") ?: error("not found hwj")
-
-    val zipStream = MainApplication.appContext.assets.open("resource.zip")
-    unzipResource(zipStream, target.absolutePath)
-}
-
-fun unzipResource(zipStream: InputStream, targetDir: String) {
-    val target = File(targetDir)
-    ZipInputStream(zipStream).use { zis ->
-        var entry = zis.nextEntry
-        while (entry != null) {
-            val outFile = File(target, entry.name)
-            if (entry.isDirectory) {
-                outFile.mkdirs()
-            } else {
-                outFile.parentFile.mkdirs()
-                outFile.outputStream().use { out -> zis.copyTo(out) }
-            }
-            zis.closeEntry()
-            entry = zis.nextEntry
-        }
-    }
 }

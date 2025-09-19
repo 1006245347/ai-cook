@@ -88,34 +88,6 @@ actual fun createKtorHttpClient(timeout: Long?): HttpClient {
     }
 }
 
-actual fun listResourceFiles(path: String): BookNode {
-    val url = object {}.javaClass.getResource("/$path")
-        ?: error("Resource not found: $path")
-    printLog("url>$url")
-    val rootFile = File(url.toURI())
-
-    fun makeNode(f: File): BookNode {
-        return if (f.isDirectory) {
-            BookNode(
-                name = f.name,
-                isDirectory = true,
-                loader = {
-                    f.listFiles()?.map { makeNode(it) } ?: emptyList()
-                }
-            )
-        } else {
-            BookNode(name = f.name, isDirectory = false)
-        }
-    }
-
-    return makeNode(rootFile)
-}
-
-actual fun readResourceFile(path: String): String {
-    val stream = object {}.javaClass.getResourceAsStream("/$path")
-        ?: error("Resource not found: $path")
-    return stream.bufferedReader().use { it.readText() }
-}
 
 actual fun loadZipRes() {
     val folder = System.getProperty("user.home" )+ "/.aicook/files"
@@ -143,4 +115,33 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
             entry = zis.nextEntry
         }
     }
+}
+
+actual fun listResourceFiles(path: String): BookNode {
+    val url = object {}.javaClass.getResource("/$path")
+        ?: error("Resource not found: $path")
+    printLog("url>$url")
+    val rootFile = File(url.toURI())
+
+    fun makeNode(f: File): BookNode {
+        return if (f.isDirectory) {
+            BookNode(
+                name = f.name,
+                isDirectory = true,
+                loader = {
+                    f.listFiles()?.map { makeNode(it) } ?: emptyList()
+                }
+            )
+        } else {
+            BookNode(name = f.name, isDirectory = false)
+        }
+    }
+
+    return makeNode(rootFile)
+}
+
+actual fun readResourceFile(path: String): String {
+    val stream = object {}.javaClass.getResourceAsStream("/$path")
+        ?: error("Resource not found: $path")
+    return stream.bufferedReader().use { it.readText() }
 }

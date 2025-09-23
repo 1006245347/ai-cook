@@ -41,22 +41,31 @@ fun AppScaffold(
             drawerContent = {
                 ModalDrawerSheet(drawerContentColor = MaterialTheme.colorScheme.background) {
                     Box {
-                        AppDrawer()
+                        AppDrawer(
+                            navigator,
+                            onConversationClicked,
+                            onNewConversationClicked,
+                            onThemeClicked
+                        )
                     }
                 }
-            }, content = content
+            }, content = content //内容布局
         )
-    } else { //桌面端抽屉和内容并存
+    } else { //桌面端抽屉和内容并存 ,默认展开抽屉
         val mainVm = koinViewModel(MainVm::class)
-        var isCollapsed = mainVm.isCollapsedState.collectAsState().value
+//        var isCollapsed = mainVm.isCollapsedState.collectAsState().value
         PermanentNavigationDrawer(drawerContent = {
             PermanentDrawerSheet(
                 drawerContentColor = MaterialTheme.colorScheme.background,
-                modifier = Modifier.width(if (isCollapsed) 0.dp else 240.dp)
+                modifier = Modifier.width(if (drawerState.isClosed) 0.dp else 240.dp)
             ) {
                 Box {
-                    AppDrawer()
-
+                    AppDrawer(
+                        navigator,
+                        onConversationClicked,
+                        onNewConversationClicked,
+                        onThemeClicked
+                    )
                 }
             }
         }) { content() }

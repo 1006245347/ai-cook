@@ -9,13 +9,13 @@ import moe.tlaster.precompose.viewmodel.ViewModel
 
 class ConversationViewModel(conversationRepo: ConversationRepository) : ViewModel() {
 
-    private val _currentConversation: MutableStateFlow<String> =
-        MutableStateFlow(getTimeMillis().toString())
-    private val _conversations: MutableStateFlow<MutableList<ConversationModel>> = MutableStateFlow(
-        mutableListOf()
-    )
-    val currentConversationState: StateFlow<String> = _currentConversation.asStateFlow()
-    val conversationsState: StateFlow<MutableList<ConversationModel>> = _conversations.asStateFlow()
-    val messagesState: StateFlow<HashMap<String, MutableList<MessageModel>>> =
-        _messages.asStateFlow()
+//    private val _currentConversation: MutableStateFlow<String> =
+//        MutableStateFlow(getTimeMillis().toString())
+//    private val _conversations: MutableStateFlow<MutableList<ConversationModel>> = MutableStateFlow(
+//        mutableListOf()
+//    )
+//    val currentConversationState: StateFlow<String> = _currentConversation.asStateFlow()
+//    val conversationsState: StateFlow<MutableList<ConversationModel>> = _conversations.asStateFlow()
+//    val messagesState: StateFlow<HashMap<String, MutableList<MessageModel>>> =
+//        _messages.asStateFlow()
 }

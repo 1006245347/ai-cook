@@ -6,7 +6,7 @@ import com.hwj.cook.ui.widget.FirstScreen
 import com.hwj.cook.ui.widget.MainScreen
 import com.hwj.cook.ui.widget.TabInSide
 import com.hwj.cook.ui.widget.WelcomeScreen
-import com.hwj.cook.ui.widget.checkTab
+import com.hwj.cook.ui.widget.SubOfTab
 import com.hwj.cook.ui.widget.tabList
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.Navigator
@@ -27,17 +27,15 @@ fun NavigateRoute(navigator: Navigator) {
             MainScreen(navigator)
         }
 
-        //主页tab
-        tabList.forEachIndexed { index, tab ->
-            scene(tab.route) { s ->
-                //缓存页面状态
-                stateHolder.SaveableStateProvider(tab.route) {
-                    TabInSide(tab, { checkTab(index, navigator) })
-                }
-            }
-        }
-
-
+//        //主页tab
+//        tabList.forEachIndexed { index, tab ->
+//            scene(tab.route) { s ->
+//                //缓存页面状态
+//                stateHolder.SaveableStateProvider(tab.route) {
+//                    TabInSide(tab, { SubOfTab(index, navigator,navigator) })
+//                }
+//            }
+//        }
     }
 }
 
@@ -46,4 +44,8 @@ sealed class NavigationScene(val path: String, val title: String? = null) {
     object First : NavigationScene("/app", "first")
     object Welcome : NavigationScene("/app/welcome", "welcome")
     object Main : NavigationScene("/main", "main")
+    object ChatTab: NavigationScene("/main/chat")
+    object CookTab: NavigationScene("/main/cook")
+    object TechTab: NavigationScene("/main/tech")
+    object SettingsTab: NavigationScene("/main/settings")
 }

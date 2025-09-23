@@ -2,6 +2,7 @@ package com.hwj.cook.ui.viewmodel
 
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.global.CODE_IS_DARK
+import com.hwj.cook.global.DATA_SIZE_INPUT_SEND
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.models.UiIntent
 import kotlinx.coroutines.CoroutineDispatcher
@@ -43,7 +44,7 @@ class MainVm(private val globalRepo: GlobalRepository) : ViewModel() {
     }
 
 
-    //执行意图所对应的事件
+    //事件处理 执行意图所对应的事件
     fun processIntent(intent: UiIntent, thread: CoroutineDispatcher = Dispatchers.Default) {
         viewModelScope.launch(thread) {
             when (intent) {
@@ -53,5 +54,13 @@ class MainVm(private val globalRepo: GlobalRepository) : ViewModel() {
             }
         }
     }
+
+
+    //UI处理
+    fun collapsedDrawer() {
+        _isCollapsedObs.value = !isCollapsedState.value
+    }
+
+    //数据处理
 
 }

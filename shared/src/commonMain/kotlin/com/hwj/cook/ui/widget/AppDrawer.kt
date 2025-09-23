@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.ui.viewmodel.ConversationViewModel
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -50,7 +53,9 @@ fun AppDrawerIn(
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))//影响键盘？
 
-        Column(Modifier.height(100.dp).background(color = cOrangeFFB8664())) {}
+        Column(Modifier.height(100.dp).background(color = cOrangeFFB8664())) {
+            Text("Drawer>>>", fontSize = 50.sp, color = cBlue244260FF())
+        }
     }
 }
 

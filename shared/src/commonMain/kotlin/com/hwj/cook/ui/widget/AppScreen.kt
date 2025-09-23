@@ -52,7 +52,7 @@ fun FirstScreen(navigator: Navigator) {
     Box(Modifier.fillMaxSize()) {
         if (firstState.value) {
             navigator.navigate(NavigationScene.Welcome.path)
-        }else{
+        } else {
             navigator.navigate(NavigationScene.Main.path)
         }
     }
@@ -65,9 +65,11 @@ fun WelcomeScreen(navigator: Navigator) {
         scope.launch {
             saveBoolean(DATA_FIRST_WELCOME, true) //true每次都显示
             delay(1500)
-            navigator.navigate(NavigationScene.Main.path,NavOptions(
-                popUpTo = PopUpTo.First()
-            ))
+            navigator.navigate(
+                NavigationScene.Main.path, NavOptions(
+                    popUpTo = PopUpTo.First()
+                )
+            )
         }
     }
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {

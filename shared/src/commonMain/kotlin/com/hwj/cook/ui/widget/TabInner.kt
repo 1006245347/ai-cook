@@ -1,6 +1,7 @@
 package com.hwj.cook.ui.widget
 
 import androidx.compose.runtime.Composable
+import com.hwj.cook.global.printLog
 import com.hwj.cook.ui.chat.ChatScreen
 import com.hwj.cook.ui.cook.CookScreen
 import com.hwj.cook.ui.settings.SettingScreen
@@ -14,15 +15,16 @@ fun TabInSide(tab: TabCell, content: @Composable () -> Unit) {
 
 
 @Composable
-fun checkTab(index: Int, navigator: Navigator) {
+fun SubOfTab(index: Int, globalNavigator: Navigator,insideNavigator: Navigator) {
+    printLog("sub>$index")
     if (index == 0) {
-        ChatScreen(navigator)
+        ChatScreen(globalNavigator,insideNavigator)
     } else if (index == 1) {
-        CookScreen(navigator)
+        CookScreen(globalNavigator,insideNavigator)
     } else if (index == 2) {
-        TechScreen(navigator)
+        TechScreen(globalNavigator,insideNavigator)
     } else {
-        SettingScreen(navigator)
+        SettingScreen(globalNavigator,insideNavigator)
     }
 }
 

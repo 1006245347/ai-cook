@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 import moe.tlaster.precompose.navigation.Navigator
 
 @Composable
-fun TechScreen(navigator: Navigator) {
+fun TechScreen(globalNavigator: Navigator,insideNavigator: Navigator) {
 }

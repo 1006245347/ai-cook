@@ -89,8 +89,7 @@ fun MainScreen(navigator: Navigator) {
     //默认跳转第一个tab
     val curTab = navigator.currentEntry.collectAsState(null).value
     val curRoute = curTab?.route?.route
-    val tabs = remember { mutableStateListOf(tabList) }
-    val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
+    val pagerState = rememberPagerState(pageCount = { tabList.size }, initialPage = 0)
 
     val subScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
@@ -131,14 +130,11 @@ fun MainScreen(navigator: Navigator) {
                         Row(Modifier.fillMaxSize()) {
                             DesktopTabBar(tabList, curRoute) { tab ->
                                 subScope.launch {
-                                    drawerState.close()
-                                    pagerState.scrollToPage(tab.index)
-                                    printLog("index>${tab.index} ${pagerState.currentPage}")
+                                    pagerState.animateScrollToPage(tab.index)
                                 }
                             }
-                            //pagerState ,没有发生变化
-                            TabNavRoot(navigator, drawerState, pagerState)
 
+                            TabNavRoot(navigator, drawerState, pagerState)
                         }
                     } else {
                         Scaffold(bottomBar = {
@@ -173,12 +169,7 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
             })
 
             HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
-                printLog("page>$page")
-                tabList.forEachIndexed { index, t ->
-                    if (index == page) {
-                    }
-                    TabInSide(t, { SubOfTab(page, navigator, navigator) })
-                }
+                TabInSide(tabList[page], { SubOfTab(page, navigator, navigator) })
             }
         }
     }

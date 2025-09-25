@@ -16,7 +16,6 @@ fun TabInSide(tab: TabCell, content: @Composable () -> Unit) {
 
 @Composable
 fun SubOfTab(index: Int, globalNavigator: Navigator,insideNavigator: Navigator) {
-    printLog("sub>$index")
     if (index == 0) {
         ChatScreen(globalNavigator,insideNavigator)
     } else if (index == 1) {

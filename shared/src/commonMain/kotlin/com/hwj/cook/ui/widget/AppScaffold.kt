@@ -52,8 +52,6 @@ fun AppScaffold(
             }, content = content //内容布局
         )
     } else { //桌面端抽屉和内容并存 ,默认展开抽屉
-        val mainVm = koinViewModel(MainVm::class)
-//        var isCollapsed = mainVm.isCollapsedState.collectAsState().value
         PermanentNavigationDrawer(drawerContent = {
             PermanentDrawerSheet(
                 drawerContentColor = MaterialTheme.colorScheme.background,

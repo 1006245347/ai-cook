@@ -1,5 +1,7 @@
 package com.hwj.cook.global
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +38,9 @@ fun cBlue1A629DE8() = Color(0x1A629DE8) //1A629DE8
 fun cBlueE658B2F6() = Color(0xE658B2F6)
 fun cBlueFFF7FAFE() = Color(0xFFF7FAFE)
 fun cDeepLine()=Color(0xFF3B3C3D)
+
+@Composable
+fun cAutoBg()=MaterialTheme.colorScheme.background
 
 
 val Purple80 = Color(0xFFD0BCFF)//粉

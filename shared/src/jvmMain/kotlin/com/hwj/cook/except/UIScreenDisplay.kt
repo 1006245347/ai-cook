@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
@@ -16,8 +15,10 @@ import androidx.compose.ui.unit.sp
 import com.hwj.cook.capture.LocalMainWindow
 import com.hwj.cook.capture.getPlatformCacheImgDir11
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import moe.tlaster.precompose.koin.koinViewModel
 import java.awt.Desktop
 import java.awt.Frame
 import java.net.URI
@@ -41,6 +42,12 @@ actual fun ToolTipCase(modifier: Modifier?, tip: String, content: @Composable ()
 
 actual fun isMainThread(): Boolean {
     return Thread.currentThread().name == "main"
+}
+
+class JvmNetworkObserver: NetworkObserver{
+    override fun observe(): Flow<NetworkObserver.Status> {
+        return flowOf(NetworkObserver.Status.Connected).distinctUntilChanged()
+    }
 }
 
 @Composable

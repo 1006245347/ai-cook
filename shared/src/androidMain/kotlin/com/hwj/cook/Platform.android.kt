@@ -20,6 +20,7 @@ import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
@@ -140,7 +141,7 @@ actual fun createPermission(
 }
 
 
-actual fun loadZipRes() {
+actual fun loadZipRes(): String? {
     val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
         if (!exists()) mkdirs()
     }.absolutePath
@@ -149,6 +150,7 @@ actual fun loadZipRes() {
 
     val zipStream = MainApplication.appContext.assets.open("resource.zip")
     unzipResource(zipStream, target.absolutePath)
+    return target.absolutePath
 }
 
 fun unzipResource(zipStream: InputStream, targetDir: String) {
@@ -170,29 +172,27 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
 }
 
 actual fun listResourceFiles(path: String): BookNode {
-    val assetManager = MainApplication.appContext.assets
-
-    fun makeNode(dir: String, name: String): BookNode {
-        val files = assetManager.list(dir) ?: emptyArray()
-        val hasChildren = files.isNotEmpty()
-
-        return if (hasChildren) {
+    fun makeNode(f: File): BookNode {
+        return if (f.isDirectory) {
             BookNode(
-                name = name,
+                name = f.name,
                 isDirectory = true,
                 loader = {
-                    files.map { child ->
-                        val childPath = if (dir.isEmpty()) child else "$dir/$child"
-                        makeNode(childPath, child)
-                    }
+                    f.listFiles()?.map { makeNode(it) } ?: emptyList()
                 }
             )
         } else {
-            BookNode(name = name, isDirectory = false)
+            BookNode(name = f.name, isDirectory = false)
         }
     }
-
-    return makeNode(path, File(path).name)
+    printLog("path>$path")
+    try {
+        val rootFile = File(path, "resource")
+        return makeNode(rootFile)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return BookNode("error", true)
+    }
 }
 
 actual fun readResourceFile(path: String): String {

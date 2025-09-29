@@ -21,12 +21,20 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.cinterop.BooleanVar
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.memScoped
 import kotlinx.serialization.json.Json
+import platform.Foundation.NSBundle
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSFileType
+import platform.Foundation.NSFileTypeDirectory
+import platform.Foundation.NSSearchPathForDirectoriesInDomains
+import platform.Foundation.NSString
+import platform.Foundation.NSUTF8StringEncoding
+import platform.Foundation.NSUserDomainMask
+import platform.Foundation.lastPathComponent
+import platform.Foundation.stringWithContentsOfFile
 import platform.UIKit.UIDevice
-import platform.Foundation.*
 
 class IOSPlatform : Platform {
     override val name: String =
@@ -93,10 +101,8 @@ actual fun createPermission(
     askPermission(p, grantedAction, deniedAction)
 }
 
-
-
 @OptIn(ExperimentalForeignApi::class)
-actual fun loadZipRes() {
+actual fun loadZipRes():String?  {
     val dir = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory,
         NSUserDomainMask, true
@@ -109,11 +115,12 @@ actual fun loadZipRes() {
 
     val resPath = NSBundle.mainBundle.pathForResource("resource", "zip") ?: error("not hwj")
     unzipResource(resPath, folder)
+    return folder
 }
 
 @OptIn(ExperimentalForeignApi::class)
 fun unzipResource(zipFilePath: String, targetDir: String) {
-
+    //ios
 }
 
 //判断目录是否是文件夹

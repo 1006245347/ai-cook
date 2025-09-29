@@ -18,6 +18,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.InputStream
+import java.nio.charset.Charset
+import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
 class DesktopPlatform : Platform {
@@ -88,15 +90,20 @@ actual fun createKtorHttpClient(timeout: Long?): HttpClient {
     }
 }
 
-
-actual fun loadZipRes() {
-    val folder = System.getProperty("user.home" )+ "/.aicook/files"
-    val target = File(folder).also { printLog(it.absolutePath) }
-    if (!target.exists()) target.mkdirs()
-    val zipStream =
-        object {}.javaClass.getResourceAsStream("/resource.zip") ?: error("not found hwj")
-
-    unzipResource(zipStream, target.absolutePath)
+//这里有个坑，zipStream只处理utf-8文件，7-zip压缩包.zip编码参数 cu=on
+actual fun loadZipRes(): String? {
+    try {
+        val folder = System.getProperty("user.home") + "/.aicook/files"
+        val target = File(folder)
+        if (!target.exists()) target.mkdirs()
+        val zipStream = //换个压缩格式，不然文件有编码问题
+            object {}.javaClass.getResourceAsStream("/resource.zip") ?: error("not found hwj")
+        unzipResource(zipStream, target.absolutePath)
+        return target.absolutePath
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return null
+    }
 }
 
 fun unzipResource(zipStream: InputStream, targetDir: String) {
@@ -117,12 +124,8 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
     }
 }
 
+//("应用运行时resource的资源是jar打包在应用内，无法直接获取")
 actual fun listResourceFiles(path: String): BookNode {
-    val url = object {}.javaClass.getResource("/$path")
-        ?: error("Resource not found: $path")
-    printLog("url>$url")
-    val rootFile = File(url.toURI())
-
     fun makeNode(f: File): BookNode {
         return if (f.isDirectory) {
             BookNode(
@@ -136,10 +139,16 @@ actual fun listResourceFiles(path: String): BookNode {
             BookNode(name = f.name, isDirectory = false)
         }
     }
-
-    return makeNode(rootFile)
+    try {
+        val rootFile = File(path, "resource")
+        return makeNode(rootFile)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return BookNode("error", true)
+    }
 }
 
+//读取打包在应用内部的文档
 actual fun readResourceFile(path: String): String {
     val stream = object {}.javaClass.getResourceAsStream("/$path")
         ?: error("Resource not found: $path")

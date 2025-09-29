@@ -10,12 +10,17 @@ data class AppConfigState(
     val error: String? = null
 )
 
-//AVI 意图区别，项目小，为了方便只分两大类UI、Data.
-sealed class UiIntent {
-    //明亮、黑暗主题切换
-    data object ThemeSetIntent : UiIntent()
-}
+data class BookConfigState(
+    val isLoading: Boolean = false,
+    val data: BookNode? = null,
+    val error: String? = null
+)
 
-sealed class DataIntent {
-    data object CookLoadIntent : DataIntent()
+//AVI 意图区别，项目小，为了方便只分两大类UI、Data.
+sealed class AppIntent {
+    //UI处理 明亮、黑暗主题切换
+    data object ThemeSetIntent : AppIntent()
+
+    //数据处理
+    data object BookLoadIntent : AppIntent()
 }

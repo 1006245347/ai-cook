@@ -33,5 +33,5 @@ expect fun createPermission(
 
 expect fun listResourceFiles(path: String): BookNode
 expect fun readResourceFile(path: String): String
-expect fun loadZipRes()
+expect fun loadZipRes(): String?
 

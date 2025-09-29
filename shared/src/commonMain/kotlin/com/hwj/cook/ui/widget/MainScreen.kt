@@ -26,12 +26,9 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,20 +42,17 @@ import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
-import com.hwj.cook.global.printLog
+import com.hwj.cook.global.onlyMobile
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
-import com.hwj.cook.models.UiIntent
-import com.hwj.cook.ui.chat.ChatScreen
+import com.hwj.cook.models.AppIntent
 import com.hwj.cook.ui.viewmodel.MainVm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.BackHandler
-import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.Navigator
-import moe.tlaster.precompose.navigation.rememberNavigator
 
 val tabList = listOf<TabCell>(
     TabCell("/main/chat", "AI", 0),
@@ -85,7 +79,6 @@ fun MainScreen(navigator: Navigator) {
         mutableStateOf(false)
     }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val drawerOpen by mainVm.drawerShouldBeOpened.collectAsState()
     //默认跳转第一个tab
     val curTab = navigator.currentEntry.collectAsState(null).value
     val curRoute = curTab?.route?.route
@@ -95,7 +88,7 @@ fun MainScreen(navigator: Navigator) {
     LaunchedEffect(Unit) {
         subScope.launch {
             darkTheme.value = getCacheBoolean(CODE_IS_DARK)
-            mainVm.processIntent(UiIntent.ThemeSetIntent)
+            mainVm.processIntent(AppIntent.ThemeSetIntent)
         }
     }
     val focusManager = LocalFocusManager.current
@@ -119,10 +112,11 @@ fun MainScreen(navigator: Navigator) {
                     subScope.launch {
                         darkTheme.value = !darkTheme.value
                         saveBoolean(CODE_IS_DARK, darkTheme.value)
-                        mainVm.processIntent(UiIntent.ThemeSetIntent)
+                        mainVm.processIntent(AppIntent.ThemeSetIntent)
+                        if (onlyMobile())
                         drawerState.close()
                     }
-                }) { //Tab区域显示
+                }) { //Tab区域显示 , Drawer+Tab
                 Box(Modifier.fillMaxSize()) {
                     HorizontalDivider(thickness = (0.5f).dp, color = cDeepLine())
 
@@ -130,10 +124,9 @@ fun MainScreen(navigator: Navigator) {
                         Row(Modifier.fillMaxSize()) {
                             DesktopTabBar(tabList, curRoute) { tab ->
                                 subScope.launch {
-                                    pagerState.animateScrollToPage(tab.index)
+                                    pagerState.scrollToPage(tab.index)
                                 }
                             }
-
                             TabNavRoot(navigator, drawerState, pagerState)
                         }
                     } else {
@@ -175,25 +168,6 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
     }
 }
 
-@Composable
-private fun TabNavRoot2(navigator: Navigator) {
-//两层嵌套的NavHost,注意全局的和内部的navigator
-    val stateHolder = rememberSaveableStateHolder()
-//    val insideNavigator = rememberNavigator()
-    val insideNavigator = navigator
-//    NavHost(insideNavigator, initialRoute = tabList.first().route) {
-//        tabList.forEachIndexed { index, tab ->
-//            scene(tab.route) { s ->
-//                //缓存页面状态
-//                stateHolder.SaveableStateProvider(tab.route) {
-//                    TabInSide(tab, { SubOfTab(index, navigator, insideNavigator) })
-//                }
-//            }
-//        }
-//    }
-
-}
-
 // 移动端底部Tab栏
 @Composable
 private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
@@ -230,7 +204,6 @@ private fun DesktopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabC
         }
     }
 }
-
 
 @Composable
 fun MainInit(state: AppConfigState) {

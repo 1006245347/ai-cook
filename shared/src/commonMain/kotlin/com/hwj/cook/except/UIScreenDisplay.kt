@@ -2,6 +2,7 @@ package com.hwj.cook.except
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.Flow
 
 //处理desktop端鼠标指向图标文字提示
 @Composable
@@ -24,3 +25,12 @@ expect fun isMainThread():Boolean
 //desktop截图
 @Composable
 expect fun ScreenShotPlatform(onSave: (String?) -> Unit)
+
+interface NetworkObserver{
+    fun observe():Flow<Status>
+
+    enum class Status{
+        Connected,
+        Disconnected
+    }
+}

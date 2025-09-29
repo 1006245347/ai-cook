@@ -21,7 +21,7 @@ fun ChatScreen(globalNavigator: Navigator,insideNavigator: Navigator) {
 
     }
 
-    Text("hh>", fontSize = 40.sp)
+
 
 
 }

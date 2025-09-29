@@ -22,6 +22,8 @@ fun onlyMobile(): Boolean {
             || getPlatform().os == OsStatus.ANDROID
 }
 
-fun onlyDesktop():Boolean{
-    return !onlyMobile()
+fun onlyDesktop(): Boolean {
+    return getPlatform().os == OsStatus.WINDOWS
+            || getPlatform().os == OsStatus.MACOS
+            || getPlatform().os == OsStatus.LINUX
 }

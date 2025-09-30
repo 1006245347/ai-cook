@@ -11,14 +11,13 @@ import kotlinx.coroutines.launch
 import moe.tlaster.precompose.navigation.Navigator
 
 @Composable
-fun ChatScreen(globalNavigator: Navigator,insideNavigator: Navigator) {
+fun ChatScreen(globalNavigator: Navigator) {
     val subScope = rememberCoroutineScope()
     val sessionId = "ss"
     LaunchedEffect(sessionId) {
         subScope.launch {
 //            AgentManager.quickAgent("你好")
         }
-
     }
 
 

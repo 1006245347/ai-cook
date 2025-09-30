@@ -146,7 +146,7 @@ ktoken = { group = "com.aallam.ktoken", name = "ktoken", version.ref = "ktoken" 
 
 #AI 库
 openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openai-client" }
-koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog" }
+koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog"}
 
 
 #Android特有

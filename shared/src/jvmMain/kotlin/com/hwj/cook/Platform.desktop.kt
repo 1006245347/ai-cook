@@ -125,18 +125,18 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
 }
 
 //("应用运行时resource的资源是jar打包在应用内，无法直接获取")
-actual fun listResourceFiles(path: String): BookNode {
+actual fun listResourceFiles(path: String): BookNode? {
     fun makeNode(f: File): BookNode {
         return if (f.isDirectory) {
             BookNode(
                 name = f.name,
-                isDirectory = true,
+                isDirectory = true, realPath = f.absolutePath,
                 loader = {
                     f.listFiles()?.map { makeNode(it) } ?: emptyList()
                 }
             )
         } else {
-            BookNode(name = f.name, isDirectory = false)
+            BookNode(name = f.name, isDirectory = false, realPath = f.absolutePath)
         }
     }
     try {
@@ -144,13 +144,11 @@ actual fun listResourceFiles(path: String): BookNode {
         return makeNode(rootFile)
     } catch (e: Exception) {
         e.printStackTrace()
-        return BookNode("error", true)
+        return null
     }
 }
 
 //读取打包在应用内部的文档
-actual fun readResourceFile(path: String): String {
-    val stream = object {}.javaClass.getResourceAsStream("/$path")
-        ?: error("Resource not found: $path")
-    return stream.bufferedReader().use { it.readText() }
+actual fun readResourceFile(path: String): String? {
+    return File(path).readText()
 }

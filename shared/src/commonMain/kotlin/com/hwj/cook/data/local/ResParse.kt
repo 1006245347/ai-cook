@@ -18,31 +18,26 @@ object ResParse {
 
     //先把应用内资源文件解压到设备指定目录，再构建树结构的菜谱目录
     suspend fun loadRecipe(): BookNode? {
-        removeCacheKey(DATA_BOOK_ROOT) //test
+//        removeCacheKey(DATA_BOOK_ROOT) //test
         var rootNode: BookNode? = null
         val tmpRoot = getCacheString(DATA_BOOK_ROOT).also { printLog("tmpRoot>$it") }
 
         if (tmpRoot != null) {
             listResourceFiles(tmpRoot).also { bookNode ->
                 rootNode = bookNode
-                printD("size>${bookNode.name} ${bookNode.children.size}")
             }
         } else {
             loadZipRes().also { rootPath ->
-                printLog("loadZip>$rootPath")
                 rootPath?.let {
-                    listResourceFiles(rootPath).also { bookNode ->
+                    listResourceFiles(rootPath)?.also { bookNode ->
                         if (!bookNode.children.isEmpty()) {
                             saveString(DATA_BOOK_ROOT, rootPath)
                         }
                         rootNode = bookNode
-                        printD("size>${bookNode.name} ${bookNode.children.size}")
                     }
                 }
             }
         }
         return rootNode
     }
-
-
 }

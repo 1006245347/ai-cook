@@ -31,7 +31,8 @@ expect fun createPermission(
     deniedAction: () -> Unit
 )
 
-expect fun listResourceFiles(path: String): BookNode
-expect fun readResourceFile(path: String): String
+expect fun listResourceFiles(path: String): BookNode?
+expect fun readResourceFile(path: String): String?
 expect fun loadZipRes(): String?
+
 

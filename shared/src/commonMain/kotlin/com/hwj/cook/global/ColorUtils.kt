@@ -18,7 +18,7 @@ fun cGreyF0F0F0() = Color(0xFFF0F0F0)
 fun cGreyF6F6F6() = Color(0xFFF6F6F6)
 fun cBlue629DE8() = Color(0xFF629DE8)
 fun cBlue014AA7() = Color(0xFF014AA7)
-fun cBlue244260FF()=Color(0x244260FF)
+fun cBlue244260FF() = Color(0x244260FF)
 
 //background
 fun cGreyEEEEEE() = Color(0xFFEEEEEE)
@@ -37,11 +37,14 @@ fun cBlack333333() = Color(0xFF333333)
 fun cBlue1A629DE8() = Color(0x1A629DE8) //1A629DE8
 fun cBlueE658B2F6() = Color(0xE658B2F6)
 fun cBlueFFF7FAFE() = Color(0xFFF7FAFE)
-fun cDeepLine()=Color(0xFF3B3C3D)
+fun cDeepLine() = Color(0xFF3B3C3D)
 
 @Composable
-fun cAutoBg()=MaterialTheme.colorScheme.background
+fun cAutoBg() = MaterialTheme.colorScheme.background
 
+fun cAutoTxt(isDark: Boolean): Color {
+    return if (isDark) isDarkTxt() else isLightTxt()
+}
 
 val Purple80 = Color(0xFFD0BCFF)//粉
 val PurpleGrey80 = Color(0xFFCCC2DC)
@@ -58,12 +61,13 @@ val BackGroundColor2 = Color(0xFF262828)//黑
 val BackInnerColor1 = Color(0xFFFFFFFF)//白色
 val BackInnerColor2 = Color(0xFF2C2E2F)//中黑 消息列表背景色
 val BackTxtColor1 = Color(0xFF464F5C) //0xFF464F5C=浅黑
+
 //val BackTxtColor2 = Color(0xFFDFDFDF) //0xFFDFDFDF=白
 val BackTxtColor2 = Color(0xE9E8E8FF) //0xFFDFDFDF=白
-val BackCodeTxtColor=Color(0xFF9798BA) //代码颜色
-val BackCodeGroundColor=Color(0xFF292C33) //代码背景框
-val BackHumanColor1=Color(0XFFEAF1FC)
-val BackHumanColor2=Color(0xFF2B4270)
+val BackCodeTxtColor = Color(0xFF9798BA) //代码颜色
+val BackCodeGroundColor = Color(0xFF292C33) //代码背景框
+val BackHumanColor1 = Color(0XFFEAF1FC)
+val BackHumanColor2 = Color(0xFF2B4270)
 
 
 val BackGroundMessageHuman = Color(0xFFE2F0E9)

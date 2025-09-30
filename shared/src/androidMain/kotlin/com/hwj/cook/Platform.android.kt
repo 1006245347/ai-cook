@@ -28,6 +28,8 @@ import dev.icerock.moko.permissions.gallery.GALLERY
 import dev.icerock.moko.permissions.notifications.REMOTE_NOTIFICATION
 import dev.icerock.moko.permissions.storage.STORAGE
 import dev.icerock.moko.permissions.storage.WRITE_STORAGE
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.readString
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -140,17 +142,21 @@ actual fun createPermission(
     askPermission(p, grantedAction, deniedAction)
 }
 
-
 actual fun loadZipRes(): String? {
-    val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
-        if (!exists()) mkdirs()
-    }.absolutePath
-    val target = File(zipPath)
-//    val zipStream = object {}.javaClass.getResourceAsStream("/resource.zip") ?: error("not found hwj")
+    try { //设置解压的目标地址
+        val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
+            if (!exists()) mkdirs()
+        }.absolutePath
+        val target = File(zipPath)
 
-    val zipStream = MainApplication.appContext.assets.open("resource.zip")
-    unzipResource(zipStream, target.absolutePath)
-    return target.absolutePath
+        //安卓只能用assets导资源
+        val zipStream = MainApplication.appContext.assets.open("resource.zip")
+        unzipResource(zipStream, target.absolutePath)
+        return target.absolutePath
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return null
+    }
 }
 
 fun unzipResource(zipStream: InputStream, targetDir: String) {
@@ -162,7 +168,7 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
             if (entry.isDirectory) {
                 outFile.mkdirs()
             } else {
-                outFile.parentFile.mkdirs()
+                outFile.parentFile?.mkdirs()
                 outFile.outputStream().use { out -> zis.copyTo(out) }
             }
             zis.closeEntry()
@@ -171,32 +177,29 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
     }
 }
 
-actual fun listResourceFiles(path: String): BookNode {
+actual fun listResourceFiles(path: String): BookNode? {
     fun makeNode(f: File): BookNode {
         return if (f.isDirectory) {
             BookNode(
                 name = f.name,
-                isDirectory = true,
+                isDirectory = true, realPath = f.absolutePath,
                 loader = {
                     f.listFiles()?.map { makeNode(it) } ?: emptyList()
                 }
             )
         } else {
-            BookNode(name = f.name, isDirectory = false)
+            BookNode(name = f.name, isDirectory = false, realPath = f.absolutePath)
         }
     }
-    printLog("path>$path")
     try {
         val rootFile = File(path, "resource")
         return makeNode(rootFile)
     } catch (e: Exception) {
         e.printStackTrace()
-        return BookNode("error", true)
+        return null
     }
 }
 
-actual fun readResourceFile(path: String): String {
-    val stream = object {}.javaClass.getResourceAsStream("/$path")
-        ?: error("Resource not found: $path")
-    return stream.bufferedReader().use { it.readText() }
+actual fun readResourceFile(path: String): String? {
+    return File(path).readText()
 }

@@ -12,8 +12,7 @@ plugins {
 configurations.all {
     resolutionStrategy.force("androidx.compose.ui:ui-test-junit4-android:1.7.6")
         .force("androidx.compose.ui:ui-test-android:1.7.6")
-        .force("io.modelcontextprotocol:kotlin-sdk-core-jvm:0.7.0")
-
+    exclude(group = "io.modelcontextprotocol", module = "kotlin-sdk-client-jvm")
     // FIXME exclude netty from Koog dependencies?
     exclude(group = "io.netty", module = "*")
 }

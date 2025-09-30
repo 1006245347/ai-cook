@@ -125,7 +125,7 @@ fun unzipResource(zipFilePath: String, targetDir: String) {
 
 //判断目录是否是文件夹
 @OptIn(ExperimentalForeignApi::class)
-actual fun listResourceFiles(path: String): BookNode {
+actual fun listResourceFiles(path: String): BookNode? {
     val bundle = NSBundle.mainBundle
     val rootPath = bundle.resourcePath + "/$path"
     val fileManager = NSFileManager.defaultManager
@@ -133,7 +133,7 @@ actual fun listResourceFiles(path: String): BookNode {
     fun makeNode(dir: String, name: String): BookNode {
         return BookNode(
             name = name,
-            isDirectory = true,
+            isDirectory = true, realPath = dir,
             loader = {
                 val files =
                     fileManager.contentsOfDirectoryAtPath(dir, null) as? List<Any?> ?: emptyList()
@@ -147,7 +147,7 @@ actual fun listResourceFiles(path: String): BookNode {
                     if (isDir) {
                         makeNode(childPath, file.toString())
                     } else {
-                        BookNode(name = file.toString(), isDirectory = false)
+                        BookNode(name = file.toString(), isDirectory = false, realPath = childPath)
                     }
                 }
             }
@@ -158,7 +158,7 @@ actual fun listResourceFiles(path: String): BookNode {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun readResourceFile(path: String): String {
+actual fun readResourceFile(path: String): String? {
     val bundle = NSBundle.mainBundle
     val filePath = bundle.pathForResource(path, null) ?: error("Resource not found: $path")
     return NSString.stringWithContentsOfFile(

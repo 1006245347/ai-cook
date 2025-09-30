@@ -129,6 +129,8 @@ kotlin {
 
             //AI代理框架
             implementation(libs.koog.agents)
+
+
             //aallam openai  https://github.com/aallam/openai-kotlin
 //            implementation(libs.openai.client)
             implementation(libs.ktoken)

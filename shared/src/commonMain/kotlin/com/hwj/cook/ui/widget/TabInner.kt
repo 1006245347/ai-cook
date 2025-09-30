@@ -15,15 +15,15 @@ fun TabInSide(tab: TabCell, content: @Composable () -> Unit) {
 
 
 @Composable
-fun SubOfTab(index: Int, globalNavigator: Navigator,insideNavigator: Navigator) {
+fun SubOfTab(index: Int, globalNavigator: Navigator) {
     if (index == 0) {
-        ChatScreen(globalNavigator,insideNavigator)
+        ChatScreen(globalNavigator)
     } else if (index == 1) {
-        CookScreen(globalNavigator,insideNavigator)
+        CookScreen(globalNavigator)
     } else if (index == 2) {
-        TechScreen(globalNavigator,insideNavigator)
+        TechScreen(globalNavigator)
     } else {
-        SettingScreen(globalNavigator,insideNavigator)
+        SettingScreen(globalNavigator)
     }
 }
 

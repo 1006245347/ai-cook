@@ -34,9 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.CODE_IS_DARK
+import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.global.ToastUtils
+import com.hwj.cook.global.cAutoBg
+import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.cWhite
@@ -62,7 +66,6 @@ val tabList = listOf<TabCell>(
 )
 
 data class TabCell(val route: String, val label: String, val index: Int)
-
 
 //在 Android Compose 里，所谓 副作用 (Side Effects)，指的是那些不直接属于 UI 声明式绘制范畴，但需要在 生命周期或状态变化时触发的一些逻辑。常见场景比如：
 //
@@ -114,7 +117,7 @@ fun MainScreen(navigator: Navigator) {
                         saveBoolean(CODE_IS_DARK, darkTheme.value)
                         mainVm.processIntent(AppIntent.ThemeSetIntent)
                         if (onlyMobile())
-                        drawerState.close()
+                            drawerState.close()
                     }
                 }) { //Tab区域显示 , Drawer+Tab
                 Box(Modifier.fillMaxSize()) {
@@ -122,9 +125,11 @@ fun MainScreen(navigator: Navigator) {
 
                     if (onlyDesktop()) {
                         Row(Modifier.fillMaxSize()) {
-                            DesktopTabBar(tabList, curRoute) { tab ->
-                                subScope.launch {
-                                    pagerState.scrollToPage(tab.index)
+                            if (drawerState.isClosed) {
+                                DesktopTabBar(tabList, curRoute) { tab ->
+                                    subScope.launch {
+                                        pagerState.scrollToPage(tab.index)
+                                    }
                                 }
                             }
                             TabNavRoot(navigator, drawerState, pagerState)
@@ -162,7 +167,7 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
             })
 
             HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
-                TabInSide(tabList[page], { SubOfTab(page, navigator, navigator) })
+                TabInSide(tabList[page], { SubOfTab(page, navigator) })
             }
         }
     }
@@ -183,11 +188,13 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
     }
 }
 
-// 桌面端左侧Tab栏
+// 桌面端左侧Tab栏  ,drawer展开时，这里要隐藏
 @Composable
 private fun DesktopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
+    val mainVm = koinViewModel(MainVm::class)
+    val isDark = mainVm.darkState.collectAsState().value
     Column(
-        Modifier.fillMaxHeight().width(100.dp).background(cLowOrange()),
+        Modifier.fillMaxHeight().width(70.dp).background(cAutoBg()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         tabs.forEach { tab ->
@@ -195,11 +202,11 @@ private fun DesktopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabC
                 Modifier.fillMaxWidth()
                     .padding(8.dp)
                     .clickable { onSelect(tab) }
-                    .background(if (current == tab.route) cLowOrange() else Color.Transparent)
+                    .background(if (current == tab.route) cLowOrange() else cAutoBg())
                     .padding(12.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(tab.label)
+                Text(tab.label, fontSize = 15.sp, color = PrimaryColor)
             }
         }
     }

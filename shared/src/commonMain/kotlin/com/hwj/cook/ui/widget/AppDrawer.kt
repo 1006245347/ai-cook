@@ -1,9 +1,7 @@
 package com.hwj.cook.ui.widget
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -19,8 +17,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material.icons.filled.Start
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +28,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,29 +42,28 @@ import coil3.request.crossfade
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cBlue244260FF
-import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.urlToImageAppIcon
 import com.hwj.cook.ui.viewmodel.ConversationViewModel
 import com.hwj.cook.ui.viewmodel.MainVm
+import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun AppDrawer(
-    navigator: Navigator, onConversationClicked: (String) -> Unit,
+    navigator: Navigator, drawerState: DrawerState, onConversationClicked: (String) -> Unit,
     onNewConversationClicked: () -> Unit,
     onThemeClicked: () -> Unit
 ) {
     AppDrawerIn(
-        navigator, onConversationClicked, onNewConversationClicked, onThemeClicked,
+        navigator, drawerState, onConversationClicked, onNewConversationClicked, onThemeClicked,
         deleteConversation = { id -> }, sessionList = null
     )
 }
 
 @Composable
 fun AppDrawerIn(
-    navigator: Navigator, onConversationClicked: (String) -> Unit,
+    navigator: Navigator, drawerState: DrawerState, onConversationClicked: (String) -> Unit,
     onNewConversationClicked: () -> Unit,
     onThemeClicked: () -> Unit,
     deleteConversation: (String) -> Unit,
@@ -75,11 +71,14 @@ fun AppDrawerIn(
 ) {
     val mainVm = koinViewModel(MainVm::class)
     val canJump = remember { mutableStateOf(false) }
+    val subScope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))//影响键盘？
 
-        DrawerHeader(onThemeClicked,drawerAction = {
-            mainVm.collapsedDrawer()
+        DrawerHeader(onThemeClicked, drawerAction = {
+            subScope.launch {
+                drawerState.close()
+            }
         })
         Column(Modifier.height(100.dp).background(color = cAutoBg())) {
             Text("Drawer>>>", fontSize = 50.sp, color = cBlue244260FF())
@@ -88,7 +87,7 @@ fun AppDrawerIn(
 }
 
 @Composable
-private fun DrawerHeader(onThemeClicked:() ->Unit,drawerAction: () -> Unit = {}) {
+private fun DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = {}) {
 
     val paddingSizeModifier = Modifier
         .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
@@ -96,7 +95,7 @@ private fun DrawerHeader(onThemeClicked:() ->Unit,drawerAction: () -> Unit = {})
     Row(verticalAlignment = CenterVertically, horizontalArrangement = SpaceBetween) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(13.dp)
                 .weight(1f), verticalAlignment = CenterVertically
         ) {
             AsyncImage(
@@ -126,7 +125,7 @@ private fun DrawerHeader(onThemeClicked:() ->Unit,drawerAction: () -> Unit = {})
 
         IconButton(
             onClick = {
-               onThemeClicked.invoke()
+                onThemeClicked.invoke()
             }, modifier = Modifier.padding(bottom = 40.dp)
         ) {
             Icon(

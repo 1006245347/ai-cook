@@ -17,6 +17,7 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -247,6 +248,10 @@ suspend fun getCacheString(key: String): String? {
 
 suspend fun getCacheString(key: String, def: String): String? {
     return settingsCache.getString(key, def)
+}
+
+fun getAsyncString(key: String): Deferred<String?> {
+    return globalScope.async { getCacheString(key) }
 }
 
 suspend fun getCacheBoolean(key: String): Boolean {

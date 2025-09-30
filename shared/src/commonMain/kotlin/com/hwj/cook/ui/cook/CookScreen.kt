@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,23 +26,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.hwj.cook.global.NavigationScene
+import com.hwj.cook.global.cAutoTxt
+import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.loadingTip
+import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.ui.viewmodel.CookVm
+import com.hwj.cook.ui.viewmodel.MainVm
+import io.ktor.http.encodeURLPath
 import moe.tlaster.precompose.flow.collectAsStateWithLifecycle
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * @author by jason-何伟杰，2025/9/28
  * des:菜谱页面Tab
  */
 @Composable
-fun CookScreen(globalNavigator: Navigator, insideNavigator: Navigator) {
-
+fun CookScreen(navigator: Navigator) {
+    val mainVm = koinViewModel(MainVm::class)
     val cookVm = koinViewModel(CookVm::class)
+    val isDark = mainVm.darkState.collectAsState().value
     val bookRootState by cookVm.bookRootState.collectAsState()
     var initialized by remember { mutableStateOf(false) }
+
     val subScope = rememberCoroutineScope()
     //保证重组也执行一次初始化
     LaunchedEffect(initialized) {
@@ -51,7 +63,7 @@ fun CookScreen(globalNavigator: Navigator, insideNavigator: Navigator) {
         }
     }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopStart) {
             if (bookRootState.isLoading) {
                 Text(loadingTip, color = MaterialTheme.colorScheme.secondary)
             } else if (bookRootState.error != null) {
@@ -60,25 +72,32 @@ fun CookScreen(globalNavigator: Navigator, insideNavigator: Navigator) {
                 bookRootState.data?.let { root ->
                     LazyColumn {
                         item {
-                            BookNodeView(root,1)
+                            BookNodeView(navigator, root, 1, isDark)
                         }
                     }
-
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalEncodingApi::class)
 @Composable
-fun BookNodeView(node: BookNode, level: Int = 0) {
+fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: Boolean) {
     var expanded by remember { mutableStateOf(false) }
     Column {
-
         Row(
             modifier = Modifier.fillMaxWidth()
                 .clickable {
-                    if (node.isDirectory) expanded = !expanded
+                    if (node.isDirectory) {
+                        expanded = !expanded
+                    } else {
+                        if (node.name.contains(".md")) {
+                            val argPath = node.realPath.encodeURLPath()
+                            printLog(argPath)
+                            navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
+                        }
+                    }
                 }.padding(start = (level * 16).dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -88,12 +107,12 @@ fun BookNodeView(node: BookNode, level: Int = 0) {
                 Text("\uD83D\uDCD6")
             }
             Spacer(Modifier.width(8.dp))
-            Text(node.name)
+            Text(node.name, fontSize = 15.sp, color = cAutoTxt(isDark))
         }
-
+        HorizontalDivider(thickness = 1.dp, color = cDeepLine())
         if (expanded && node.isDirectory) {
             node.children.forEach { child ->
-                BookNodeView(child, level + 1)
+                BookNodeView(navigator, child, level + 1, isDark)
             }
         }
     }

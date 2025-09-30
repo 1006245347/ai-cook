@@ -42,7 +42,7 @@ fun AppScaffold(
                 ModalDrawerSheet(drawerContentColor = MaterialTheme.colorScheme.background) {
                     Box {
                         AppDrawer(
-                            navigator,
+                            navigator,drawerState,
                             onConversationClicked,
                             onNewConversationClicked,
                             onThemeClicked
@@ -59,7 +59,7 @@ fun AppScaffold(
             ) {
                 Box {
                     AppDrawer(
-                        navigator,
+                        navigator,drawerState,
                         onConversationClicked,
                         onNewConversationClicked,
                         onThemeClicked

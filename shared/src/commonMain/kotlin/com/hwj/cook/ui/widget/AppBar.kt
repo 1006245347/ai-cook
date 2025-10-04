@@ -1,9 +1,11 @@
 package com.hwj.cook.ui.widget
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
+import com.hwj.cook.global.cLowOrange
+import com.hwj.cook.global.urlToAvatarGPT
 import com.hwj.cook.ui.viewmodel.MainVm
 import moe.tlaster.precompose.koin.koinViewModel
 
@@ -45,14 +49,14 @@ fun AppBar(onClickMenu: () -> Unit, onNewChat: () -> Unit) {
             Box {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = rememberAsyncImagePainter(""),//urlToAvatarGPT 好丑
+                        painter = rememberAsyncImagePainter(urlToAvatarGPT),//urlToAvatarGPT 好丑
                         modifier = paddingSizeModifier.then(Modifier.clip(RoundedCornerShape(6.dp))),
                         contentScale = ContentScale.Crop,
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "ss",
+                        text = "AI",
                         textAlign = TextAlign.Center,
                         fontSize = 16.5.sp,
                         fontWeight = FontWeight.SemiBold,

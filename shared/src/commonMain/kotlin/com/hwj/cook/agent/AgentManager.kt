@@ -18,14 +18,15 @@ object AgentManager {
         if (apiKey.isNullOrEmpty()) return
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
+        AIAgent
         val agent = AIAgent(
-            executor = remoteAiExecutor,
+            promptExecutor = remoteAiExecutor,
             systemPrompt = "You are a helpful assistant. Answer user questions concisely.",
             llmModel = OpenAIModels.Chat.GPT4o,
             temperature = 0.7,
         ) {
             handleEvents {
-                onAgentRunError { ctx ->
+                onAgentExecutionFailed { ctx ->
                     printLog("err??${ctx.throwable.message}")
                 }
             }

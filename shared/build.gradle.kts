@@ -263,10 +263,12 @@ kotlin {
         summary = "Some description for a Kotlin/Native module"
         homepage = "Link to a Kotlin/Native module homepage"
         ios.deploymentTarget = "14.1"
-        pod("Zip")
         framework {
             baseName = "LiteLibs"
             isStatic = true
+
+            // Only if you want to talk to Kermit from Swift
+            export("co.touchlab:kermit-simple:2.0.8")
         }
     }
 }

@@ -25,15 +25,10 @@ fun NavigateRoute(navigator: Navigator) {
             MainScreen(navigator)
         }
         scene(NavigationScene.BookRead.path + "/{bookId}") { backStackEntry ->
-//            BookReadScreen(navigator, clicked = { node->  navigator.navigate(NavigationScene.BookRead.path)})
-
             val bookId = backStackEntry.path<String>("bookId")
-            printLog("bookId>$bookId")
-            printLog("decode>${bookId?.decodeURLQueryComponent()}")
             bookId?.let {
                 BookReadScreen(navigator, bookId)
             }
-
         }
     }
 }

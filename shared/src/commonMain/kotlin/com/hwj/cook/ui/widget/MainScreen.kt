@@ -1,5 +1,7 @@
 package com.hwj.cook.ui.widget
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -9,30 +11,40 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.CODE_IS_DARK
@@ -47,6 +59,7 @@ import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.onlyMobile
+import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
 import com.hwj.cook.models.AppIntent
@@ -57,6 +70,7 @@ import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.BackHandler
 import moe.tlaster.precompose.navigation.Navigator
+import org.jetbrains.compose.resources.painterResource
 
 val tabList = listOf<TabCell>(
     TabCell("/main/chat", "AI", 0),
@@ -82,10 +96,8 @@ fun MainScreen(navigator: Navigator) {
         mutableStateOf(false)
     }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    //默认跳转第一个tab
-    val curTab = navigator.currentEntry.collectAsState(null).value
-    val curRoute = curTab?.route?.route
     val pagerState = rememberPagerState(pageCount = { tabList.size }, initialPage = 0)
+    var curRoute by remember { mutableStateOf(tabList.first().route) }
 
     val subScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
@@ -127,6 +139,7 @@ fun MainScreen(navigator: Navigator) {
                         Row(Modifier.fillMaxSize()) {
                             if (drawerState.isClosed) {
                                 DesktopTabBar(tabList, curRoute) { tab ->
+                                    curRoute = tab.route
                                     subScope.launch {
                                         pagerState.scrollToPage(tab.index)
                                     }
@@ -137,12 +150,13 @@ fun MainScreen(navigator: Navigator) {
                     } else {
                         Scaffold(bottomBar = {
                             MobileTabBar(tabList, curRoute) { tab ->
+                                curRoute = tab.route
                                 subScope.launch(Dispatchers.Main) {
                                     pagerState.scrollToPage(tab.index)
                                 }
                             }
                         }) { padding ->
-                            Box(Modifier.padding(padding).fillMaxSize()) {
+                            Box(Modifier.padding(0.dp).fillMaxSize()) {
                                 TabNavRoot(navigator, drawerState, pagerState)
                             }
                         }
@@ -156,33 +170,56 @@ fun MainScreen(navigator: Navigator) {
 @Composable
 private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerState: PagerState) {
     val subScope = rememberCoroutineScope()
-    Box(Modifier.fillMaxSize().background(cWhite())) {
-        Column(Modifier.fillMaxSize()) {
-            AppBar(onClickMenu = {
-                subScope.launch {
-                    drawerState.open()
-                }
-            }, onNewChat = {
-
-            })
-
-            HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
-                TabInSide(tabList[page], { SubOfTab(page, navigator) })
+    Column(Modifier.fillMaxSize()) {
+        AppBar(onClickMenu = {
+            subScope.launch {
+                drawerState.open()
             }
+        }, onNewChat = {
+
+        })
+
+        HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
+            TabInSide(tabList[page], { SubOfTab(page, navigator) })
         }
     }
 }
 
-// 移动端底部Tab栏
+// 移动端底部Tab栏 ,选中样式
 @Composable
 private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
-    NavigationBar {
+    NavigationBar(tonalElevation = 0.dp, containerColor = cAutoBg()) {
         tabs.forEach { tab ->
+            val selected = current == tab.route
             NavigationBarItem(
-                selected = current == tab.route,
+                selected = selected,
                 onClick = { onSelect(tab) },
-                label = { Text(tab.label) },
-                icon = {}
+                label = {
+                    val fontSize by animateFloatAsState(if (selected) 15f else 12f)
+                    val fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                    Text(
+                        text = tab.label,
+                        fontSize = fontSize.sp,
+                        fontWeight = fontWeight,
+                        color = if (selected) cLowOrange() else Color.Gray
+                    )
+                },
+                icon = {
+                    val size by animateDpAsState(if (selected) 28.dp else 23.dp)
+                    Icon(
+                        imageVector = Icons.Default.Cookie,
+                        contentDescription = tab.label,
+                        modifier = Modifier.size(size),
+                        tint = if (selected) cLowOrange() else Color.Gray
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = cLowOrange(),
+                    selectedIconColor = cWhite(),
+                    selectedTextColor = cAutoTxt(true),
+                    unselectedIconColor = Color.Gray,
+                    unselectedTextColor = Color.Gray
+                )
             )
         }
     }

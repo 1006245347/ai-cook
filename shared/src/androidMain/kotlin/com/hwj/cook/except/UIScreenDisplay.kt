@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
 @Composable
 actual fun ToolTipCase(modifier: Modifier?, tip: String, content: @Composable () -> Unit) {
@@ -71,4 +72,3 @@ actual fun switchUrlByBrowser(url: String) {
         LocalContext.current.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
     }
 }
-

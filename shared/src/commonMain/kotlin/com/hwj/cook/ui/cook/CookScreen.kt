@@ -1,5 +1,6 @@
 package com.hwj.cook.ui.cook
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material3.HorizontalDivider
@@ -30,16 +30,16 @@ import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cDeepLine
+import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.loadingTip
+import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.ui.viewmodel.CookVm
 import com.hwj.cook.ui.viewmodel.MainVm
-import io.ktor.http.encodeURLPath
-import moe.tlaster.precompose.flow.collectAsStateWithLifecycle
+import io.ktor.http.encodeURLQueryComponent
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
-import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
@@ -54,7 +54,6 @@ fun CookScreen(navigator: Navigator) {
     val bookRootState by cookVm.bookRootState.collectAsState()
     var initialized by remember { mutableStateOf(false) }
 
-    val subScope = rememberCoroutineScope()
     //保证重组也执行一次初始化
     LaunchedEffect(initialized) {
         if (!initialized) {
@@ -71,8 +70,11 @@ fun CookScreen(navigator: Navigator) {
             } else {
                 bookRootState.data?.let { root ->
                     LazyColumn {
-                        item {
-                            BookNodeView(navigator, root, 1, isDark)
+                        //第一层只有一个文件夹，直接拿它的子类
+                        root.children.forEach { cell->
+                            item{
+                                BookNodeView(navigator,cell,0,isDark)
+                            }
                         }
                     }
                 }
@@ -81,7 +83,6 @@ fun CookScreen(navigator: Navigator) {
     }
 }
 
-@OptIn(ExperimentalEncodingApi::class)
 @Composable
 fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: Boolean) {
     var expanded by remember { mutableStateOf(false) }
@@ -93,9 +94,13 @@ fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: B
                         expanded = !expanded
                     } else {
                         if (node.name.contains(".md")) {
-                            val argPath = node.realPath.encodeURLPath()
-                            printLog(argPath)
-                            navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
+                            val argPath = node.realPath.encodeURLQueryComponent(encodeFull = true)
+//                            printLog("encode>$argPath")//encodeFull把 /都编码了不然导航会报错
+                            if (onlyDesktop()) {
+                                navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
+                            } else {
+                                navigator.navigate(NavigationScene.BookRead.path+"/$argPath")
+                            }
                         }
                     }
                 }.padding(start = (level * 16).dp, top = 8.dp, bottom = 8.dp),

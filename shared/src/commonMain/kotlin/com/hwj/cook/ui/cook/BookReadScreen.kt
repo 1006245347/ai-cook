@@ -74,22 +74,20 @@ fun BookReadScreen(navigator: Navigator, encodePath: String) {
                         mdState.setMarkdown(textState!!)
                     }, modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
                         .background(MaterialTheme.colorScheme.onPrimary),
-//                    color = cOrangeFFB8664(),
                     color = cAutoTxt(isDark),
                     style = TextStyle(
                         fontFamily = FontFamily.Default,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
-//                    color = MaterialTheme.colorScheme.onTertiary,
                         color = cAutoTxt(isDark)
                     )
                 )
             }
         }
 
-        Row(Modifier.size(50.dp, 40.dp).padding(start = 10.dp)) {
+        Row(Modifier.padding(start = 10.dp,top=30.dp).size(50.dp, 40.dp)) {
             ToolTipCase(tip = "返回", content = {
-                IconButton(onClick = { navigator.goBack() }) {
+                IconButton(onClick = { navigator.goBack()}) {
                     Icon(
                         imageVector = Icons.Default.ArrowBackIosNew,
                         contentDescription = "返回", tint = PrimaryColor,

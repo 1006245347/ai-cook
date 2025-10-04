@@ -1,5 +1,6 @@
 package com.hwj.cook
 
+import platform.Foundation.stringWithUTF8String
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.ai.global.askPermission
@@ -118,10 +119,9 @@ actual fun loadZipRes():String?  {
     return folder
 }
 
-@OptIn(ExperimentalForeignApi::class)
 fun unzipResource(zipFilePath: String, targetDir: String) {
-    //ios
-}
+  //实现ios压缩功能
+    }
 
 //判断目录是否是文件夹
 @OptIn(ExperimentalForeignApi::class)

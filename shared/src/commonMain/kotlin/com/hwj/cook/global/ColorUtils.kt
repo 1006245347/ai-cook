@@ -83,4 +83,5 @@ fun sp18() = 18.sp
 
 //space
 
+fun dp6() = 6.dp
 fun dp10() = 10.dp

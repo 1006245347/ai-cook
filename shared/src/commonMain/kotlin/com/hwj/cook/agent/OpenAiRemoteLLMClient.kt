@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.hwj.cook.agent
 
 import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
@@ -8,6 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import kotlin.time.ExperimentalTime
 
 /**
  * @author by jason-何伟杰，2025/7/10

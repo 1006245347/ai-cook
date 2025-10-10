@@ -32,7 +32,7 @@ sealed class ChatMsg {
 
 
 data class AgentUiState (
-    val title: String="Agent",
+    val title: String?="Agent",
     val messages :List<ChatMsg> = listOf(ChatMsg.SystemMsg("Hi, I'm an agent that can help you")),
     val inputTxt :String="",
     val isInputEnabled:Boolean=true,

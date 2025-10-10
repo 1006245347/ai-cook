@@ -20,8 +20,6 @@ object AgentManager {
         if (apiKey.isNullOrEmpty())
             return
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
-
-        AIAgent
         val agent = AIAgent(
             promptExecutor = remoteAiExecutor,
             systemPrompt = "You are a helpful assistant. Answer user questions concisely.",

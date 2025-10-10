@@ -1,7 +1,7 @@
 package com.hwj.cook.ui.viewmodel
 
 import ai.koog.agents.utils.use
-import com.hwj.cook.agent.AgentProvider
+import com.hwj.cook.agent.AICookAgentProvider
 import com.hwj.cook.agent.AgentUiState
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.data.repository.GlobalRepository
@@ -16,20 +16,25 @@ import moe.tlaster.precompose.viewmodel.viewModelScope
  * des:智能体聊天
  */
 class ChatVm(
-    private val globalRepository: GlobalRepository,
-    private val agentProvider: AgentProvider
+    private val globalRepository: GlobalRepository
 ) : ViewModel() {
 
+    private var agentProvider: AICookAgentProvider?=null
     private val _uiState = MutableStateFlow(
         AgentUiState(
-            title = agentProvider.title,
-            messages = listOf(ChatMsg.SystemMsg(agentProvider.description))
+            title = agentProvider?.title,
+            messages = listOf(ChatMsg.SystemMsg(agentProvider?.description))
         )
     )
 
     val uiObs: StateFlow<AgentUiState> = _uiState.asStateFlow()
 
 
+    fun createAgent(isForce: Boolean=false){
+        if (agentProvider==null||isForce){
+            agentProvider= AICookAgentProvider()
+        }
+    }
     fun updateInputText(txt: String) {
         _uiState.update { it.copy(inputTxt = txt) }
     }
@@ -61,7 +66,7 @@ class ChatVm(
 
     private suspend fun runAgent(userInput: String) {
         try {
-            val agent = agentProvider.provideAgent(onToolCallEvent = { msg ->
+            val agent = agentProvider?.provideAgent(onToolCallEvent = { msg ->
                 viewModelScope.launch {
                     _uiState.update { it.copy(messages = it.messages + ChatMsg.ToolCallMsg(msg)) }
                 }
@@ -98,7 +103,7 @@ class ChatVm(
                 // Return it to the agent
                 userResponse
             })
-            agent.use { t ->
+            agent?.use { t ->
                 val result = t.run(userInput)
                 _uiState.update {
                     it.copy(
@@ -125,8 +130,8 @@ class ChatVm(
     fun restartChat() {
         _uiState.update {
             AgentUiState(
-                title = agentProvider.title,
-                messages = listOf(ChatMsg.SystemMsg(agentProvider.description))
+                title = agentProvider?.title,
+                messages = listOf(ChatMsg.SystemMsg(agentProvider?.description))
             )
         }
     }

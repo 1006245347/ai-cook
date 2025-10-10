@@ -1,13 +1,10 @@
 package com.hwj.cook.android
 
-import androidx.collection.mutableObjectListOf
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.tooling.preview.Preview
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.ui.chat.ChatScreenContent
-import java.util.ArrayList
 
 /**
  * @author by jason-何伟杰，2025/10/9
@@ -20,14 +17,14 @@ fun AgentDemoScreenPreview() {
     ThemeChatLite {
         ChatScreenContent(
             title = "Agent Demo",
-            messages = mutableStateListOf(
+            messages = mutableListOf(
                 ChatMsg.SystemMsg("Hi, I'm an agent that can help you"),
                 ChatMsg.UserMsg("Hello!"),
                 ChatMsg.ToolCallMsg("Tool example, args {a=2, b=2}"),
                 ChatMsg.ResultMsg("Result: 4"),
                 ChatMsg.AgentMsg("Hello! How can I help you today?"),
                 ChatMsg.ErrorMsg("Error: Something went wrong")
-            ).toList(),
+            ),
             inputTxt = "",
             isInputEnabled = true,
             isLoading = false,
@@ -46,7 +43,7 @@ fun AgentDemoScreenEndedPreview() {
     ThemeChatLite {
         ChatScreenContent(
             title = "Agent Demo",
-            messages = mutableStateListOf(
+            messages = mutableListOf(
                 ChatMsg.SystemMsg("Hi, I'm an agent that can help you"),
                 ChatMsg.UserMsg("Hello!"),
                 ChatMsg.AgentMsg("Hello! How can I help you today?"),

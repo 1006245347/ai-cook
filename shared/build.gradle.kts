@@ -277,7 +277,7 @@ android {
     namespace = "com.hwj.cook"
     compileSdk = 35
     defaultConfig {
-        minSdk = 29
+        minSdk = 27
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

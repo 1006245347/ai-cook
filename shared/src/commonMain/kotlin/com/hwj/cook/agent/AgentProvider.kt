@@ -10,6 +10,6 @@ interface AgentProvider {
     suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
-        onAssistantMessage: suspend (String) -> Unit
+        onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String>
 }

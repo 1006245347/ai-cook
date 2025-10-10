@@ -39,7 +39,7 @@ fun ChatScreen(navigator: Navigator) {
     val sessionId = "ss"
     LaunchedEffect(sessionId) {
         subScope.launch {
-//            AgentManager.quickAgent("你好")
+            chatVm.createAgent()
         }
     }
 
@@ -56,13 +56,11 @@ fun ChatScreen(navigator: Navigator) {
         onNavigateBack = {
 //        navigator.goBack()
         })
-
-
 }
 
 @Composable
 fun ChatScreenContent(
-    title: String,
+    title: String?,
     messages: List<ChatMsg>,
     inputTxt: String,
     isInputEnabled: Boolean,

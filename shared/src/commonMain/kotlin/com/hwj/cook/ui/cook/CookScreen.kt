@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +54,8 @@ fun CookScreen(navigator: Navigator) {
     val cookVm = koinViewModel(CookVm::class)
     val isDark = mainVm.darkState.collectAsState().value
     val bookRootState by cookVm.bookRootState.collectAsState()
-    var initialized by remember { mutableStateOf(false) }
+    var initialized by rememberSaveable { mutableStateOf(false) }
+
 
     //保证重组也执行一次初始化
     LaunchedEffect(initialized) {
@@ -70,11 +72,11 @@ fun CookScreen(navigator: Navigator) {
                 Text(bookRootState.error!!)
             } else {
                 bookRootState.data?.let { root ->
-                    LazyColumn (Modifier.padding(horizontal = 8.dp)){
+                    LazyColumn(Modifier.padding(horizontal = 8.dp)) {
                         //第一层只有一个文件夹，直接拿它的子类
-                        root.children.forEach { cell->
-                            item{
-                                BookNodeView(navigator,cell,0,isDark)
+                        root.children.forEach { cell ->
+                            item {
+                                BookNodeView(navigator, cell, 0, isDark)
                             }
                         }
                     }
@@ -100,7 +102,7 @@ fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: B
                             if (onlyDesktop()) {
                                 navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
                             } else {
-                                navigator.navigate(NavigationScene.BookRead.path+"/$argPath")
+                                navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
                             }
                         }
                     }

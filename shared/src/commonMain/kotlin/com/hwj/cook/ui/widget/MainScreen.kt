@@ -36,9 +36,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +65,12 @@ import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
 import com.hwj.cook.models.AppIntent
+import com.hwj.cook.ui.chat.ChatScreen
+import com.hwj.cook.ui.cook.CookScreen
+import com.hwj.cook.ui.settings.SettingScreen
+import com.hwj.cook.ui.tech.TechScreen
 import com.hwj.cook.ui.viewmodel.MainVm
+import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -167,11 +174,27 @@ fun MainScreen(navigator: Navigator) {
     }
 }
 
+//懒加载  fragment
 @Composable
 private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerState: PagerState) {
     val subScope = rememberCoroutineScope()
+    //记录已加载过的页
+    val loadedPages = remember { mutableStateListOf<Int>() }
+    //页面构造器
+    val pages = remember {
+        listOf<@Composable () -> Unit>(
+            { ChatScreen(navigator) },
+            { CookScreen(navigator) },
+            { TechScreen(navigator) },
+            { SettingScreen(navigator) }
+        )
+    }
+    //为了缓存已打开页面
+    val saveableStateHolder = rememberSaveableStateHolder()
+    val cachedPages = remember { mutableMapOf<Int, @Composable () -> Unit>() }
+
     Column(Modifier.fillMaxSize()) {
-        AppBar(pagerState,onClickMenu = {
+        AppBar(pagerState, onClickMenu = {
             subScope.launch {
                 drawerState.open()
             }
@@ -180,7 +203,13 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
         })
 
         HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
-            TabInSide(tabList[page], { SubOfTab(page, navigator) })
+            if (page !in loadedPages) {
+                loadedPages.add(page)
+                cachedPages[page] = pages[page]
+            }
+            saveableStateHolder.SaveableStateProvider(key = "page$page") {
+                cachedPages[page]?.invoke()        //页面渲染
+            }
         }
     }
 }

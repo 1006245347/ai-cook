@@ -13,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -37,6 +39,7 @@ fun ChatScreen(navigator: Navigator) {
     val subScope = rememberCoroutineScope()
     val chatVm = koinViewModel(ChatVm::class)
     val uiObs by chatVm.uiObs.collectAsState()
+
 
     val sessionId = "ss"
     LaunchedEffect(sessionId) {
@@ -78,6 +81,8 @@ fun ChatScreenContent(
     val focusManager = LocalFocusManager.current
     //桌面端无列表时输入框居中，其他在底下
     val isMiddle = messages.isEmpty() && onlyDesktop()
+    //页面切换回来保持输入内容  inputTxt
+    val inputCache = rememberSaveable{ mutableStateOf("") }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -85,10 +90,8 @@ fun ChatScreenContent(
         }
     }
 
-    Column(
-        Modifier.fillMaxSize(),
-        verticalArrangement = if (isMiddle) Arrangement.Center else
-            Arrangement.Top,
+    Column(Modifier.fillMaxSize(),
+        verticalArrangement = if (isMiddle) Arrangement.Center else Arrangement.Top,
         horizontalAlignment = if (isMiddle) Alignment.CenterHorizontally else Alignment.Start
     ) {
         LazyColumn(
@@ -107,7 +110,6 @@ fun ChatScreenContent(
             }
 
             item { Spacer(Modifier.height(dp10())) }
-
         }
 
 

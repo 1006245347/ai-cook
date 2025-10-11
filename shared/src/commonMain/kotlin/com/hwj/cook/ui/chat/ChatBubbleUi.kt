@@ -36,7 +36,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.dp6
-
+/**
+ * @author by jason-何伟杰，2025/10/10
+ * des:对话页面的消息体UI
+ */
 @Composable
 fun UserMessageBubble(text: String) {
     Row(

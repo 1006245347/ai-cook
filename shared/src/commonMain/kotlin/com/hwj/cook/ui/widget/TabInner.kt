@@ -13,7 +13,6 @@ fun TabInSide(tab: TabCell, content: @Composable () -> Unit) {
     content()
 }
 
-
 @Composable
 fun SubOfTab(index: Int, globalNavigator: Navigator) {
     if (index == 0) {

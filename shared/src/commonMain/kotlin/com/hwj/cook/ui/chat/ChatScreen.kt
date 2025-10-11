@@ -15,12 +15,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.global.dp10
+import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.ui.viewmodel.ChatVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
@@ -74,6 +76,8 @@ fun ChatScreenContent(
     val listState = rememberLazyListState()
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    //桌面端无列表时输入框居中，其他在底下
+    val isMiddle = messages.isEmpty() && onlyDesktop()
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -81,7 +85,12 @@ fun ChatScreenContent(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier.fillMaxSize(),
+        verticalArrangement = if (isMiddle) Arrangement.Center else
+            Arrangement.Top,
+        horizontalAlignment = if (isMiddle) Alignment.CenterHorizontally else Alignment.Start
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 3.dp),
             state = listState, verticalArrangement = Arrangement.spacedBy(3.dp)
@@ -100,6 +109,8 @@ fun ChatScreenContent(
             item { Spacer(Modifier.height(dp10())) }
 
         }
+
+
         if (isChatEnded) {
             RestartButton(onRestartClicked)
         } else {

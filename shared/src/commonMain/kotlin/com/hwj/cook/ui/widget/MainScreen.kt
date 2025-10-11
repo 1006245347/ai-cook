@@ -171,7 +171,7 @@ fun MainScreen(navigator: Navigator) {
 private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerState: PagerState) {
     val subScope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
-        AppBar(onClickMenu = {
+        AppBar(pagerState,onClickMenu = {
             subScope.launch {
                 drawerState.open()
             }
@@ -201,7 +201,7 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                         text = tab.label,
                         fontSize = fontSize.sp,
                         fontWeight = fontWeight,
-                        color = if (selected) cLowOrange() else Color.Gray
+                        color = if (selected) PrimaryColor else Color.Gray
                     )
                 },
                 icon = {
@@ -210,11 +210,11 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                         imageVector = Icons.Default.Cookie,
                         contentDescription = tab.label,
                         modifier = Modifier.size(size),
-                        tint = if (selected) cLowOrange() else Color.Gray
+                        tint = if (selected) cWhite() else Color.Gray
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = cLowOrange(),
+                    indicatorColor = MaterialTheme.colorScheme.primary,
                     selectedIconColor = cWhite(),
                     selectedTextColor = cAutoTxt(true),
                     unselectedIconColor = Color.Gray,

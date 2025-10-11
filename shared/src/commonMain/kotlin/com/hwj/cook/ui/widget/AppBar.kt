@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -34,12 +36,13 @@ import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.urlToAvatarGPT
+import com.hwj.cook.global.urlToImageAuthor
 import com.hwj.cook.ui.viewmodel.MainVm
 import moe.tlaster.precompose.koin.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBar(onClickMenu: () -> Unit, onNewChat: () -> Unit) {
+fun AppBar(pagerState: PagerState, onClickMenu: () -> Unit, onNewChat: () -> Unit) {
     val mainVm = koinViewModel(MainVm::class)
     CenterAlignedTopAppBar(
         title = {
@@ -89,15 +92,16 @@ fun AppBar(onClickMenu: () -> Unit, onNewChat: () -> Unit) {
             titleContentColor = PrimaryColor,
         ),
         actions = {
-            ToolTipCase(tip = "新建会话", content = {
-                IconButton(onClick = { onNewChat() }) {
-                    Icon(
-                        imageVector = Icons.Default.MapsUgc,
-                        contentDescription = "新建会话", tint = PrimaryColor,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                }
-            })
+            if (pagerState.currentPage != pagerState.pageCount - 1)
+                ToolTipCase(tip = "新建会话", content = {
+                    IconButton(onClick = { onNewChat() }) {
+                        Icon(
+                            imageVector = Icons.Default.MapsUgc,
+                            contentDescription = "新建会话", tint = PrimaryColor,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    }
+                })
         }
     )
 }

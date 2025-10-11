@@ -37,7 +37,10 @@ fun cBlack333333() = Color(0xFF333333)
 fun cBlue1A629DE8() = Color(0x1A629DE8) //1A629DE8
 fun cBlueE658B2F6() = Color(0xE658B2F6)
 fun cBlueFFF7FAFE() = Color(0xFFF7FAFE)
+
+//去androidApp那里/res/values/colors.xml预览资源颜色
 fun cDeepLine() = Color(0xFF3B3C3D)
+fun cLightLine()= Color(0xA8AAAFFF)
 
 @Composable
 fun cAutoBg() = MaterialTheme.colorScheme.background

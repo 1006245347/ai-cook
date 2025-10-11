@@ -26,6 +26,7 @@ class CookVm : ViewModel() {
     private var lastTime = 0L
 
     fun initialize() {
+        printLog("doInit?")
         processIntent(AppIntent.BookLoadIntent)
     }
 

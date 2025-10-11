@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cDeepLine
+import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.loadingTip
 import com.hwj.cook.global.onlyDesktop
@@ -69,7 +70,7 @@ fun CookScreen(navigator: Navigator) {
                 Text(bookRootState.error!!)
             } else {
                 bookRootState.data?.let { root ->
-                    LazyColumn {
+                    LazyColumn (Modifier.padding(horizontal = 8.dp)){
                         //第一层只有一个文件夹，直接拿它的子类
                         root.children.forEach { cell->
                             item{
@@ -112,9 +113,9 @@ fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: B
                 Text("\uD83D\uDCD6")
             }
             Spacer(Modifier.width(8.dp))
-            Text(node.name, fontSize = 15.sp, color = cAutoTxt(isDark))
+            Text(node.name, fontSize = 17.sp, color = cAutoTxt(isDark))
         }
-        HorizontalDivider(thickness = 1.dp, color = cDeepLine())
+        HorizontalDivider(thickness = 1.dp, color = cLightLine())
         if (expanded && node.isDirectory) {
             node.children.forEach { child ->
                 BookNodeView(navigator, child, level + 1, isDark)

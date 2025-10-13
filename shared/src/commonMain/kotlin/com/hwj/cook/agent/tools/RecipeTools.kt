@@ -1,4 +1,4 @@
-package com.hwj.cook.agent
+package com.hwj.cook.agent.tools
 
 import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolResult
@@ -20,9 +20,9 @@ object RecipeTools {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.toTextSerializer<Result>()
+            get() = ToolResultUtils.Companion.toTextSerializer<Result>()
         override val description: String
-            get() = "查询菜谱内容"
+            get() = "查询菜谱内容的工具"
 
         @OptIn(ExperimentalTime::class)
         override suspend fun execute(args: Args): Result {
@@ -48,9 +48,9 @@ object RecipeTools {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.toTextSerializer<Result>()
+            get() = ToolResultUtils.Companion.toTextSerializer<Result>()
         override val description: String
-            get() = "获取口味偏好"
+            get() = "获取口味偏好的工具"
 
         override suspend fun execute(args: Args): Result {
             return Result(args.userFlavor) //这里要加？？

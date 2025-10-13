@@ -27,6 +27,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        //不行
+//        buildConfigField("String","API_KEY","\"${System.getenv("API_KEY") ?: project.findProperty("API_KEY")}\"")
+
     }
     buildFeatures {
         compose = true
@@ -40,7 +43,6 @@ android {
         getByName("release") {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
-
         }
     }
     compileOptions {

@@ -17,12 +17,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.getPermissionManager
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -39,7 +41,11 @@ fun ChatScreen(navigator: Navigator) {
     val subScope = rememberCoroutineScope()
     val chatVm = koinViewModel(ChatVm::class)
     val uiObs by chatVm.uiObs.collectAsState()
+    var showPermissionDialog  by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit){
+        
+    }
 
     val sessionId = "ss"
     LaunchedEffect(sessionId) {
@@ -57,7 +63,7 @@ fun ChatScreen(navigator: Navigator) {
         isChatEnded = uiObs.isChatEnded,
         onInputTxtChanged = chatVm::updateInputText,
         onSendClicked = chatVm::sendMessage,
-        onRestartClicked = chatVm::restartChat,
+        onRestartClicked = chatVm::restartRun,
         onNavigateBack = {
 //        navigator.goBack()
         })

@@ -1,5 +1,13 @@
 package com.hwj.cook
 
+import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.agents.memory.providers.LocalFileMemoryProvider
+import ai.koog.agents.memory.providers.LocalMemoryConfig
+import ai.koog.agents.memory.storage.Aes256GCMEncryptor
+import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.rag.base.files.JVMFileSystemProvider
+import android.app.ActivityManager
+import android.content.Context
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
@@ -12,6 +20,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
+import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
@@ -22,6 +31,7 @@ import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
+import com.hwj.cook.models.DeviceInfoCell
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
@@ -30,6 +40,7 @@ import dev.icerock.moko.permissions.storage.STORAGE
 import dev.icerock.moko.permissions.storage.WRITE_STORAGE
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readString
+import io.github.vinceglb.filekit.utils.toPath
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -41,9 +52,11 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import okio.Path.Companion.toPath
 import java.io.File
 import java.io.InputStream
 import java.util.zip.ZipInputStream
+import kotlin.io.path.Path
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
@@ -202,4 +215,34 @@ actual fun listResourceFiles(path: String): BookNode? {
 
 actual fun readResourceFile(path: String): String? {
     return File(path).readText()
+}
+
+actual fun createFileMemoryProvider(scopeId: String): AgentMemoryProvider {
+    return LocalFileMemoryProvider(
+        config = LocalMemoryConfig("memory-cache/$scopeId"),
+        storage = EncryptedStorage(
+            fs = JVMFileSystemProvider.ReadWrite,
+            encryption = Aes256GCMEncryptor("7UL8fsTqQDq9siUZgYO3bLGqwMGXQL4vKMWMscKB7Cw=")
+        ),
+        fs = JVMFileSystemProvider.ReadWrite,
+        root= Path(createRootDir())
+    )
+}
+
+actual fun getDeviceInfo(): DeviceInfoCell{
+    val am = MainApplication.appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    val memInfo = ActivityManager.MemoryInfo().apply { am.getMemoryInfo(this) }
+
+    val cpuArch = System.getProperty("os.arch")
+    val cores = Runtime.getRuntime().availableProcessors()
+
+    return DeviceInfoCell(
+        cpuCores = cores,
+        cpuArch = cpuArch,
+        totalMemoryMB = memInfo.totalMem / (1024 * 1024),
+        brand = Build.BRAND,
+        model = Build.MODEL,
+        osVersion = "Android ${Build.VERSION.RELEASE}",
+        platform = "Android"
+    )
 }

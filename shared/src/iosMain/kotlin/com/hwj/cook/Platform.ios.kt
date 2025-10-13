@@ -1,14 +1,23 @@
 package com.hwj.cook
 
+import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.agents.memory.providers.LocalFileMemoryProvider
+import ai.koog.agents.memory.providers.LocalMemoryConfig
+import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.agents.memory.storage.SimpleStorage
 import platform.Foundation.stringWithUTF8String
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.ai.global.askPermission
+import com.hwj.cook.agent.IOSFileMemoryProvider
+import com.hwj.cook.agent.IOSFileSystemProvider
+import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.models.BookNode
+import com.hwj.cook.models.DeviceInfoCell
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
@@ -23,6 +32,8 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.memScoped
+import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
@@ -103,7 +114,7 @@ actual fun createPermission(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun loadZipRes():String?  {
+actual fun loadZipRes(): String? {
     val dir = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory,
         NSUserDomainMask, true
@@ -120,8 +131,8 @@ actual fun loadZipRes():String?  {
 }
 
 fun unzipResource(zipFilePath: String, targetDir: String) {
-  //实现ios压缩功能
-    }
+    //实现ios压缩功能
+}
 
 //判断目录是否是文件夹
 @OptIn(ExperimentalForeignApi::class)
@@ -166,4 +177,42 @@ actual fun readResourceFile(path: String): String? {
         encoding = NSUTF8StringEncoding,
         error = null
     ) as String
+}
+
+actual fun createFileMemoryProvider(scopeId: String): AgentMemoryProvider {
+    return IOSFileMemoryProvider(
+        config = LocalMemoryConfig("memory-cache/$scopeId"),
+        storage = SimpleStorage(IOSFileSystemProvider.ReadWrite),
+        fs = IOSFileSystemProvider.ReadWrite,
+        root = createRootDir()
+    )
+}
+
+actual fun getDeviceInfo(): DeviceInfoCell {
+
+    private fun getCpuArchitecture(): String? {
+        memScoped {
+            val size = alloc<size_tVar>()
+            sysctlbyname("hw.machine", null, size.ptr, null, 0)
+            val buffer = allocArray<ByteVar>(size.value.toInt())
+            sysctlbyname("hw.machine", buffer, size.ptr, null, 0)
+            return buffer.toKString()
+        }
+    }
+    val device = UIDevice.currentDevice
+    val processInfo = NSProcessInfo.processInfo
+
+    val cpuCores = processInfo.processorCount.toInt()
+    val cpuArch = getCpuArchitecture()
+    val totalMemoryMB = processInfo.physicalMemory / (1024 * 1024)
+
+    return DeviceInfoCell(
+        cpuCores = cpuCores,
+        cpuArch = cpuArch,
+        totalMemoryMB = totalMemoryMB,
+        brand = "Apple",
+        model = device.model,
+        osVersion = "${device.systemName} ${device.systemVersion}",
+        platform = "iOS"
+    )
 }

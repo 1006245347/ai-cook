@@ -2,9 +2,9 @@ package com.hwj.cook.ui.viewmodel
 
 import ai.koog.agents.utils.use
 import com.hwj.cook.agent.AICookAgentProvider
-import com.hwj.cook.agent.AgentUiState
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.data.repository.GlobalRepository
+import com.hwj.cook.models.AgentUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -127,7 +127,7 @@ class ChatVm(
         }
     }
 
-    fun restartChat() {
+    fun restartRun() {
         _uiState.update {
             AgentUiState(
                 title = agentProvider?.title,

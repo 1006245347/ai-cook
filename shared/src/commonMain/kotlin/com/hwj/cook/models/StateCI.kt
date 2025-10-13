@@ -1,5 +1,7 @@
 package com.hwj.cook.models
 
+import com.hwj.cook.agent.ChatMsg
+
 /**
  * @author by jason-何伟杰，2025/9/18
  * des: 把所有状态声明放这里
@@ -14,6 +16,24 @@ data class BookConfigState(
     val isLoading: Boolean = false,
     val data: BookNode? = null,
     val error: String? = null
+)
+
+data class AgentUiState(
+    val title: String? = "Agent",
+    val messages: List<ChatMsg> = listOf(ChatMsg.SystemMsg("Hi, I'm an agent that can help you")),
+    val inputTxt: String = "",
+    val isInputEnabled: Boolean = true,
+    val isLoading: Boolean = false,
+    val isChatEnded: Boolean = false,
+
+    // For handling user responses when agent asks a question
+    val userResponseRequested: Boolean = false,
+    val currentUserResponse: String? = null
+)
+
+data class MemoryUiState(
+    val inputTxt: String = "", val isInputEnabled: Boolean = true,
+    val isLoading: Boolean = false, val isInputEnded: Boolean = false
 )
 
 //AVI 意图区别，项目小，为了方便只分两大类UI、Data.

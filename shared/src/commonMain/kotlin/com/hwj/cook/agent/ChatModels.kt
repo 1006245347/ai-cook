@@ -28,17 +28,3 @@ sealed class ChatMsg {
     data class ToolCallMsg(val txt: String?) : ChatMsg()
     data class ResultMsg(val txt: String) : ChatMsg()
 }
-
-
-data class AgentUiState(
-    val title: String? = "Agent",
-    val messages: List<ChatMsg> = listOf(ChatMsg.SystemMsg("Hi, I'm an agent that can help you")),
-    val inputTxt: String = "",
-    val isInputEnabled: Boolean = true,
-    val isLoading: Boolean = false,
-    val isChatEnded: Boolean = false,
-
-    // For handling user responses when agent asks a question
-    val userResponseRequested: Boolean = false,
-    val currentUserResponse: String? = null
-)

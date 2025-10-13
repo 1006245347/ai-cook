@@ -1,6 +1,7 @@
 package com.hwj.cook.ui.viewmodel
 
 import androidx.compose.runtime.snapshotFlow
+import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.except.NetworkObserver
 import com.hwj.cook.global.CODE_IS_DARK
@@ -41,7 +42,7 @@ class MainVm(private val globalRepo: GlobalRepository, networkObserver: NetworkO
 
     fun initialize() {
         viewModelScope.launch {
-
+            createRootDir()
         }
     }
 

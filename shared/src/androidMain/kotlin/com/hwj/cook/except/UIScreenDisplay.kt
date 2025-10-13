@@ -72,3 +72,4 @@ actual fun switchUrlByBrowser(url: String) {
         LocalContext.current.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
     }
 }
+

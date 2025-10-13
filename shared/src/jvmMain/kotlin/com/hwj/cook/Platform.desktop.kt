@@ -1,13 +1,22 @@
 package  com.hwj.cook
 
+import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.agents.memory.providers.LocalFileMemoryProvider
+import ai.koog.agents.memory.providers.LocalMemoryConfig
+import ai.koog.agents.memory.storage.Aes256GCMEncryptor
+import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.rag.base.files.JVMFileSystemProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
+import com.hwj.cook.models.DeviceInfoCell
+import com.sun.management.OperatingSystemMXBean
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -18,9 +27,9 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.InputStream
-import java.nio.charset.Charset
-import java.util.zip.ZipFile
+import java.lang.management.ManagementFactory
 import java.util.zip.ZipInputStream
+import kotlin.io.path.Path
 
 class DesktopPlatform : Platform {
     override val name: String
@@ -151,4 +160,30 @@ actual fun listResourceFiles(path: String): BookNode? {
 //读取打包在应用内部的文档
 actual fun readResourceFile(path: String): String? {
     return File(path).readText()
+}
+
+actual fun createFileMemoryProvider(scopeId: String): AgentMemoryProvider {
+    return LocalFileMemoryProvider(
+        config = LocalMemoryConfig("memory-cache/$scopeId"),
+        storage = EncryptedStorage(
+            fs = JVMFileSystemProvider.ReadWrite,
+            encryption = Aes256GCMEncryptor("7UL8fsTqQDq9siUZgYO3bLGqwMGXQL4vKMWMscKB7Cw=")
+        ),
+        fs = JVMFileSystemProvider.ReadWrite,
+        root= Path(createRootDir())
+    )
+}
+
+actual fun getDeviceInfo(): DeviceInfoCell {
+    getPlatform().name
+    val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
+    return DeviceInfoCell(
+        cpuCores = osBean.availableProcessors,
+        cpuArch = System.getProperty("os.arch"),
+        totalMemoryMB = osBean.totalPhysicalMemorySize / (1024 * 1024),
+        brand = System.getProperty("os.name"),
+        model = System.getProperty("user.name"),
+        osVersion = System.getProperty("os.version"),
+        platform = getPlatform().os.name
+    )
 }

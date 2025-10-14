@@ -6,10 +6,12 @@ import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
 import ai.koog.rag.base.files.JVMFileSystemProvider
+import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentActivity
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
@@ -30,8 +33,10 @@ import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
+import com.hwj.cook.global.purePermission
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.permissionx.guolindev.PermissionX
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
@@ -140,19 +145,53 @@ actual fun setColorScheme(isDark: Boolean): ColorScheme {
 
 @Composable
 actual fun createPermission(
-    permission: PermissionPlatform,
+    vararg permissions: Any, //PermissionPlatform
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 ) {
-    val p = when (permission) {
-        PermissionPlatform.CAMERA -> Permission.CAMERA
-        PermissionPlatform.GALLERY -> Permission.GALLERY
-        PermissionPlatform.STORAGE -> Permission.STORAGE
-        PermissionPlatform.WRITE_STORAGE -> Permission.WRITE_STORAGE
-        PermissionPlatform.REMOTE_NOTIFICATION -> Permission.REMOTE_NOTIFICATION
-        else -> Permission.STORAGE
+    val requestList = mutableListOf<String>()
+    permissions.forEach { permission ->
+        val p = when (permission) {
+            PermissionPlatform.CAMERA -> Manifest.permission.CAMERA
+            PermissionPlatform.GALLERY -> Permission.GALLERY
+            PermissionPlatform.STORAGE -> Permission.STORAGE
+            PermissionPlatform.REMOTE_NOTIFICATION -> Permission.REMOTE_NOTIFICATION
+            else -> Permission.STORAGE
+        }
+        if (permission == PermissionPlatform.GALLERY) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestList.add(Manifest.permission.READ_MEDIA_IMAGES)
+                requestList.add(Manifest.permission.READ_MEDIA_VIDEO)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requestList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            } else {
+                requestList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                requestList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        } else if (permission == PermissionPlatform.STORAGE) { //包含读写
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { //android10分区存储，无法访问其他应用文件夹
+                requestList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            } else {
+                requestList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                requestList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        } else {
+            requestList.add(p.toString())
+        }
     }
-    askPermission(p, grantedAction, deniedAction)
+//    askPermission(p, grantedAction, deniedAction) //也能用，但是喜欢原生
+    PermissionX.init(LocalActivity.current as FragmentActivity)
+        .permissions(requestList)
+        .onExplainRequestReason { scope, deniedList ->
+            val tip = "应用需要以下权限:"
+            scope.showRequestReasonDialog(deniedList, tip, "ok", "cancel")
+        }.request { allGranted, grantedList, deniedList ->
+            if (allGranted) {
+                grantedAction()
+            } else {
+                deniedAction()
+            }
+        }
 }
 
 actual fun loadZipRes(): String? {
@@ -225,12 +264,13 @@ actual fun createFileMemoryProvider(scopeId: String): AgentMemoryProvider {
             encryption = Aes256GCMEncryptor("7UL8fsTqQDq9siUZgYO3bLGqwMGXQL4vKMWMscKB7Cw=")
         ),
         fs = JVMFileSystemProvider.ReadWrite,
-        root= Path(createRootDir())
+        root = Path(createRootDir())
     )
 }
 
-actual fun getDeviceInfo(): DeviceInfoCell{
-    val am = MainApplication.appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+actual fun getDeviceInfo(): DeviceInfoCell {
+    val am =
+        MainApplication.appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     val memInfo = ActivityManager.MemoryInfo().apply { am.getMemoryInfo(this) }
 
     val cpuArch = System.getProperty("os.arch")

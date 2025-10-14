@@ -4,7 +4,6 @@ enum class PermissionPlatform {
     CAMERA,
     GALLERY,
     STORAGE,
-    WRITE_STORAGE,
     LOCATION,
     COARSE_LOCATION,
     BACKGROUND_LOCATION,

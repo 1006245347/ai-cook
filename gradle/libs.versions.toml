@@ -19,7 +19,7 @@ stately = "2.0.6"
 ktor = "3.2.3"
 uuid = "0.8.4"
 settings = "1.3.0"
-mokopermission = "0.19.1"
+mokopermission = "0.20.1"
 perference = "1.2.0"
 permissionX = "1.8.0"
 coil3 = "3.1.0"
@@ -117,7 +117,7 @@ koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 stately-common = { module = "co.touchlab:stately-common", version.ref = "stately" }
 
 
-#权限申请，兼容Android
+#权限申请，兼容Android 还有蓝牙、audio等没引入
 mokopermission = { module = "dev.icerock.moko:permissions", version.ref = "mokopermission" }
 mokopermission-compose = { module = "dev.icerock.moko:permissions-compose", version.ref = "mokopermission" }
 mokopermission-camera = { module = "dev.icerock.moko:permissions-camera", version.ref = "mokopermission" }

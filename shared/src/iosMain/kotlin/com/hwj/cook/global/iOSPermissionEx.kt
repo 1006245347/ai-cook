@@ -1,4 +1,4 @@
-package com.hwj.ai.global
+package com.hwj.cook.global
 
 import androidx.compose.runtime.Composable
 import dev.icerock.moko.permissions.Permission
@@ -16,7 +16,6 @@ private fun AskPer(permission: Permission, grantedAction: () -> Unit,deniedActio
         permissionsController = PermissionsController(),
         permission = permission
     )
-    viewModel.onRequest (permission,grantedAction={grantedAction()},deniedAction={
-        deniedAction()
-    })
+    viewModel.onRequest (permission,grantedAction={grantedAction()},
+        deniedAction={ deniedAction() })
 }

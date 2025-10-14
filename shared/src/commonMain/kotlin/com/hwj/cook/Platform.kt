@@ -22,13 +22,12 @@ expect fun createKtorHttpClient(timeout: Long?): HttpClient
 @Composable
 expect fun setColorScheme(isDark: Boolean): ColorScheme
 
-
 expect fun checkSystem(): OsStatus
 
 //手机权限
 @Composable
 expect fun createPermission(
-    permission: PermissionPlatform,
+    vararg permissions: Any,
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 )
@@ -40,7 +39,6 @@ expect fun loadZipRes(): String?
 expect fun createFileMemoryProvider(scopeId: String=""): AgentMemoryProvider
 expect fun getDeviceInfo(): DeviceInfoCell
 
-fun getPermissionManager(){}
 
 
 

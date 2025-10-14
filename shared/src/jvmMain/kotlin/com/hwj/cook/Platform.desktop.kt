@@ -62,7 +62,7 @@ actual fun setColorScheme(isDark: Boolean): ColorScheme {
 
 @Composable
 actual fun createPermission(
-    permission: PermissionPlatform,
+    vararg permissions: Any,
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 ) {

@@ -1,14 +1,11 @@
 package com.hwj.cook
 
 import ai.koog.agents.memory.providers.AgentMemoryProvider
-import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
-import ai.koog.agents.memory.storage.EncryptedStorage
 import ai.koog.agents.memory.storage.SimpleStorage
-import platform.Foundation.stringWithUTF8String
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import com.hwj.ai.global.askPermission
+import com.hwj.cook.global.askPermission
 import com.hwj.cook.agent.IOSFileMemoryProvider
 import com.hwj.cook.agent.IOSFileSystemProvider
 import com.hwj.cook.agent.createRootDir
@@ -22,7 +19,6 @@ import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
 import dev.icerock.moko.permissions.storage.STORAGE
-import dev.icerock.moko.permissions.storage.WRITE_STORAGE
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
@@ -33,7 +29,6 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
-import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
@@ -99,7 +94,7 @@ actual fun setColorScheme(isDark: Boolean): ColorScheme {
 
 @Composable
 actual fun createPermission(
-    permission: PermissionPlatform,
+    vararg permissions: Any,
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 ) {
@@ -107,7 +102,6 @@ actual fun createPermission(
         PermissionPlatform.CAMERA -> Permission.CAMERA
         PermissionPlatform.GALLERY -> Permission.GALLERY
         PermissionPlatform.STORAGE -> Permission.STORAGE
-        PermissionPlatform.WRITE_STORAGE -> Permission.WRITE_STORAGE
         else -> Permission.STORAGE
     }
     askPermission(p, grantedAction, deniedAction)

@@ -1,4 +1,4 @@
-package com.hwj.ai.global
+package com.hwj.cook.global
 
 import dev.icerock.moko.mvvm.dispatcher.EventsDispatcher
 import dev.icerock.moko.mvvm.dispatcher.EventsDispatcherOwner

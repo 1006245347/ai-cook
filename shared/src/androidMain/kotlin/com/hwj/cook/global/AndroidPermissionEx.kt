@@ -82,7 +82,6 @@ private fun AskPer(
 //        }
 //    }
 
-//    viewModel.
     viewModel.onRequestPermissionButtonPressed() //触发请求
 }
 
@@ -108,17 +107,19 @@ fun purePermission() {
     requestList.add(Manifest.permission.READ_MEDIA_IMAGES)
     requestList.add(Manifest.permission.READ_MEDIA_VIDEO)
 
-    //Activity的类型转变不兼容，尴尬
-    PermissionX.init(LocalActivity.current as FragmentActivity)
-        .permissions(requestList)
-        .onExplainRequestReason { scope, deniedList ->
-            val msg = "同意以下权限使用："
-            scope.showRequestReasonDialog(deniedList, msg, "同意", "取消")
-        }.request { allGranted, grantedList, deniedList ->
-            if (allGranted) { //重新回调
-                printD("同意》")
-            } else {
-                printD("warning>")
+    (LocalActivity.current as? FragmentActivity)?.let {
+        //Activity的类型转变不兼容，尴尬
+        PermissionX.init(it)
+            .permissions(requestList)
+            .onExplainRequestReason { scope, deniedList ->
+                val msg = "同意以下权限使用："
+                scope.showRequestReasonDialog(deniedList, msg, "同意", "取消")
+            }.request { allGranted, grantedList, deniedList ->
+                if (allGranted) { //重新回调
+                    printD("同意》")
+                } else {
+                    printD("warning>")
+                }
             }
-        }
+    }
 }

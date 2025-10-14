@@ -24,7 +24,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
-import com.hwj.cook.getPermissionManager
+import com.hwj.cook.createPermission
+import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -41,10 +42,9 @@ fun ChatScreen(navigator: Navigator) {
     val subScope = rememberCoroutineScope()
     val chatVm = koinViewModel(ChatVm::class)
     val uiObs by chatVm.uiObs.collectAsState()
-    var showPermissionDialog  by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit){
-        
+    LaunchedEffect(Unit) {
     }
 
     val sessionId = "ss"
@@ -67,6 +67,14 @@ fun ChatScreen(navigator: Navigator) {
         onNavigateBack = {
 //        navigator.goBack()
         })
+
+    if (!showPermissionDialog) {
+        createPermission(PermissionPlatform.STORAGE, grantedAction = {
+            showPermissionDialog = false
+        }, deniedAction = {
+            showPermissionDialog = false
+        })
+    }
 }
 
 @Composable
@@ -88,7 +96,7 @@ fun ChatScreenContent(
     //桌面端无列表时输入框居中，其他在底下
     val isMiddle = messages.isEmpty() && onlyDesktop()
     //页面切换回来保持输入内容  inputTxt
-    val inputCache = rememberSaveable{ mutableStateOf("") }
+    val inputCache = rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -96,7 +104,8 @@ fun ChatScreenContent(
         }
     }
 
-    Column(Modifier.fillMaxSize(),
+    Column(
+        Modifier.fillMaxSize(),
         verticalArrangement = if (isMiddle) Arrangement.Center else Arrangement.Top,
         horizontalAlignment = if (isMiddle) Alignment.CenterHorizontally else Alignment.Start
     ) {
@@ -117,7 +126,6 @@ fun ChatScreenContent(
 
             item { Spacer(Modifier.height(dp10())) }
         }
-
 
         if (isChatEnded) {
             RestartButton(onRestartClicked)

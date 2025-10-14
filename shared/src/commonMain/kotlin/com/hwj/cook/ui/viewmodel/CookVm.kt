@@ -1,13 +1,9 @@
 package com.hwj.cook.ui.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateSetOf
 import com.hwj.cook.data.local.ResParse
 import com.hwj.cook.global.getMills
-import com.hwj.cook.global.printLog
 import com.hwj.cook.models.AppIntent
 import com.hwj.cook.models.BookConfigState
-import com.hwj.cook.models.BookNode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -29,12 +25,10 @@ class CookVm : ViewModel() {
     private var lastTime = 0L
 
     //记录展开的节点
-//    private val _expendNodeState = mutableStateSetOf<String>()
-    private val _expendNodeState =  MutableStateFlow<Set<String>>(emptySet())
-    val expendNodeObs = _expendNodeState.asStateFlow()
+    private val _expendNodeObs = MutableStateFlow<Set<String>>(emptySet())
+    val expendNodeState = _expendNodeObs.asStateFlow()
 
     fun initialize() {
-        printLog("doInit?")
         processIntent(AppIntent.BookLoadIntent)
     }
 
@@ -66,29 +60,12 @@ class CookVm : ViewModel() {
     }
 
     fun toggleExpand(nodePath: String) {
-//        if (expanded) {
-//            _expendNodeState.add(nodePath)
-//        } else {
-//            _expendNodeState.remove(nodePath)
-//        }
-        _expendNodeState.update {  current->
-            if (nodePath in current) current -nodePath else current+nodePath
+        _expendNodeObs.update { current ->
+            if (nodePath in current) current - nodePath else current + nodePath
         }
     }
 
     fun isExpanded(nodePath: String): Boolean {
-        return nodePath in _expendNodeState.value
+        return nodePath in _expendNodeObs.value
     }
-
-    //true-展开
-//    fun getNodeStatus(nodePath: String): Boolean {
-//        for (n in _expendNodeState) {
-//            if (n == nodePath) {
-//                return true
-//            }
-//        }
-//        return false
-//    }
-
-
 }

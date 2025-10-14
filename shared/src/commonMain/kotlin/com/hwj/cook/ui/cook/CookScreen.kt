@@ -10,16 +10,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,7 +30,6 @@ import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.loadingTip
 import com.hwj.cook.global.onlyDesktop
-import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.ui.viewmodel.CookVm
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -50,7 +48,7 @@ fun CookScreen(navigator: Navigator) {
     val isDark = mainVm.darkState.collectAsState().value
     val bookRootState by cookVm.bookRootState.collectAsState()
     var initialized by rememberSaveable { mutableStateOf(false) }
-    val expendNodeList by cookVm.expendNodeObs.collectAsState()
+    val expendNodeList by cookVm.expendNodeState.collectAsState()
 
     //保证重组也执行一次初始化
     LaunchedEffect(initialized) {

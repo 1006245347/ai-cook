@@ -93,7 +93,10 @@ fun TechScreenContent(
     val listState = rememberLazyListState()
     val focusRequester = remember { FocusRequester() }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = "Edit content for agent memory",
                 fontSize = 20.sp,
@@ -150,10 +153,12 @@ fun TechScreenContent(
                 }
             }
             //大模型结果
-            LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
-                state= listState, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
+                state = listState, verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 item {
-                    Text(text="", fontSize =13.sp,color=cAutoTxt(isDark))
+                    Text(text = "", fontSize = 11.sp, color = cAutoTxt(isDark))
                 }
             }
         }

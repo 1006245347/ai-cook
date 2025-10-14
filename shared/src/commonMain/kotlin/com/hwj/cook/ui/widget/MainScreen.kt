@@ -17,7 +17,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Cookie
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Pending
+import androidx.compose.material.icons.filled.PhoneInTalk
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -234,7 +239,7 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                 icon = {
                     val size by animateDpAsState(if (selected) 28.dp else 23.dp)
                     Icon(
-                        imageVector = Icons.Default.Cookie,
+                        imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
                         contentDescription = tab.label,
                         modifier = Modifier.size(size),
                         tint = if (selected) cWhite() else Color.Gray

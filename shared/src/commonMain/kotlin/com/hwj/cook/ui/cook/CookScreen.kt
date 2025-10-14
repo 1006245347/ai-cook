@@ -1,6 +1,5 @@
 package com.hwj.cook.ui.cook
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -30,9 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.cAutoTxt
-import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.cLightLine
-import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.loadingTip
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.printLog
@@ -42,7 +38,6 @@ import com.hwj.cook.ui.viewmodel.MainVm
 import io.ktor.http.encodeURLQueryComponent
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * @author by jason-何伟杰，2025/9/28
@@ -55,7 +50,7 @@ fun CookScreen(navigator: Navigator) {
     val isDark = mainVm.darkState.collectAsState().value
     val bookRootState by cookVm.bookRootState.collectAsState()
     var initialized by rememberSaveable { mutableStateOf(false) }
-
+    val expendNodeList by cookVm.expendNodeObs.collectAsState()
 
     //保证重组也执行一次初始化
     LaunchedEffect(initialized) {
@@ -76,7 +71,17 @@ fun CookScreen(navigator: Navigator) {
                         //第一层只有一个文件夹，直接拿它的子类
                         root.children.forEach { cell ->
                             item {
-                                BookNodeView(navigator, cell, 0, isDark)
+                                BookNodeView(
+                                    navigator,
+                                    cell,
+                                    0,
+                                    isDark,
+                                    onStart = { path ->
+                                        path in expendNodeList
+                                    }, onToggle = { path ->
+                                        cookVm.toggleExpand(path)
+                                    }
+                                )
                             }
                         }
                     }
@@ -87,14 +92,21 @@ fun CookScreen(navigator: Navigator) {
 }
 
 @Composable
-fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: Boolean) {
-    var expanded by remember { mutableStateOf(false) }
+fun BookNodeView(
+    navigator: Navigator,
+    node: BookNode,
+    level: Int = 0,
+    isDark: Boolean,
+    onStart: (String) -> Boolean,
+    onToggle: (String) -> Unit
+) {
+    val expanded = onStart(node.realPath)
     Column {
         Row(
             modifier = Modifier.fillMaxWidth()
                 .clickable {
                     if (node.isDirectory) {
-                        expanded = !expanded
+                        onToggle(node.realPath) //将数据更新处理交给vm记录
                     } else {
                         if (node.name.contains(".md")) {
                             val argPath = node.realPath.encodeURLQueryComponent(encodeFull = true)
@@ -120,7 +132,14 @@ fun BookNodeView(navigator: Navigator, node: BookNode, level: Int = 0, isDark: B
         HorizontalDivider(thickness = 1.dp, color = cLightLine())
         if (expanded && node.isDirectory) {
             node.children.forEach { child ->
-                BookNodeView(navigator, child, level + 1, isDark)
+                BookNodeView(
+                    navigator,
+                    child,
+                    level + 1,
+                    isDark,
+                    onStart = onStart,
+                    onToggle = onToggle
+                )
             }
         }
     }

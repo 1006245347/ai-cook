@@ -231,6 +231,7 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
 
 actual fun listResourceFiles(path: String): BookNode? {
     fun makeNode(f: File): BookNode {
+//        printLog("??>${f.isDirectory} ${f.absolutePath}")
         return if (f.isDirectory) {
             BookNode(
                 name = f.name,
@@ -240,7 +241,7 @@ actual fun listResourceFiles(path: String): BookNode? {
                 }
             )
         } else {
-            BookNode(name = f.name, isDirectory = false, realPath = f.absolutePath)
+            BookNode(name = f.name, isDirectory = false, realPath = f.absolutePath) //不对，存的父文件路径?  对的
         }
     }
     try {

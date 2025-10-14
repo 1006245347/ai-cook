@@ -44,9 +44,6 @@ fun ChatScreen(navigator: Navigator) {
     val uiObs by chatVm.uiObs.collectAsState()
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-    }
-
     val sessionId = "ss"
     LaunchedEffect(sessionId) {
         subScope.launch {

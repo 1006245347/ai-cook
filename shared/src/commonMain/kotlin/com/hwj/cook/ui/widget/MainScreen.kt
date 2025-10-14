@@ -24,9 +24,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -61,7 +59,6 @@ import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.onlyMobile
-import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
 import com.hwj.cook.models.AppIntent
@@ -70,16 +67,14 @@ import com.hwj.cook.ui.cook.CookScreen
 import com.hwj.cook.ui.settings.SettingScreen
 import com.hwj.cook.ui.tech.TechScreen
 import com.hwj.cook.ui.viewmodel.MainVm
-import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.BackHandler
 import moe.tlaster.precompose.navigation.Navigator
-import org.jetbrains.compose.resources.painterResource
 
-val tabList = listOf<TabCell>(
+val tabList = listOf(
     TabCell("/main/chat", "AI", 0),
     TabCell("/main/cook", "菜谱", 1),
     TabCell("/main/tech", "知识", 2),
@@ -199,7 +194,10 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
                 drawerState.open()
             }
         }, onNewChat = {
-
+            subScope.launch {
+                if (pagerState.currentPage != 0)
+                    pagerState.scrollToPage(0)
+            }
         })
 
         HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->

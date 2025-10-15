@@ -9,6 +9,7 @@ import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.models.AppIntent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,7 @@ class MainVm(private val globalRepo: GlobalRepository, networkObserver: NetworkO
 
     fun initialize() {
         viewModelScope.launch {
+            delay(2000)
             createRootDir()
         }
     }

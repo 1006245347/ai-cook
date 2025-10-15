@@ -8,8 +8,10 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.hwj.cook.PlatformWindowStart
+import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.initKermitLog
 import di.initKoin
+import io.github.vinceglb.filekit.FileKit
 import org.koin.core.Koin
 
 
@@ -34,6 +36,7 @@ fun main() {
     initKermitLog() //这个方法是Utils.kt声明放在koin前面会报错
 
     return application {
+        FileKit.init(DATA_APPLICATION_NAME) //调用创建文件夹，要初始化
         val windowState = rememberWindowState(
             position = WindowPosition.Aligned(Alignment.Center),
             width = 700.dp,

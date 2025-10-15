@@ -33,7 +33,8 @@ data class AgentUiState(
 
 data class MemoryUiState(
     val inputTxt: String = "", val isInputEnabled: Boolean = true,
-    val isLoading: Boolean = false, val isInputEnded: Boolean = false
+    val isLoading: Boolean = false, val isInputEnded: Boolean = false,
+    val memoryOfUser: String?=null
 )
 
 //AVI 意图区别，项目小，为了方便只分两大类UI、Data.

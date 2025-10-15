@@ -45,7 +45,6 @@ import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.urlToImageAppIcon
-import com.hwj.cook.ui.viewmodel.ConversationViewModel
 import com.hwj.cook.ui.viewmodel.MainVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
@@ -163,7 +162,6 @@ private fun ColumnScope.HistoryConversations(
 ) {
     val subScope = rememberCoroutineScope()
     val mainVm = koinViewModel(MainVm::class)
-    val conversationVm = koinViewModel(ConversationViewModel::class)
     val isDark = mainVm.darkState.collectAsState().value
     val listState = rememberLazyListState()
 //    val curChatId by conversationVm.currentConversationState.collectAsState()

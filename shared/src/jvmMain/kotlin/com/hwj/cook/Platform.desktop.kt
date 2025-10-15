@@ -9,11 +9,9 @@ import ai.koog.rag.base.files.JVMFileSystemProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.agent.createRootDir
-import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
-import com.hwj.cook.global.printLog
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import com.sun.management.OperatingSystemMXBean

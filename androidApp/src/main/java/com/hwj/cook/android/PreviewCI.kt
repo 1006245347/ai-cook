@@ -5,6 +5,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.ui.chat.ChatScreenContent
+import com.hwj.cook.ui.settings.SettingsScreenContent
 import com.hwj.cook.ui.tech.TechScreenContent
 
 /**
@@ -16,7 +17,7 @@ import com.hwj.cook.ui.tech.TechScreenContent
 fun TechScreenPreview(){
     ThemeChatLite {
         TechScreenContent(isDark = false,inputTxt = "ai", isInputEnabled = true, isLoading = false,
-            isInputEnded = false,{},{})
+            isInputEnded = false,null,{},{})
     }
 }
 
@@ -68,5 +69,13 @@ fun AgentDemoScreenEndedPreview() {
             onRestartClicked = {},
             onNavigateBack = {}
         )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingScreenPreview(){
+    ThemeChatLite {
+        SettingsScreenContent(models=listOf(),isDark = false,{})
     }
 }

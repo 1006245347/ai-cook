@@ -7,15 +7,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Cookie
@@ -31,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +49,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,6 +66,7 @@ import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cDeepLine
+import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
@@ -72,6 +80,7 @@ import com.hwj.cook.ui.cook.CookScreen
 import com.hwj.cook.ui.settings.SettingScreen
 import com.hwj.cook.ui.tech.TechScreen
 import com.hwj.cook.ui.viewmodel.MainVm
+import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -99,6 +108,7 @@ data class TabCell(val route: String, val label: String, val index: Int)
 @Composable
 fun MainScreen(navigator: Navigator) {
     val mainVm = koinViewModel(MainVm::class)
+    val settingVm =koinViewModel(SettingVm::class)
     val darkTheme = remember(key1 = CODE_IS_DARK) {
         mutableStateOf(false)
     }
@@ -106,11 +116,19 @@ fun MainScreen(navigator: Navigator) {
     val pagerState = rememberPagerState(pageCount = { tabList.size }, initialPage = 0)
     var curRoute by remember { mutableStateOf(tabList.first().route) }
 
+    var initialized by rememberSaveable { mutableStateOf(false) }
+
     val subScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         subScope.launch {
             darkTheme.value = getCacheBoolean(CODE_IS_DARK)
             mainVm.processIntent(AppIntent.ThemeSetIntent)
+        }
+    }
+    LaunchedEffect(initialized){
+        if (!initialized){ //这主页初始化是为了让其他页可以选择模型数据
+            settingVm.initialize()
+            initialized=true
         }
     }
     val focusManager = LocalFocusManager.current
@@ -140,7 +158,7 @@ fun MainScreen(navigator: Navigator) {
                     }
                 }) { //Tab区域显示 , Drawer+Tab
                 Box(Modifier.fillMaxSize()) {
-                    HorizontalDivider(thickness = (0.5f).dp, color = cDeepLine())
+                    HorizontalDivider(thickness = (0.5f).dp, color = cLightLine())
 
                     if (onlyDesktop()) {
                         Row(Modifier.fillMaxSize()) {
@@ -168,6 +186,17 @@ fun MainScreen(navigator: Navigator) {
                             }
                         }
                     }
+
+                    //toast?
+                    ToastHost(  //为了全局显示toast
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 12.dp)
+                            .wrapContentWidth()
+                            .padding(bottom = 120.dp)
+                            .wrapContentHeight()
+                            .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                            .align(Alignment.BottomCenter)
+                    )
                 }
             }
         }
@@ -237,12 +266,12 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                     )
                 },
                 icon = {
-                    val size by animateDpAsState(if (selected) 28.dp else 23.dp)
+                    val size by animateDpAsState(if (selected) 24.dp else 20.dp)
                     Icon(
                         imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
                         contentDescription = tab.label,
                         modifier = Modifier.size(size),
-                        tint = if (selected) cWhite() else Color.Gray
+                        tint = if (selected) PrimaryColor else Color.Gray
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
@@ -263,19 +292,35 @@ private fun DesktopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabC
     val mainVm = koinViewModel(MainVm::class)
     val isDark = mainVm.darkState.collectAsState().value
     Column(
-        Modifier.fillMaxHeight().width(70.dp).background(cAutoBg()),
+        Modifier.fillMaxHeight().width(60.dp).background(cAutoBg()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(Modifier.height(50.dp))
         tabs.forEach { tab ->
-            Box(
-                Modifier.fillMaxWidth()
-                    .padding(8.dp)
+            val selected = current == tab.route
+            val fontSize by animateFloatAsState(if (selected) 15f else 12f)
+            val fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+            val size by animateDpAsState(if (selected) 24.dp else 20.dp)
+            Column(
+                Modifier.padding(10.dp)
+                    .fillMaxWidth()
                     .clickable { onSelect(tab) }
-                    .background(if (current == tab.route) cLowOrange() else cAutoBg())
-                    .padding(12.dp),
-                contentAlignment = Alignment.Center
+                    .padding(horizontal = 2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(tab.label, fontSize = 15.sp, color = PrimaryColor)
+                Text(
+                    text = tab.label,
+                    fontSize = fontSize.sp,
+                    fontWeight = fontWeight,
+                    color = if (selected) PrimaryColor else Color.Gray
+                )
+                Icon(
+                    imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
+                    contentDescription = tab.label,
+                    modifier = Modifier.size(size),
+                    tint = if (selected) PrimaryColor else Color.Gray
+                )
+
             }
         }
     }

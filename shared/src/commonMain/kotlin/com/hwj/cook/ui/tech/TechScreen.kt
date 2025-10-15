@@ -64,7 +64,10 @@ fun TechScreen(navigator: Navigator) {
     val uiObs by techVm.uiObs.collectAsState()
     val subScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
-        subScope.launch { techVm.createAgent() }
+        subScope.launch {
+            techVm.loadInputCache()
+            techVm.createAgent()
+        }
     }
 
     printLog("techScreen??")
@@ -74,6 +77,7 @@ fun TechScreen(navigator: Navigator) {
         isInputEnabled = uiObs.isInputEnabled,
         isLoading = uiObs.isLoading,
         isInputEnded = uiObs.isInputEnded,
+        memoryOfUser = uiObs.memoryOfUser,
         onInputTxtChanged = techVm::updateInputText,
         onSendClicked = techVm::sendFact2Memory
     )
@@ -86,6 +90,7 @@ fun TechScreenContent(
     isInputEnabled: Boolean,
     isLoading: Boolean,
     isInputEnded: Boolean,
+    memoryOfUser: String?,
     onInputTxtChanged: (String) -> Unit,
     onSendClicked: () -> Unit
 ) {
@@ -121,8 +126,7 @@ fun TechScreenContent(
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier =
-                        Modifier
-                            .size(50.dp)
+                        Modifier.size(50.dp)
                             .align(Alignment.CenterHorizontally),
                     color = Color.Yellow.copy(alpha = 0.7f),
                     strokeWidth = 8.dp,
@@ -153,12 +157,14 @@ fun TechScreenContent(
                 }
             }
             //大模型结果
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
-                state = listState, verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                item {
-                    Text(text = "", fontSize = 11.sp, color = cAutoTxt(isDark))
+            memoryOfUser?.let {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
+                    state = listState, verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    item {
+                        Text(text = it, fontSize = 11.sp, color = cAutoTxt(isDark))
+                    }
                 }
             }
         }

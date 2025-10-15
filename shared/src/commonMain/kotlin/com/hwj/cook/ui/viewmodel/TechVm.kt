@@ -3,6 +3,7 @@ package com.hwj.cook.ui.viewmodel
 import com.hwj.cook.agent.MemoryAgentProvider
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printLog
 import com.hwj.cook.models.MemoryUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +29,11 @@ class TechVm : ViewModel() {
         _uiState.update { it.copy(inputTxt = txt) }
     }
 
-    suspend fun loadInputCache():String{
-        return getCacheString(DATA_MEMORY_INPUT,"")!!
+    suspend fun loadInputCache() {
+        printLog("loadInputCache??")
+        getCacheString(DATA_MEMORY_INPUT, "")?.let {
+            updateInputText(it)
+        }
     }
 
     fun sendFact2Memory() {
@@ -48,12 +52,13 @@ class TechVm : ViewModel() {
             val agent = agentProvider?.provideAgent({}, onErrorEvent = { errorMsg ->
                 _uiState.update { it.copy(isInputEnded = true, isLoading = false) }
             }, { "" })
-            agent?.run(userInput)
+            val result = agent?.run(userInput)
             _uiState.update {
                 it.copy(
                     isInputEnabled = false,
                     isLoading = false,
-                    isInputEnded = true
+                    isInputEnded = true,
+                    memoryOfUser = result
                 )
             }
         } catch (e: Exception) {

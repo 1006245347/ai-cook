@@ -6,9 +6,9 @@ import com.hwj.cook.data.repository.ConversationRepository
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.except.DataSettings
 import com.hwj.cook.ui.viewmodel.ChatVm
-import com.hwj.cook.ui.viewmodel.ConversationViewModel
 import com.hwj.cook.ui.viewmodel.CookVm
 import com.hwj.cook.ui.viewmodel.MainVm
+import com.hwj.cook.ui.viewmodel.SettingVm
 import com.hwj.cook.ui.viewmodel.TechVm
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -52,7 +52,7 @@ val modelModule = module {
 //    factory { WelcomeScreenModel(get()) }
 //    single { SettingsViewModel(get(), get(), get()) }
     single { MainVm(get(),get()) }
-    single { ConversationViewModel(get()) }
+    single { SettingVm() }
     single { CookVm() }
     single { ChatVm(get()) }
     single { TechVm() }

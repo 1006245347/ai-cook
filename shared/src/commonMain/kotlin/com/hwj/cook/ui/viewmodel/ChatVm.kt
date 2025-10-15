@@ -18,7 +18,6 @@ import moe.tlaster.precompose.viewmodel.viewModelScope
 class ChatVm(
     private val globalRepository: GlobalRepository
 ) : ViewModel() {
-
     private var agentProvider: AICookAgentProvider?=null
     private val _uiState = MutableStateFlow(
         AgentUiState(
@@ -28,7 +27,6 @@ class ChatVm(
     )
 
     val uiObs: StateFlow<AgentUiState> = _uiState.asStateFlow()
-
 
     fun createAgent(isForce: Boolean=false){
         if (agentProvider==null||isForce){

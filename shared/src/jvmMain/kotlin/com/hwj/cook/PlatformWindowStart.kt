@@ -14,7 +14,9 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import com.hwj.cook.capture.LocalMainWindow
+import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.ui.widget.PlatformAppStart
+import io.github.vinceglb.filekit.FileKit
 import moe.tlaster.precompose.ProvidePreComposeLocals
 import java.awt.Dimension
 
@@ -28,9 +30,11 @@ import java.awt.Dimension
 //control +  option +O       control + C 中断调试
 //Tray 系统托盘
 @Composable
-fun  PlatformWindowStart (    windowState: WindowState, isShowWindowState: MutableState<Boolean>,
-                               onWindowChange: @Composable (ComposeWindow, Boolean) -> Unit,
-                               onCloseRequest: () -> Unit){
+fun PlatformWindowStart(
+    windowState: WindowState, isShowWindowState: MutableState<Boolean>,
+    onWindowChange: @Composable (ComposeWindow, Boolean) -> Unit,
+    onCloseRequest: () -> Unit
+) {
     var isShow by isShowWindowState
     return Window(
         onCloseRequest = {
@@ -47,7 +51,7 @@ fun  PlatformWindowStart (    windowState: WindowState, isShowWindowState: Mutab
                 LocalMainWindow provides window,
             ) {
                 onWindowChange(LocalMainWindow.current, isShow)
-//                ThemeChatLite {
+                ThemeChatLite {
                     Surface(Modifier.fillMaxSize()) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -56,7 +60,7 @@ fun  PlatformWindowStart (    windowState: WindowState, isShowWindowState: Mutab
                             PlatformAppStart()
                         }
                     }
-//                }
+                }
             }
         }
     }

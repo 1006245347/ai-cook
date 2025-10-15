@@ -1,5 +1,6 @@
 package com.hwj.cook.agent
 
+import com.hwj.cook.global.printLog
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
@@ -30,5 +31,7 @@ fun createRootDir(subDir: String = "ai"): String { //  /. /data/user/0/com.hwj.c
 //    printLog("root>${projectDir()} ${fileDir()} ${cacheDir()} ")
     return PlatformFile(fileDir() + "/$subDir").apply {
         createDirectories()
-    }.absolutePath()
+    }.absolutePath().also {
+        printLog(it)
+    }
 }

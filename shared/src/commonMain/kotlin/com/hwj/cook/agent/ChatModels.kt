@@ -4,6 +4,7 @@ package com.hwj.cook.agent
 
 import com.hwj.cook.global.getMills
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -27,4 +28,9 @@ sealed class ChatMsg {
     data class ErrorMsg(val txt: String?) : ChatMsg()
     data class ToolCallMsg(val txt: String?) : ChatMsg()
     data class ResultMsg(val txt: String) : ChatMsg()
+}
+
+val JsonApi = Json {
+    isLenient=true
+    ignoreUnknownKeys=true
 }

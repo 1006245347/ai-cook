@@ -1,10 +1,9 @@
-package com.hwj.cook.agent
+package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.agent.entity.ToolSelectionStrategy
 import ai.koog.agents.core.dsl.builder.strategy
-import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.ext.agent.subgraphWithTask
 import ai.koog.agents.memory.config.MemoryScopeType
 import ai.koog.agents.memory.feature.AgentMemory
@@ -16,6 +15,8 @@ import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.markdown.markdown
+import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.createMemoryProvider
 import com.hwj.cook.agent.tools.ToolCI
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
@@ -179,10 +180,10 @@ class MemoryAgentProvider(
             nodeStart then loadMemory then supportSession then saveToMemory then nodeFinish
         }
 
-        val agent = AIAgent(
+        val agent = AIAgent.Companion(
             promptExecutor = remoteAiExecutor, strategy = strategy, agentConfig = agentConfig
         ) {
-            install(AgentMemory) {
+            install(AgentMemory.Feature) {
                 this.memoryProvider = createMemoryProvider()
                 this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
             }

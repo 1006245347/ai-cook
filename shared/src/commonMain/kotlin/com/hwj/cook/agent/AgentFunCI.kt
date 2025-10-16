@@ -4,8 +4,19 @@ import ai.koog.agents.memory.model.Fact
 import ai.koog.agents.memory.model.MemoryScope
 import ai.koog.agents.memory.model.MemorySubject
 import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.prompt.dsl.Prompt
+import ai.koog.prompt.dsl.emptyPrompt
+import ai.koog.prompt.executor.clients.openai.OpenAIModels
+import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
+import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.getCacheString
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 
 /**
  * @author by jason-何伟杰，2025/10/11
@@ -31,4 +42,27 @@ suspend fun saveMemory(
         subject = subject,
         scope = MemoryScope.Product(DATA_APPLICATION_NAME)
     )
+}
+
+
+
+//发现有直接用客户端的流式输出，不需要智能体机制
+//放在协程内运行，也能捕捉主动暂停
+suspend fun chatStreaming(
+    prompt: Prompt,
+    onStart: () -> Unit,
+    onCompletion: (Throwable?) -> Unit,
+    catch: (Throwable) -> Unit,
+    streaming: (StreamFrame) -> Unit
+): Flow<StreamFrame> {
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
+    val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
+    val response =
+        remoteAiExecutor.executeStreaming(prompt = prompt, OpenAIModels.Chat.GPT4o)
+    response.onStart { onStart() }
+        .onCompletion { cause: Throwable? -> onCompletion(cause) }
+        .catch { e: Throwable -> catch(e) }
+        .collect { chunk: StreamFrame -> streaming(chunk) }
+    return response
 }

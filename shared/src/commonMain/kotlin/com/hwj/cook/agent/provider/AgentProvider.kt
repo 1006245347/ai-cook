@@ -1,4 +1,4 @@
-package com.hwj.cook.agent
+package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
 

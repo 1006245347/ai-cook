@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+//多轮问答构成一组会话，智能体本质是多轮会话的上下文
 @Serializable
 data class ChatModels(
     val id: String = Uuid.random().toString(),
@@ -16,6 +17,7 @@ data class ChatModels(
     val messages: MutableList<ChatMsg>
 )
 
+//单条消息
 @OptIn(ExperimentalUuidApi::class)
 @Serializable
 sealed class ChatMsg {
@@ -30,6 +32,7 @@ sealed class ChatMsg {
     data class ResultMsg(val txt: String) : ChatMsg()
 }
 
+//配置是为了序列化某个实体时，可以忽略错误继续执行
 val JsonApi = Json {
     isLenient=true
     ignoreUnknownKeys=true

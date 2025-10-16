@@ -1,12 +1,18 @@
 package com.hwj.cook.ui.viewmodel
 
-import ai.koog.agents.utils.use
-import com.hwj.cook.agent.AICookAgentProvider
+import ai.koog.agents.core.agent.AIAgent
+import ai.koog.agents.core.agent.isRunning
+import ai.koog.utils.io.use
 import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.models.AgentUiState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
@@ -18,7 +24,8 @@ import moe.tlaster.precompose.viewmodel.viewModelScope
 class ChatVm(
     private val globalRepository: GlobalRepository
 ) : ViewModel() {
-    private var agentProvider: AICookAgentProvider?=null
+    private var agentProvider: AICookAgentProvider? = null
+    private var agentInstance: AIAgent<String, String>?=null
     private val _uiState = MutableStateFlow(
         AgentUiState(
             title = agentProvider?.title,
@@ -28,11 +35,17 @@ class ChatVm(
 
     val uiObs: StateFlow<AgentUiState> = _uiState.asStateFlow()
 
-    fun createAgent(isForce: Boolean=false){
-        if (agentProvider==null||isForce){
-            agentProvider= AICookAgentProvider()
+    var curChatJob: kotlinx.coroutines.Job? = null
+    //停止接收回答
+    private val _stopReceivingObs = MutableStateFlow(false)
+    val stopReceivingState = _stopReceivingObs.asStateFlow()
+
+    fun createAgent(isForce: Boolean = false) {
+        if (agentProvider == null || isForce) {
+            agentProvider = AICookAgentProvider()
         }
     }
+
     fun updateInputText(txt: String) {
         _uiState.update { it.copy(inputTxt = txt) }
     }
@@ -64,7 +77,7 @@ class ChatVm(
 
     private suspend fun runAgent(userInput: String) {
         try {
-            val agent = agentProvider?.provideAgent(onToolCallEvent = { msg ->
+            agentInstance = agentProvider?.provideAgent(onToolCallEvent = { msg ->
                 viewModelScope.launch {
                     _uiState.update { it.copy(messages = it.messages + ChatMsg.ToolCallMsg(msg)) }
                 }
@@ -101,12 +114,14 @@ class ChatVm(
                 // Return it to the agent
                 userResponse
             })
-            agent?.use { t ->
+
+            agentInstance?.use { t ->
                 val result = t.run(userInput)
+
                 _uiState.update {
                     it.copy(
                         messages = it.messages +
-                                ChatMsg.ResultMsg(result) + ChatMsg.SystemMsg("The agent has stopped."),
+                                ChatMsg.ResultMsg(result),// + ChatMsg.SystemMsg("The agent has stopped."),
                         isInputEnabled = false,
                         isLoading = false,
                         isChatEnded = true
@@ -132,5 +147,15 @@ class ChatVm(
                 messages = listOf(ChatMsg.SystemMsg(agentProvider?.description))
             )
         }
+    }
+
+    fun createNewChat(){
+        agentProvider?.let {
+
+        }
+    }
+
+    fun saveMsg(){
+
     }
 }

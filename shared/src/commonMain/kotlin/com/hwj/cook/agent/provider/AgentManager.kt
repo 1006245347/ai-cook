@@ -1,14 +1,14 @@
-package com.hwj.cook.agent
+package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.context.AIAgentContext
+import ai.koog.agents.core.agent.isRunning
 import ai.koog.agents.features.eventHandler.feature.handleEvents
-import ai.koog.prompt.executor.cached.CachedPromptExecutor
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
-import ai.koog.prompt.executor.clients.openai.base.models.OpenAIMessage
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.message.Message
-import com.hwj.cook.agent.AgentManager.test1
+import co.touchlab.stately.isFrozen
+import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
@@ -20,7 +20,7 @@ object AgentManager {
         if (apiKey.isNullOrEmpty())
             return
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
-        val agent = AIAgent(
+        val agent = AIAgent.Companion(
             promptExecutor = remoteAiExecutor,
             systemPrompt = "You are a helpful assistant. Answer user questions concisely.",
             llmModel = OpenAIModels.Chat.GPT4o,
@@ -33,9 +33,11 @@ object AgentManager {
             }
         }
 
-        agent.run(input).also { //默认非流式
+       val result= agent.run(input).also { //默认非流式
             printLog("agent>$it")
         }
+
+        agent.isRunning()
 
 
     }

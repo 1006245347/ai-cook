@@ -1,6 +1,6 @@
 package com.hwj.cook.ui.viewmodel
 
-import com.hwj.cook.agent.MemoryAgentProvider
+import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog

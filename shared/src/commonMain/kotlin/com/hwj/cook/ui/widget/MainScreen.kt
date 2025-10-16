@@ -79,6 +79,7 @@ import com.hwj.cook.ui.chat.ChatScreen
 import com.hwj.cook.ui.cook.CookScreen
 import com.hwj.cook.ui.settings.SettingScreen
 import com.hwj.cook.ui.tech.TechScreen
+import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.Dispatchers
@@ -207,6 +208,7 @@ fun MainScreen(navigator: Navigator) {
 @Composable
 private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerState: PagerState) {
     val subScope = rememberCoroutineScope()
+    val chatVm = koinViewModel (ChatVm::class)
     //记录已加载过的页
     val loadedPages = remember { mutableStateListOf<Int>() }
     //页面构造器
@@ -231,6 +233,8 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
             subScope.launch {
                 if (pagerState.currentPage != 0)
                     pagerState.scrollToPage(0)
+                //中止、保存、清空当前会话
+
             }
         })
 

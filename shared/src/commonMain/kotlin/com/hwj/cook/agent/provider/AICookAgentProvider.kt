@@ -1,4 +1,4 @@
-package com.hwj.cook.agent
+package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
@@ -14,10 +14,14 @@ import ai.koog.agents.core.environment.ReceivedToolResult
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.agents.features.eventHandler.feature.handleEvents
+import ai.koog.agents.memory.feature.AgentMemory
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.createMemoryProvider
 import com.hwj.cook.agent.tools.RecipeTools
+import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 
@@ -39,7 +43,7 @@ class AICookAgentProvider : AgentProvider {
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
-        val toolRegistry = ToolRegistry {
+        val toolRegistry = ToolRegistry.Companion {
             tool(RecipeTools.SearchRecipeTool)
             tool(RecipeTools.UserFlavorTool)
             tool(ExitTool)
@@ -136,6 +140,12 @@ class AICookAgentProvider : AgentProvider {
             promptExecutor = remoteAiExecutor,
             strategy = strategy, agentConfig = agentConfig, toolRegistry = toolRegistry
         ) {
+
+            install(AgentMemory) {
+                this.memoryProvider = createMemoryProvider()
+                this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
+
+            }
             handleEvents {
                 onToolCallStarting { ctx ->
                     onToolCallEvent("Tool ${ctx.tool.name}, args ${ctx.toolArgs}")

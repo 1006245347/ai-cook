@@ -109,7 +109,9 @@ data class TabCell(val route: String, val label: String, val index: Int)
 @Composable
 fun MainScreen(navigator: Navigator) {
     val mainVm = koinViewModel(MainVm::class)
-    val settingVm =koinViewModel(SettingVm::class)
+    val settingVm = koinViewModel(SettingVm::class)
+    val chatVm = koinViewModel(ChatVm::class)
+    val sessionId by  chatVm.currentSessionState.collectAsState()
     val darkTheme = remember(key1 = CODE_IS_DARK) {
         mutableStateOf(false)
     }
@@ -126,10 +128,10 @@ fun MainScreen(navigator: Navigator) {
             mainVm.processIntent(AppIntent.ThemeSetIntent)
         }
     }
-    LaunchedEffect(initialized){
-        if (!initialized){ //这主页初始化是为了让其他页可以选择模型数据
+    LaunchedEffect(initialized) {
+        if (!initialized) { //这主页初始化是为了让其他页可以选择模型数据
             settingVm.initialize()
-            initialized=true
+            initialized = true
         }
     }
     val focusManager = LocalFocusManager.current
@@ -147,7 +149,14 @@ fun MainScreen(navigator: Navigator) {
         Surface(color = MaterialTheme.colorScheme.background) {
             AppScaffold( //脚手架
                 navigator, drawerState = drawerState,
-                onConversationClicked = { chatId -> },
+                onConversationClicked = { chatId ->
+                    subScope.launch {
+                        if (sessionId!=chatId){
+                            chatVm.stopReceivingResults()
+                        }
+                        drawerState.close()
+                    }
+                },
                 onNewConversationClicked = {},
                 onThemeClicked = {
                     subScope.launch {
@@ -208,7 +217,7 @@ fun MainScreen(navigator: Navigator) {
 @Composable
 private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerState: PagerState) {
     val subScope = rememberCoroutineScope()
-    val chatVm = koinViewModel (ChatVm::class)
+    val chatVm = koinViewModel(ChatVm::class)
     //记录已加载过的页
     val loadedPages = remember { mutableStateListOf<Int>() }
     //页面构造器

@@ -44,10 +44,11 @@ fun ChatScreen(navigator: Navigator) {
     val uiObs by chatVm.uiObs.collectAsState()
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    val sessionId = "ss"
+    val sessionId = chatVm.currentSessionState.collectAsState()
     LaunchedEffect(sessionId) {
         subScope.launch {
             chatVm.createAgent()
+            chatVm.loadAskSession()
         }
     }
 
@@ -129,7 +130,7 @@ fun ChatScreenContent(
         } else {
             InputArea(
                 text = inputTxt, onTextChanged = onInputTxtChanged,
-                onSendClicked = {
+                onSendClicked = { //触发模型功能
                     onSendClicked()
                     focusManager.clearFocus()
                 }, isEnabled = isInputEnabled,

@@ -47,6 +47,7 @@ suspend fun AgentStreamEx() {
             }
             onLLMStreamingCompleted {
                 println("onLLMStreamingCompleted>")
+
             }
         }
     }

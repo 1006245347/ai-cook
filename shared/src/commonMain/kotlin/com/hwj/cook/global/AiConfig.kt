@@ -10,6 +10,7 @@ const val urlToAuthor =
 
 const val thinkingTip = "思考中..."
 const val stopAnswerTip = "已停止生成"
+const val stopByErrTip="异常导致回复中断"
 const val answerUseEw = ",\nplease answer in English."
 const val answerUseZw = ",\n请用中文回答。"
 const val loadingTip="加载中..."
@@ -28,3 +29,5 @@ const val DATA_USER_ID="DATA_USER_ID"
 const val DATA_APPLICATION_NAME="AI_COOK"
 const val DATA_MEMORY_INPUT="DATA_MEMORY_INPUT"
 const val DATA_MODEL_LIST="DATA_MODEL_LIST"
+const val DATA_MESSAGE_TAG = "DATA_MESSAGE_TAG"
+const val DATA_SESSION_TAG = "DATA_SESSION_TAG"

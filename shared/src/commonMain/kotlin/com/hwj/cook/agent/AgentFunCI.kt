@@ -44,25 +44,24 @@ suspend fun saveMemory(
     )
 }
 
-
-
 //发现有直接用客户端的流式输出，不需要智能体机制
 //放在协程内运行，也能捕捉主动暂停
 suspend fun chatStreaming(
     prompt: Prompt,
-    onStart: () -> Unit,
-    onCompletion: (Throwable?) -> Unit,
-    catch: (Throwable) -> Unit,
-    streaming: (StreamFrame) -> Unit
-): Flow<StreamFrame> {
+    onStart: suspend () -> Unit,
+    onCompletion: suspend (Throwable?) -> Unit,
+    catch: suspend (Throwable) -> Unit,
+    streaming: suspend (StreamFrame) -> Unit
+) {
     val apiKey = getCacheString(DATA_APP_TOKEN)
     require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
     val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
-    val response =
+    val flow =
         remoteAiExecutor.executeStreaming(prompt = prompt, OpenAIModels.Chat.GPT4o)
-    response.onStart { onStart() }
+    flow.onStart { onStart() }
         .onCompletion { cause: Throwable? -> onCompletion(cause) }
         .catch { e: Throwable -> catch(e) }
-        .collect { chunk: StreamFrame -> streaming(chunk) }
-    return response
+        .collect { chunk: StreamFrame ->
+            streaming(chunk)
+        }
 }

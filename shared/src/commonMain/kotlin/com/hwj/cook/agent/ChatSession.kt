@@ -10,11 +10,11 @@ import kotlin.uuid.Uuid
 
 //多轮问答构成一组会话，智能体本质是多轮会话的上下文
 @Serializable
-data class ChatModels(
+data class ChatSession(
     val id: String = Uuid.random().toString(),
     val title: String = "新会话",
     val createTime: Long = getMills(),
-    val messages: MutableList<ChatMsg>
+//    val messages: MutableList<ChatMsg>
 )
 
 //单条消息
@@ -22,7 +22,9 @@ data class ChatModels(
 @Serializable
 sealed class ChatMsg {
     val id: String = Uuid.random().toString()
-    val createTime: Long =0L
+    var sessionId: String=""
+    val createTime: Long = 0L
+    var state: ChatState = ChatState.Idle
 
     data class UserMsg(val txt: String) : ChatMsg()
     data class AgentMsg(val txt: String) : ChatMsg()
@@ -32,8 +34,18 @@ sealed class ChatMsg {
     data class ResultMsg(val txt: String) : ChatMsg()
 }
 
+@Serializable
+sealed class ChatState {
+    object Idle : ChatState()
+    object Thinking : ChatState()
+    object ToolCalling : ChatState()
+    object Responding : ChatState()
+    data class Completed(val text: String?) : ChatState()
+    data class Error(val message: String?) : ChatState()
+}
+
 //配置是为了序列化某个实体时，可以忽略错误继续执行
 val JsonApi = Json {
-    isLenient=true
-    ignoreUnknownKeys=true
+    isLenient = true
+    ignoreUnknownKeys = true
 }

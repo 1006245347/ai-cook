@@ -17,7 +17,6 @@ import kotlin.time.ExperimentalTime
  * des:自家服务器部署openai模型
  * // /baitong/chat/completions   bge-gree  https://baitong-aiw.gree.com/
  */
-
 open class OpenAiRemoteLLMClient(
     apiKey: String, settings: OpenAIClientSettings = OpenAIClientSettings(
         baseUrl = "https://baitong-it.gree.com",

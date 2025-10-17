@@ -2,7 +2,7 @@ package di
 
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.data.local.SettingsFactory
-import com.hwj.cook.data.repository.ConversationRepository
+import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.except.DataSettings
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -13,7 +13,6 @@ import com.hwj.cook.ui.viewmodel.TechVm
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
@@ -45,7 +44,7 @@ val mainModule = module {
     single { DataSettings() }
 
     single { GlobalRepository(get()) }
-    single { ConversationRepository() }
+    single { SessionRepository() }
 }
 
 val modelModule = module {
@@ -54,7 +53,7 @@ val modelModule = module {
     single { MainVm(get(),get()) }
     single { SettingVm() }
     single { CookVm() }
-    single { ChatVm(get()) }
+    single { ChatVm(get(),get()) }
     single { TechVm() }
 }
 

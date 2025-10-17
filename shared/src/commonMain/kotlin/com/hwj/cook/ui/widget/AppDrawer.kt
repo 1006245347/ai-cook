@@ -1,7 +1,9 @@
 package com.hwj.cook.ui.widget
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -15,36 +17,50 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.hwj.cook.agent.ChatSession
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoBg
+import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cBlue244260FF
+import com.hwj.cook.global.isDarkPanel
+import com.hwj.cook.global.isLightPanel
 import com.hwj.cook.global.urlToImageAppIcon
+import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.MainVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
@@ -56,9 +72,17 @@ fun AppDrawer(
     onNewConversationClicked: () -> Unit,
     onThemeClicked: () -> Unit
 ) {
+    val chatVm = koinViewModel(ChatVm::class)
+
+
     AppDrawerIn(
-        navigator, drawerState, onConversationClicked, onNewConversationClicked, onThemeClicked,
-        deleteConversation = { id -> }, sessionList = null
+        navigator,
+        drawerState,
+        onConversationClicked,
+        onNewConversationClicked,
+        onThemeClicked,
+        deleteConversation = { id -> chatVm },
+        sessionList = chatVm.sessionState.collectAsState().value
     )
 }
 
@@ -68,12 +92,14 @@ fun AppDrawerIn(
     onNewConversationClicked: () -> Unit,
     onThemeClicked: () -> Unit,
     deleteConversation: (String) -> Unit,
-    sessionList: MutableList<String>?, //agent
+    sessionList: MutableList<ChatSession>, //agent
 ) {
     val mainVm = koinViewModel(MainVm::class)
     val canJump = remember { mutableStateOf(false) }
     val subScope = rememberCoroutineScope()
-    Column(modifier = Modifier.fillMaxWidth(0.9f).background(MaterialTheme.colorScheme.background)) {
+    Column(
+        modifier = Modifier.fillMaxWidth(0.9f).background(MaterialTheme.colorScheme.background)
+    ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))//影响键盘？
 
         DrawerHeader(onThemeClicked, drawerAction = {
@@ -81,9 +107,14 @@ fun AppDrawerIn(
                 drawerState.close()
             }
         })
-        Column(Modifier.height(100.dp).background(color = cAutoBg())) {
-            Text("Drawer>>>", fontSize = 50.sp, color = cBlue244260FF())
-        }
+        DividerItem(modifier = Modifier.padding(horizontal = 10.dp))
+
+        HistoryConversations(
+            onConversationClicked,
+            onNewConversationClicked,
+            deleteConversation,
+            sessionList
+        )
     }
 }
 
@@ -158,11 +189,123 @@ private fun ColumnScope.HistoryConversations(
     onConversationClicked: (String) -> Unit,
     onNewConversationClicked: () -> Unit,
     deleteConversation: (String) -> Unit,
-    sessionList: MutableList<String>?
+    sessionList: MutableList<ChatSession>
 ) {
     val subScope = rememberCoroutineScope()
     val mainVm = koinViewModel(MainVm::class)
+    val chatVm = koinViewModel(ChatVm::class)
     val isDark = mainVm.darkState.collectAsState().value
     val listState = rememberLazyListState()
-//    val curChatId by conversationVm.currentConversationState.collectAsState()
+    val sessionId by chatVm.currentSessionState.collectAsState()
+
+    Box(Modifier.fillMaxWidth().weight(1f, false)) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            state = listState
+        ) {
+            //数据要倒序
+            items(sessionList.size) { index ->
+                val mId = sessionList[index].id
+                SessionItem(
+                    text = sessionList[index].title,
+                    Icons.AutoMirrored.Filled.Message,
+                    selected = mId == sessionId,
+                    onChatClicked = {
+                        if (sessionId != mId) {
+                            onConversationClicked(mId)
+                            subScope.launch {
+                                chatVm.loadSessionById(mId)
+                            }
+                        }
+                    },
+                    onDeleteClicked = {})
+            }
+        }
+    }
+}
+
+@Composable
+private fun SessionItem(
+    text: String,
+    icon: ImageVector = Icons.Filled.Edit,
+    selected: Boolean,
+    onChatClicked: () -> Unit,
+    onDeleteClicked: () -> Unit
+) {
+    val chatVm = koinViewModel(ChatVm::class)
+    val mainVm = koinViewModel(MainVm::class)
+    val isDark = mainVm.darkState.collectAsState().value
+    val isStopReceiveState = chatVm.stopReceivingState.collectAsState().value
+    val background = if (selected) {
+        Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+    } else {
+        Modifier
+    }
+
+    Row(
+        modifier = Modifier
+            .height(50.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+            .clip(RoundedCornerShape(30))
+            .then(background)
+            .clickable(onClick = onChatClicked),
+        verticalAlignment = CenterVertically
+    ) {
+        val iconTint = if (selected) {
+            if (isDark) {
+                isDarkPanel()
+            } else {
+                isLightPanel()
+            }
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        Icon(
+            icon,
+            tint = iconTint,
+            modifier = Modifier
+                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
+                .size(25.dp),
+            contentDescription = null,
+        )
+        Text(
+            text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (selected) {
+                cAutoTxt(isDark)
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
+            modifier = Modifier
+                .padding(start = 12.dp)
+                .fillMaxWidth(0.85f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (selected && !isStopReceiveState) {
+            //防止删除正在生成的会话
+        } else {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = "Delete",
+                tint = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                modifier = Modifier.padding(
+                    end = 5.dp
+                ).size(35.dp).clickable { onDeleteClicked() }
+            )
+        }
+    }
+}
+
+@Composable
+fun DividerItem(modifier: Modifier = Modifier) {
+    HorizontalDivider(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+    )
 }

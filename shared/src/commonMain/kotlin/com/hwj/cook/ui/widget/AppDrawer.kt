@@ -74,14 +74,17 @@ fun AppDrawer(
 ) {
     val chatVm = koinViewModel(ChatVm::class)
 
-
     AppDrawerIn(
         navigator,
         drawerState,
         onConversationClicked,
         onNewConversationClicked,
         onThemeClicked,
-        deleteConversation = { id -> chatVm },
+        deleteConversation = { id ->
+            chatVm.deleteSession(id, {
+                //更新界面
+            })
+        },
         sessionList = chatVm.sessionState.collectAsState().value
     )
 }
@@ -120,7 +123,6 @@ fun AppDrawerIn(
 
 @Composable
 private fun DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = {}) {
-
     val paddingSizeModifier = Modifier
         .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
         .size(34.dp)
@@ -218,7 +220,7 @@ private fun ColumnScope.HistoryConversations(
                             }
                         }
                     },
-                    onDeleteClicked = {})
+                    onDeleteClicked = { deleteConversation(mId) })
             }
         }
     }

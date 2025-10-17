@@ -16,6 +16,7 @@ import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgs
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
+import com.hwj.cook.global.printLog
 import com.hwj.cook.global.stopAnswerTip
 import com.hwj.cook.global.stopByErrTip
 import com.hwj.cook.global.thinkingTip
@@ -63,7 +64,7 @@ class ChatVm(
 
     private val _currentSessionId: MutableStateFlow<String> =
         MutableStateFlow(Uuid.random().toString())
-    val currentSessionState :StateFlow<String> = _currentSessionId.asStateFlow()
+    val currentSessionState: StateFlow<String> = _currentSessionId.asStateFlow()
 
     //记录所有单轮会话集合，适用于问答
     private val _sessionObs: MutableStateFlow<MutableList<ChatSession>> =
@@ -218,7 +219,7 @@ class ChatVm(
     }
 
     //新建会话
-    suspend fun createSession() {
+    fun createSession() {
         _currentSessionId.value = Uuid.random().toString()
     }
 
@@ -251,6 +252,7 @@ class ChatVm(
         callAgentApi(userMsg, newMsg)
     }
 
+    //还差apiKey没搞
     private fun callAgentApi(userMsg: ChatMsg.UserMsg, resultMsg: ChatMsg.ResultMsg) {
         curChatJob = viewModelScope.launch {
             var responseFromAgent = ""
@@ -264,7 +266,17 @@ class ChatVm(
                         updateLocalResponse(responseFromAgent)
                     }
                 }, streaming = { chunk: StreamFrame ->
-                    responseFromAgent = chunk.toString()
+                    when (chunk){
+                        is StreamFrame.Append ->{
+                            responseFromAgent=chunk.text
+                        }
+                        is StreamFrame.ToolCall->{
+                            printLog("\n Tool call:${chunk.name} args=${chunk.content} ")
+                        }
+                        is StreamFrame.End->{
+                            printLog("\n[END] reason=${chunk.finishReason}")
+                        }
+                    }
                     updateLocalResponse(responseFromAgent)
                 })
         }
@@ -307,10 +319,10 @@ class ChatVm(
     }
 
     //主动中断大模型api逻辑
-    fun stopReceivingResults(){
-        _stopReceivingObs.value=true
+    fun stopReceivingResults() {
+        _stopReceivingObs.value = true
         curChatJob?.cancel()
-        curChatJob=null
+        curChatJob = null
     }
 
     //问答的信息肯定在顶部，UI会令消息倒序显示
@@ -326,6 +338,19 @@ class ChatVm(
                 title = agentProvider?.title,
                 messages = listOf(ChatMsg.SystemMsg(agentProvider?.description))
             )
+        }
+    }
+
+    fun deleteSession(sessionId: String, onFinished: () -> Unit) {
+        viewModelScope.launch {
+            sessionRepository.deleteSession(sessionId, onFinished = onFinished)
+
+            val sessions = _sessionObs.value.toMutableList()
+            val mSession = sessions.find { it.id == sessionId }
+            if (mSession != null) {
+                sessions.remove(mSession)
+                _sessionObs.value = sessions
+            }
         }
     }
 }

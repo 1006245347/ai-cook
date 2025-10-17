@@ -111,7 +111,7 @@ fun MainScreen(navigator: Navigator) {
     val mainVm = koinViewModel(MainVm::class)
     val settingVm = koinViewModel(SettingVm::class)
     val chatVm = koinViewModel(ChatVm::class)
-    val sessionId by  chatVm.currentSessionState.collectAsState()
+    val sessionId by chatVm.currentSessionState.collectAsState()
     val darkTheme = remember(key1 = CODE_IS_DARK) {
         mutableStateOf(false)
     }
@@ -151,13 +151,18 @@ fun MainScreen(navigator: Navigator) {
                 navigator, drawerState = drawerState,
                 onConversationClicked = { chatId ->
                     subScope.launch {
-                        if (sessionId!=chatId){
+                        if (sessionId != chatId) {
                             chatVm.stopReceivingResults()
                         }
                         drawerState.close()
                     }
                 },
-                onNewConversationClicked = {},
+                onNewConversationClicked = {
+                    subScope.launch {
+                        chatVm.stopReceivingResults()
+                        drawerState.close()
+                    }
+                },
                 onThemeClicked = {
                     subScope.launch {
                         darkTheme.value = !darkTheme.value
@@ -242,8 +247,10 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
             subScope.launch {
                 if (pagerState.currentPage != 0)
                     pagerState.scrollToPage(0)
-                //中止、保存、清空当前会话
-
+                //中止、保存、清空当前会话 、新建
+                chatVm.stopReceivingResults()
+                drawerState.close()
+                chatVm.createSession()
             }
         })
 

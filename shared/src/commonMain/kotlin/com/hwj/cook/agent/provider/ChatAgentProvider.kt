@@ -31,7 +31,7 @@ class ChatAgentProvider(
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
-        agentInstance = AIAgent.Companion(
+        agentInstance = AIAgent.Companion.invoke(
             promptExecutor = remoteAiExecutor,
             systemPrompt = "Hi,I'm a Chef agent",
             llmModel = OpenAIModels.Chat.GPT4o

@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Save
@@ -23,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -90,7 +90,7 @@ fun SettingEditModelScreen(navigator: Navigator, index: Int) {
 
         HorizontalDivider(thickness = 8.dp, color = cTransparent())
         InputBox(alias, isDark, "模型别名如：deepseek-v3")
-        InputBox(apiKey, isDark, "apiKey")
+        InputBox(apiKey, isDark, "ApiKey")
         InputBox(baseUrl, isDark, "域名如：https://baitong-it.com")
         InputBox(chatUrl, isDark, "模型对话接口：baitong/chat/completions")
         InputBox(
@@ -147,8 +147,7 @@ private fun InputBox(inputState: MutableState<String>, isDark: Boolean, des: Str
                 printE("too long!")
             }
         },
-        modifier = Modifier.padding(start = 2.dp, top = 5.dp, end = 2.dp, bottom = 0.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(start = 2.dp, top = 5.dp, end = 2.dp, bottom = 0.dp).fillMaxWidth(),
         shape = RoundedCornerShape(8.dp), maxLines = 3,
         placeholder = {
             Text(

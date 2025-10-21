@@ -127,7 +127,7 @@ fun createMemoryAgent(
     )
 
 //    val memoryProvider= LocalFileMemoryProvider()
-    return AIAgent(
+    return AIAgent.Companion.invoke(
         promptExecutor = promptExecutor,
         agentConfig = agentConfig
     )

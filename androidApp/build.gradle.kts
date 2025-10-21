@@ -29,7 +29,6 @@ android {
 
         //不行
 //        buildConfigField("String","API_KEY","\"${System.getenv("API_KEY") ?: project.findProperty("API_KEY")}\"")
-
     }
     buildFeatures {
         compose = true
@@ -50,6 +49,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -67,6 +67,8 @@ android {
         }
     }
 }
+
+
 
 val copyAndRenameApkTask by tasks.registering(Copy::class) {
     val config = project.android.defaultConfig

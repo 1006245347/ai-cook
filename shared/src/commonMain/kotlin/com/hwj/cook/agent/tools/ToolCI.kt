@@ -18,7 +18,7 @@ object ToolCI {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.Companion.toTextSerializer<Result>()
+            get() = ToolResultUtils.toTextSerializer<Result>()
         override val description: String
             get() = "获取设备信息的工具"
 

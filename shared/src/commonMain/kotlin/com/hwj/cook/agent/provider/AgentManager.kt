@@ -20,7 +20,7 @@ object AgentManager {
         if (apiKey.isNullOrEmpty())
             return
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
-        val agent = AIAgent.Companion(
+        val agent = AIAgent.Companion.invoke(
             promptExecutor = remoteAiExecutor,
             systemPrompt = "You are a helpful assistant. Answer user questions concisely.",
             llmModel = OpenAIModels.Chat.GPT4o,
@@ -33,13 +33,12 @@ object AgentManager {
             }
         }
 
+
        val result= agent.run(input).also { //默认非流式
             printLog("agent>$it")
         }
 
         agent.isRunning()
-
-
     }
 
     suspend fun AIAgentContext.test1(){

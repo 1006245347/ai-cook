@@ -20,7 +20,7 @@ object RecipeTools {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.Companion.toTextSerializer<Result>()
+            get() = ToolResultUtils.toTextSerializer<Result>()
         override val description: String
             get() = "查询菜谱内容的工具"
 
@@ -48,7 +48,7 @@ object RecipeTools {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.Companion.toTextSerializer<Result>()
+            get() = ToolResultUtils.toTextSerializer<Result>()
         override val description: String
             get() = "获取口味偏好的工具"
 

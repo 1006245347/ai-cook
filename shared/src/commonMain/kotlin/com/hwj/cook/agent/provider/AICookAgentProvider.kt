@@ -43,7 +43,7 @@ class AICookAgentProvider : AgentProvider {
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
-        val toolRegistry = ToolRegistry.Companion {
+        val toolRegistry = ToolRegistry {
             tool(RecipeTools.SearchRecipeTool)
             tool(RecipeTools.UserFlavorTool)
             tool(ExitTool)
@@ -136,7 +136,7 @@ class AICookAgentProvider : AgentProvider {
             maxAgentIterations = 10
         )
 
-        val agent = AIAgent(
+        val agent = AIAgent.Companion.invoke(
             promptExecutor = remoteAiExecutor,
             strategy = strategy, agentConfig = agentConfig, toolRegistry = toolRegistry
         ) {

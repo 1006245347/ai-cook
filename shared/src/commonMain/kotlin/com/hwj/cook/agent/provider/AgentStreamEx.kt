@@ -14,6 +14,7 @@ import ai.koog.agents.ext.tool.SayToUser
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
+import ai.koog.prompt.executor.model.PromptExecutor
 import ai.koog.prompt.message.Message
 import ai.koog.prompt.message.RequestMetaInfo
 import ai.koog.prompt.streaming.StreamFrame
@@ -27,45 +28,61 @@ import com.hwj.cook.global.getCacheString
  * @author by jason-何伟杰，2025/10/16
  * des:demo是让agent调用工具把开关打开。。
  */
-suspend fun AgentStreamEx() {
-    val toolRegistry = ToolRegistry {
-        SayToUser
-    }
-    val key = getCacheString(DATA_APP_TOKEN)!!
-    val agent = openAiAgent(key, toolRegistry) {
-        handleEvents {
-            onToolCallStarting { context ->
-                println("\n🔧 Using ${context.tool.name} with ${context.toolArgs}... ")
-            }
-            onLLMStreamingFrameReceived { context ->
-                (context.streamFrame as? StreamFrame.Append)?.let { frame ->
-                    print(frame.text)
-                }
-            }
-            onLLMStreamingFailed {
-                println("❌ Error: ${it.error}")
-            }
-            onLLMStreamingCompleted {
-                println("onLLMStreamingCompleted>")
+//suspend fun AgentStreamEx() {
+//    val toolRegistry = ToolRegistry {
+//        SayToUser
+//    }
+//    val key = getCacheString(DATA_APP_TOKEN)!!
+//    val agent = openAiAgent(key, toolRegistry) {
+//        handleEvents {
+//            onToolCallStarting { context ->
+//                println("\n🔧 Using ${context.tool.name} with ${context.toolArgs}... ")
+//            }
+//            onLLMStreamingFrameReceived { context ->
+//                (context.streamFrame as? StreamFrame.Append)?.let { frame ->
+//                    print(frame.text)
+//                }
+//            }
+//            onLLMStreamingFailed {
+//                println("❌ Error: ${it.error}")
+//            }
+//            onLLMStreamingCompleted {
+//                println("onLLMStreamingCompleted>")
+//
+//            }
+//        }
+//    }
+//
+//    agent.run("hello")
+//}
 
-            }
-        }
-    }
+//只要这段代码不注释，必报错！是输入输出类型导致生成代码报错？
+//private fun openAiAgent(
+//    apiKey: String,
+//    toolRegistry: ToolRegistry,
+//    installFeature: FeatureContext.() -> Unit = {}
+//) =
+//    AIAgent(
+//        promptExecutor = createAiExecutor(apiKey),
+//        strategy = streamingWithToolsStrategy(),
+//        llmModel = OpenAIModels.Chat.GPT4o,
+//        systemPrompt = "You're responsible for running a Switch and perform operations on it by request",
+//        temperature = 0.0,
+//        toolRegistry = toolRegistry,
+//        installFeatures = installFeature
+//    )
 
-    agent.run("hello")
-}
-
-
-private fun openAiAgent(
-    apiKey: String,
-    toolRegistry: ToolRegistry,
-    installFeature: FeatureContext.() -> Unit = {}
-) = AIAgent(
-    promptExecutor = createAiExecutor(apiKey),
-    strategy = streamingWithToolsStrategy(),
-    agentConfig = agentStreamConfig(),
-    toolRegistry = toolRegistry, installFeatures = installFeature
-)
+//private fun openAiAgent(
+//    apiKey: String,
+//    toolRegistry: ToolRegistry,
+//    installFeature: FeatureContext.() -> Unit = {}
+//) = AIAgent(
+//    promptExecutor = createAiExecutor(apiKey),
+//    agentConfig = agentStreamConfig(),
+//    strategy = streamingWithToolsStrategy(),
+//
+//    toolRegistry = toolRegistry, installFeatures = installFeature
+//)
 
 fun agentStreamConfig() = AIAgentConfig(
     prompt = prompt("chat${uuid4()}") { system("You're responsible for running a Switch and perform operations on it by request") },

@@ -276,7 +276,7 @@ kotlin {
 
 android {
     namespace = "com.hwj.cook"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 27
     }

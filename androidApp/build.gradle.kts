@@ -19,11 +19,11 @@ configurations.all {
 
 android {
     namespace = "com.hwj.cook.android"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.hwj.cook.android"
         minSdk = 27
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 

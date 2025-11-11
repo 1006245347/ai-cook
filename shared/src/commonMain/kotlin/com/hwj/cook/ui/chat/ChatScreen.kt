@@ -1,11 +1,17 @@
 package com.hwj.cook.ui.chat
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -24,8 +30,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
-import com.hwj.cook.createPermission
-import com.hwj.cook.data.local.PermissionPlatform
+import com.hwj.cook.global.cGreyF0F0F0
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -52,26 +57,28 @@ fun ChatScreen(navigator: Navigator) {
         }
     }
 
-    ChatScreenContent(
-        title = uiObs.title,
-        messages = uiObs.messages,
-        inputTxt = uiObs.inputTxt,
-        isInputEnabled = uiObs.isInputEnabled,
-        isLoading = uiObs.isLoading,
-        isChatEnded = uiObs.isChatEnded,
-        onInputTxtChanged = chatVm::updateInputText,
-        onSendClicked = chatVm::sendMessage,
-        onRestartClicked = chatVm::restartRun,
-        onNavigateBack = {
+    Box(Modifier.fillMaxSize()) {
+        ChatScreenContent(
+            title = uiObs.title,
+            messages = uiObs.messages,
+            inputTxt = uiObs.inputTxt,
+            isInputEnabled = uiObs.isInputEnabled,
+            isLoading = uiObs.isLoading,
+            isChatEnded = uiObs.isChatEnded,
+            onInputTxtChanged = chatVm::updateInputText,
+            onSendClicked = chatVm::sendMessage,
+            onRestartClicked = chatVm::restartRun,
+            onNavigateBack = {
 //        navigator.goBack()
-        })
+            })
 
-    if (!showPermissionDialog) {
-        createPermission(PermissionPlatform.STORAGE, grantedAction = {
-            showPermissionDialog = false
-        }, deniedAction = {
-            showPermissionDialog = false
-        })
+//    if (!showPermissionDialog) {
+//        createPermission(PermissionPlatform.STORAGE, grantedAction = {
+//            showPermissionDialog = false
+//        }, deniedAction = {
+//            showPermissionDialog = false
+//        })
+//    }
     }
 }
 
@@ -92,7 +99,8 @@ fun ChatScreenContent(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     //桌面端无列表时输入框居中，其他在底下
-    val isMiddle = messages.isEmpty() && onlyDesktop()
+//    val isMiddle = messages.isEmpty() && onlyDesktop()
+    val isMiddle = messages.isEmpty()
     //页面切换回来保持输入内容  inputTxt
     val inputCache = rememberSaveable { mutableStateOf("") }
 
@@ -107,9 +115,37 @@ fun ChatScreenContent(
         verticalArrangement = if (isMiddle) Arrangement.Center else Arrangement.Top,
         horizontalAlignment = if (isMiddle) Alignment.CenterHorizontally else Alignment.Start
     ) {
+
+        MessageList(
+            Modifier.weight(1f).padding(horizontal = 16.dp).background(cGreyF0F0F0()),
+            messages
+        )
+        if (isChatEnded) {
+            RestartButton(onRestartClicked)
+        } else {
+            InputArea(
+                text = inputTxt, onTextChanged = onInputTxtChanged,
+                onSendClicked = { //触发模型功能
+                    onSendClicked()
+                    focusManager.clearFocus()
+                }, isEnabled = isInputEnabled,
+                isLoading = isLoading,
+                focusRequester = focusRequester
+            )
+        }
+    }
+}
+
+@Composable
+private fun MessageList(modifier: Modifier, messages: List<ChatMsg>) {
+    Box(
+        modifier = modifier
+    ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 3.dp),
-            state = listState, verticalArrangement = Arrangement.spacedBy(3.dp)
+            contentPadding =
+                WindowInsets.statusBars.add(WindowInsets(top = 90.dp)).asPaddingValues(),
+            modifier = Modifier.fillMaxSize(),
+            state = rememberLazyListState(), verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             items(messages) { msg ->
                 when (msg) {
@@ -123,20 +159,6 @@ fun ChatScreenContent(
             }
 
             item { Spacer(Modifier.height(dp10())) }
-        }
-
-        if (isChatEnded) {
-            RestartButton(onRestartClicked)
-        } else {
-            InputArea(
-                text = inputTxt, onTextChanged = onInputTxtChanged,
-                onSendClicked = { //触发模型功能
-                    onSendClicked()
-                    focusManager.clearFocus()
-                }, isEnabled = isInputEnabled,
-                isLoading = isLoading,
-                focusRequester = focusRequester
-            )
         }
     }
 }

@@ -1,20 +1,28 @@
 package com.hwj.cook.ui.chat
 
+import ai.koog.prompt.text.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
@@ -26,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,8 +43,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.hwj.cook.global.KeyEventEnter
+import com.hwj.cook.global.cBlue014AA7
+import com.hwj.cook.global.cBlue629DE8
+import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.dp6
+
 /**
  * @author by jason-何伟杰，2025/10/10
  * des:对话页面的消息体UI
@@ -225,35 +239,36 @@ fun InputArea(
     isLoading: Boolean,
     focusRequester: FocusRequester
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = dp6()
+    Box(
+        modifier = Modifier.padding(horizontal = 4.dp).padding(top = 6.dp, bottom = 10.dp)
+            .navigationBarsPadding().imePadding()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = dp10(),
-                    vertical = dp6()
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row {
             // Text input field
-            OutlinedTextField(
+            TextField(
                 value = text,
                 onValueChange = onTextChanged,
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .imePadding()
+                    .focusRequester(focusRequester)
                     .weight(1f)
-                    .focusRequester(focusRequester),
+                    .KeyEventEnter(enter = {
+                        onSendClicked()
+                    }, shift = { //换行
+                        val textClone = text + "\n"
+                        onTextChanged(textClone)
+                    }),
                 placeholder = { Text("Type a message...") },
                 enabled = isEnabled,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { onSendClicked() }),
-                singleLine = true,
+                singleLine = false,
+                minLines = 1,
+                maxLines = 3,
                 shape = RoundedCornerShape(dp10())
             )
-            Spacer(modifier = Modifier.width(dp6()))
 
             // Send button or loading indicator
             if (isLoading) {

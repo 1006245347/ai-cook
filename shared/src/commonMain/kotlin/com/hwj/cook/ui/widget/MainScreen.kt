@@ -23,10 +23,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Pending
-import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -36,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,9 +62,7 @@ import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
-import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.cLightLine
-import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
@@ -173,7 +168,6 @@ fun MainScreen(navigator: Navigator) {
                     }
                 }) { //Tab区域显示 , Drawer+Tab
                 Box(Modifier.fillMaxSize()) {
-                    HorizontalDivider(thickness = (0.5f).dp, color = cLightLine())
 
                     if (onlyDesktop()) {
                         Row(Modifier.fillMaxSize()) {
@@ -188,16 +182,16 @@ fun MainScreen(navigator: Navigator) {
                             TabNavRoot(navigator, drawerState, pagerState)
                         }
                     } else {
-                        Scaffold(bottomBar = {
+                        Column {
+                            Box(Modifier.padding(0.dp).weight(1f)) {
+                                TabNavRoot(navigator, drawerState, pagerState)
+                            }
+                            HorizontalDivider(thickness = (0.5f).dp, color = cLightLine())
                             MobileTabBar(tabList, curRoute) { tab ->
                                 curRoute = tab.route
                                 subScope.launch(Dispatchers.Main) {
                                     pagerState.scrollToPage(tab.index)
                                 }
-                            }
-                        }) { padding ->
-                            Box(Modifier.padding(0.dp).fillMaxSize()) {
-                                TabNavRoot(navigator, drawerState, pagerState)
                             }
                         }
                     }

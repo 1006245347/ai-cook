@@ -51,6 +51,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -63,10 +64,12 @@ import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cLightLine
+import com.hwj.cook.global.cTransparent
 import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.onlyMobile
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
 import com.hwj.cook.models.AppIntent
@@ -114,6 +117,8 @@ fun MainScreen(navigator: Navigator) {
     val pagerState = rememberPagerState(pageCount = { tabList.size }, initialPage = 0)
     var curRoute by remember { mutableStateOf(tabList.first().route) }
 
+    var showNavDialog by remember { mutableStateOf(false) }
+    var barBounds by remember { mutableStateOf<Rect?>(null) }
     var initialized by rememberSaveable { mutableStateOf(false) }
 
     val subScope = rememberCoroutineScope()
@@ -184,13 +189,27 @@ fun MainScreen(navigator: Navigator) {
                     } else {
                         Column {
                             Box(Modifier.padding(0.dp).weight(1f)) {
-                                TabNavRoot(navigator, drawerState, pagerState)
+                                TabNavRoot(navigator, drawerState, pagerState, { rect ->
+                                    showNavDialog = true
+                                    if (rect != null)
+                                        barBounds = rect
+                                })
                             }
                             HorizontalDivider(thickness = (0.5f).dp, color = cLightLine())
-                            MobileTabBar(tabList, curRoute) { tab ->
-                                curRoute = tab.route
-                                subScope.launch(Dispatchers.Main) {
-                                    pagerState.scrollToPage(tab.index)
+//                            MobileTabBar(tabList, curRoute) { tab ->
+//                                curRoute = tab.route
+//                                subScope.launch(Dispatchers.Main) {
+//                                    pagerState.scrollToPage(tab.index)
+//                                }
+//                            }
+                        }
+
+                        if (showNavDialog && barBounds != null) {
+                            PopupBelowAnchor(barBounds!!, onDismiss = { showNavDialog = false }) {
+                                PopTabBar(tabList, curRoute) { tab ->
+                                    curRoute = tab.route
+                                    subScope.launch { pagerState.scrollToPage(tab.index) }
+                                    showNavDialog = false
                                 }
                             }
                         }
@@ -214,7 +233,12 @@ fun MainScreen(navigator: Navigator) {
 
 //懒加载  fragment
 @Composable
-private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerState: PagerState) {
+private fun TabNavRoot(
+    navigator: Navigator,
+    drawerState: DrawerState,
+    pagerState: PagerState,
+    onShowNav: (Rect?) -> Unit = {}
+) {
     val subScope = rememberCoroutineScope()
     val chatVm = koinViewModel(ChatVm::class)
     //记录已加载过的页
@@ -246,8 +270,7 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
                 drawerState.close()
                 chatVm.createSession()
             }
-        })
-
+        }, onShowNav = onShowNav)
         HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
             if (page !in loadedPages) {
                 loadedPages.add(page)
@@ -260,7 +283,7 @@ private fun TabNavRoot(navigator: Navigator, drawerState: DrawerState, pagerStat
     }
 }
 
-// 移动端底部Tab栏 ,选中样式
+// 移动端底部Tab栏 ,选中样式   bar上再放编辑框很怪异，看其他是编辑框居中点击跳新页面，不太想要这
 @Composable
 private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
     NavigationBar(tonalElevation = 0.dp, containerColor = cAutoBg()) {
@@ -296,6 +319,46 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                     unselectedTextColor = Color.Gray
                 )
             )
+        }
+    }
+}
+
+@Composable
+private fun PopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
+    Column(Modifier.width(100.dp).wrapContentHeight()) {
+        tabs.forEach { tab ->
+            val selected = current == tab.route
+            Row() {
+                NavigationBarItem(
+                    selected = selected,
+                    onClick = { onSelect(tab) },
+                    label = {
+                        val fontSize by animateFloatAsState(if (selected) 15f else 12f)
+                        val fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                        Text(
+                            text = tab.label,
+                            fontSize = fontSize.sp,
+                            fontWeight = fontWeight,
+                            color = if (selected) PrimaryColor else Color.Gray
+                        )
+                    },
+                    icon = {
+                        val size by animateDpAsState(if (selected) 24.dp else 20.dp)
+                        Icon(
+                            imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
+                            contentDescription = tab.label,
+                            modifier = Modifier.size(size),
+                        )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = MaterialTheme.colorScheme.primary,
+                        selectedIconColor = cWhite(),
+                        selectedTextColor = cAutoTxt(true),
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.Gray
+                    )
+                )
+            }
         }
     }
 }

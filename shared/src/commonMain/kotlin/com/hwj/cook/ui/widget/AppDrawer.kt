@@ -187,6 +187,11 @@ private fun DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = 
 }
 
 @Composable
+ fun MobileTabList(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit){
+
+}
+
+@Composable
 private fun ColumnScope.HistoryConversations(
     onConversationClicked: (String) -> Unit,
     onNewConversationClicked: () -> Unit,

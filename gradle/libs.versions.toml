@@ -49,6 +49,7 @@ camerax = "1.3.2"
 accompanist = "0.34.0"
 compottie = "2.0.0"
 koog = "0.5.2"
+dialog-libs="1.3.0"
 
 
 [libraries]
@@ -84,6 +85,9 @@ stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin"
 compose-webviews = { module = "io.github.kevinnzou:compose-webview-multiplatform", version.ref = "webview" }
 reveal = { module = "com.svenjacobs.reveal:reveal-core", version.ref = "reveal" }
 rich-editor = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richedit" }
+#没有jvm搞毛
+dialog-list ={ module="com.maxkeppeler.sheets-compose-dialogs:list",version.ref="dialog-libs"}
+dialog-core= { module="com.maxkeppeler.sheets-compose-dialogs:core",version.ref="dialog-libs"}
 
 #lottie动画 https://github.com/alexzhirkevich/compottie
 compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }

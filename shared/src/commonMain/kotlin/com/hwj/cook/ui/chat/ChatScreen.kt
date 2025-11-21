@@ -30,6 +30,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.createPermission
+import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.cGreyF0F0F0
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.onlyDesktop
@@ -72,13 +74,13 @@ fun ChatScreen(navigator: Navigator) {
 //        navigator.goBack()
             })
 
-//    if (!showPermissionDialog) {
-//        createPermission(PermissionPlatform.STORAGE, grantedAction = {
-//            showPermissionDialog = false
-//        }, deniedAction = {
-//            showPermissionDialog = false
-//        })
-//    }
+    if (!showPermissionDialog) {
+        createPermission(PermissionPlatform.STORAGE, grantedAction = {
+            showPermissionDialog = false
+        }, deniedAction = {
+            showPermissionDialog = false
+        })
+    }
     }
 }
 
@@ -117,9 +119,12 @@ fun ChatScreenContent(
     ) {
 
         MessageList(
-            Modifier.weight(1f).padding(horizontal = 16.dp).background(cGreyF0F0F0()),
+            Modifier.weight(1f).padding(horizontal = 10.dp),
             messages
         )
+        //列表滚动时控制菜单按钮是否显示
+
+
         if (isChatEnded) {
             RestartButton(onRestartClicked)
         } else {

@@ -232,7 +232,7 @@ fun RestartButton(onRestartClicked: () -> Unit) {
 
 @Composable
 fun InputArea(
-    text: String,
+    text: String, 
     onTextChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
     isEnabled: Boolean,
@@ -249,7 +249,7 @@ fun InputArea(
                 value = text,
                 onValueChange = onTextChanged,
                 modifier = Modifier
-                    .fillMaxWidth()
+//                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .imePadding()
                     .focusRequester(focusRequester)
@@ -274,7 +274,7 @@ fun InputArea(
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
-                        .size(dp6())
+                        .size(dp10())
                         .padding(dp6())
                 )
             } else {
@@ -282,7 +282,7 @@ fun InputArea(
                     onClick = onSendClicked,
                     enabled = isEnabled && text.isNotBlank(),
                     modifier = Modifier
-                        .size(dp6())
+                        .size(10.dp)
                         .clip(CircleShape)
                         .background(
                             if (isEnabled && text.isNotBlank())

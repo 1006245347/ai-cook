@@ -94,6 +94,7 @@ kotlin {
             //分页库
             implementation(libs.paging.compose)
 
+
             //**************************数据处理相关********************
             implementation(libs.stdlib)
             implementation(libs.kotlinX.serializationJson)
@@ -134,6 +135,7 @@ kotlin {
             //aallam openai  https://github.com/aallam/openai-kotlin
 //            implementation(libs.openai.client)
             implementation(libs.ktoken)
+
         }
 
         androidMain.dependencies {

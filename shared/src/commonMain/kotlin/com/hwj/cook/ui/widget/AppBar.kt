@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,10 +24,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +43,7 @@ import coil3.compose.rememberAsyncImagePainter
 import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cLowOrange
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToAvatarGPT
 import com.hwj.cook.global.urlToImageAuthor
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -42,8 +51,14 @@ import moe.tlaster.precompose.koin.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBar(pagerState: PagerState, onClickMenu: () -> Unit, onNewChat: () -> Unit) {
+fun AppBar(
+    pagerState: PagerState,
+    onClickMenu: () -> Unit,
+    onNewChat: () -> Unit,
+    onShowNav: (Rect?) -> Unit
+) {
     val mainVm = koinViewModel(MainVm::class)
+    var barBounds by remember { mutableStateOf<Rect?>(null) }
     CenterAlignedTopAppBar(
         title = {
             val paddingSizeModifier = Modifier
@@ -102,6 +117,24 @@ fun AppBar(pagerState: PagerState, onClickMenu: () -> Unit, onNewChat: () -> Uni
                         )
                     }
                 })
+
+            ToolTipCase(tip = "导航", content = {
+                IconButton(onClick = { onShowNav(barBounds) }) { //要把参数传出去
+                    Icon(
+                        imageVector = Icons.Default.Navigation,
+                        contentDescription = "导航", tint = PrimaryColor,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            })
+        }, modifier = Modifier.onGloballyPositioned { layout ->
+            val pos = layout.localToWindow(Offset.Zero)
+            barBounds = Rect(
+                left = pos.x,
+                top = pos.y,
+                right = pos.x + layout.size.width,
+                bottom = pos.y + layout.size.height
+            )
         }
     )
 }

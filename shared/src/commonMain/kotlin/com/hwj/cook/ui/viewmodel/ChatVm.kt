@@ -315,7 +315,6 @@ class ChatVm(
             sessionId = userMsg.sessionId
         }
         addMsg(assistantMsg)
-        //
     }
 
     //主动中断大模型api逻辑

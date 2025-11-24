@@ -12,6 +12,7 @@ import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.LLM_MODEL
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.models.ModelInfoCell
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.onStart
 /**
  * @author by jason-何伟杰，2025/10/11
  * des:智能体中零散的功能api汇总
+ *
+ *
  */
 
 /**
@@ -65,6 +68,10 @@ suspend fun chatStreaming(
         .collect { chunk: StreamFrame ->
             streaming(chunk)
         }
+}
+
+suspend fun createAI(){
+
 }
 
 

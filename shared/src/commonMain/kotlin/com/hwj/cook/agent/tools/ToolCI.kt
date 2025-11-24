@@ -11,6 +11,9 @@ import kotlinx.serialization.Serializable
 /**
  * @author by jason-何伟杰，2025/10/13
  * des:工具集合
+ *
+ * sdk自带的tool,  agents/agents-ext/src/commonMain/kotlin/ai/koog/agents/ext/tool
+ *
  */
 object ToolCI {
 

@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-//多轮问答构成一组会话，智能体本质是多轮会话的上下文
+//多轮问答对话构成一组会话，智能体本质是多轮会话的上下文，分清对话和会话！！！
 @Serializable
 data class ChatSession(
     val id: String = Uuid.random().toString(),
@@ -17,7 +17,7 @@ data class ChatSession(
 //    val messages: MutableList<ChatMsg>
 )
 
-//单条消息
+//单条消息对话
 @OptIn(ExperimentalUuidApi::class)
 @Serializable
 sealed class ChatMsg {

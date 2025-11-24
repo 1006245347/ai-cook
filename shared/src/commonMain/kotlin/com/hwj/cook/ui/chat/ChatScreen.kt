@@ -1,6 +1,5 @@
 package com.hwj.cook.ui.chat
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,10 +31,10 @@ import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.createPermission
 import com.hwj.cook.data.local.PermissionPlatform
-import com.hwj.cook.global.cGreyF0F0F0
 import com.hwj.cook.global.dp10
-import com.hwj.cook.global.onlyDesktop
+import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.ChatVm
+import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
@@ -50,6 +49,9 @@ fun ChatScreen(navigator: Navigator) {
     val chatVm = koinViewModel(ChatVm::class)
     val uiObs by chatVm.uiObs.collectAsState()
     var showPermissionDialog by remember { mutableStateOf(false) }
+    val isAgentModelState by chatVm.isAgentModelState.collectAsState()
+    val settingVm = koinViewModel(SettingVm::class)
+    val modelList = settingVm.modelsState.collectAsState().value
 
     val sessionId = chatVm.currentSessionState.collectAsState()
     LaunchedEffect(sessionId) {
@@ -66,7 +68,7 @@ fun ChatScreen(navigator: Navigator) {
             inputTxt = uiObs.inputTxt,
             isInputEnabled = uiObs.isInputEnabled,
             isLoading = uiObs.isLoading,
-            isChatEnded = uiObs.isChatEnded,
+            isChatEnded = uiObs.isChatEnded, modelList[0],
             onInputTxtChanged = chatVm::updateInputText,
             onSendClicked = chatVm::sendMessage,
             onRestartClicked = chatVm::restartRun,
@@ -91,7 +93,7 @@ fun ChatScreenContent(
     inputTxt: String,
     isInputEnabled: Boolean,
     isLoading: Boolean,
-    isChatEnded: Boolean,
+    isChatEnded: Boolean, agentModel: ModelInfoCell?,
     onInputTxtChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
     onRestartClicked: () -> Unit,
@@ -134,7 +136,7 @@ fun ChatScreenContent(
                     onSendClicked()
                     focusManager.clearFocus()
                 }, isEnabled = isInputEnabled,
-                isLoading = isLoading,
+                isLoading = isLoading, agentModel,
                 focusRequester = focusRequester
             )
         }

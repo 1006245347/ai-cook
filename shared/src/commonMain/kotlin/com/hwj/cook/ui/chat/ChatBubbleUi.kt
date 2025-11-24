@@ -1,23 +1,17 @@
 package com.hwj.cook.ui.chat
 
-import ai.koog.prompt.text.text
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,17 +20,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Start
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -50,11 +39,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.global.KeyEventEnter
 import com.hwj.cook.global.PrimaryColor
-import com.hwj.cook.global.cBlue014AA7
-import com.hwj.cook.global.cBlue629DE8
-import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.dp6
+import com.hwj.cook.models.ModelInfoCell
 
 /**
  * @author by jason-何伟杰，2025/10/10
@@ -242,7 +229,7 @@ fun InputArea(
     onTextChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
     isEnabled: Boolean,
-    isLoading: Boolean,
+    isLoading: Boolean,agentModel: ModelInfoCell?,
     focusRequester: FocusRequester
 ) {
     Box(

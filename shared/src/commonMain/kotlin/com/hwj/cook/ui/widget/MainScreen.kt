@@ -299,7 +299,7 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                         text = tab.label,
                         fontSize = fontSize.sp,
                         fontWeight = fontWeight,
-                        color = if (selected) PrimaryColor else Color.Gray
+                        color = if (selected) cWhite() else Color.Gray
                     )
                 },
                 icon = {
@@ -308,7 +308,7 @@ private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCe
                         imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
                         contentDescription = tab.label,
                         modifier = Modifier.size(size),
-                        tint = if (selected) PrimaryColor else Color.Gray
+                        tint = if (selected) cWhite() else Color.Gray
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

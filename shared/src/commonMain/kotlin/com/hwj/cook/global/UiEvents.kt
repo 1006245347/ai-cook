@@ -15,7 +15,13 @@
  */
 package com.hwj.cook.global
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 sealed class UiEvents {
     data class ShowToast(val message: String) : UiEvents()
@@ -48,5 +54,18 @@ fun isLightPanel(): Color {
     return BackInnerColor1
 }
 
+fun roundBorderTextStyle(i: Int): Modifier {
+    return Modifier.padding(end = 5.dp).background(
+        color = cTransparent()
+    ).border(
+        width = 1.dp, color = cDeepLine(),
+        shape = RoundedCornerShape(
+            topStart = i.dp,
+            topEnd = i.dp,
+            bottomStart = i.dp,
+            bottomEnd = i.dp
+        )
+    ).padding(horizontal = 6.dp, vertical = 3.dp)
+}
 
 

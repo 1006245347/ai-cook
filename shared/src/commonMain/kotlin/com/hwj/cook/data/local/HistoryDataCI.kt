@@ -19,9 +19,9 @@ import kotlinx.coroutines.flow.callbackFlow
  * des:会话集合，会话内部不存消息，要找会话对应的消息列表则要有会话id
  */
 suspend fun getSessionList(): MutableList<ChatSession>? {
-    val result = getCacheString(buildConversationTag())
-    if (!result.isNullOrEmpty()) {
-        val list = JsonApi.decodeFromString<MutableList<ChatSession>>(result)
+    val cache = getCacheString(buildConversationTag())
+    if (!cache.isNullOrEmpty()) {
+        val list = JsonApi.decodeFromString<MutableList<ChatSession>>(cache)
         return list
     } else {
         return null

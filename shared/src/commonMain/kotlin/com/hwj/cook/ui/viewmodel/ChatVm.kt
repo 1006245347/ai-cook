@@ -16,6 +16,10 @@ import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgs
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
+import com.hwj.cook.global.DATA_AGENT_INDEX
+import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.getCacheInt
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.stopAnswerTip
 import com.hwj.cook.global.stopByErrTip
@@ -75,8 +79,8 @@ class ChatVm(
     private val _stopReceivingObs = MutableStateFlow(false)
     val stopReceivingState = _stopReceivingObs.asStateFlow()
 
-    //搞两种模式，文本问答（单轮无上下文）和智能体（多轮带记忆）
-    private val _isAgentModelObs = MutableStateFlow(true)
+    //搞两种模式，文本问答（单轮无上下文）和智能体（多轮带记忆）,适配多种智能体
+    private val _isAgentModelObs = MutableStateFlow(0)
     val isAgentModelState = _isAgentModelObs.asStateFlow()
 
 
@@ -94,7 +98,11 @@ class ChatVm(
         val userInput = _uiState.value.inputTxt.trim()
         if (userInput.isEmpty()) return
 
-        if (_isAgentModelObs.value) {
+        if (_isAgentModelObs.value == 0) {
+            workInSub {
+                runAnswer(userInput)
+            }
+        } else {
             if (_uiState.value.userResponseRequested) { //回复智能体的问题，用户再输入
                 _uiState.update {
                     it.copy(
@@ -113,10 +121,6 @@ class ChatVm(
                 }
             }
             curChatJob = viewModelScope.launch(Dispatchers.Default) { runAgent(userInput) }
-        } else {
-            workInSub {
-                runAnswer(userInput)
-            }
         }
     }
 
@@ -186,7 +190,7 @@ class ChatVm(
     }
 
     //根据会话id找它的消息列表
-    suspend fun findSessionMsgs(sessionId: String): MutableList<ChatMsg> {
+    suspend fun findSessionMsg(sessionId: String): MutableList<ChatMsg> {
         val list = mutableListOf<ChatMsg>()
         fetchMsgs(sessionId).collectLatest { list.addAll(it) }
         return list
@@ -227,7 +231,7 @@ class ChatVm(
         _stopReceivingObs.value = false
 
         //先根据sessionId找消息队列，如果空则要新建对话
-        if (findSessionMsgs(_currentSessionId.value).isEmpty()) {
+        if (findSessionMsg(_currentSessionId.value).isEmpty()) {
             workInSub {
                 addSession(userInput)
             }
@@ -266,14 +270,16 @@ class ChatVm(
                         updateLocalResponse(responseFromAgent)
                     }
                 }, streaming = { chunk: StreamFrame ->
-                    when (chunk){
-                        is StreamFrame.Append ->{
-                            responseFromAgent=chunk.text
+                    when (chunk) {
+                        is StreamFrame.Append -> {
+                            responseFromAgent = chunk.text
                         }
-                        is StreamFrame.ToolCall->{
+
+                        is StreamFrame.ToolCall -> {
                             printLog("\n Tool call:${chunk.name} args=${chunk.content} ")
                         }
-                        is StreamFrame.End->{
+
+                        is StreamFrame.End -> {
                             printLog("\n[END] reason=${chunk.finishReason}")
                         }
                     }
@@ -329,6 +335,12 @@ class ChatVm(
         val msgList = _uiState.value.messages.toMutableList()
         msgList[1] = (msgList[1] as ChatMsg.ResultMsg).copy(txt = response)
         _uiState.update { it.copy(messages = msgList) }
+    }
+
+    fun updateAgentModel() {
+        viewModelScope.launch {
+            _isAgentModelObs.value = getCacheInt(DATA_AGENT_INDEX)
+        }
     }
 
     fun restartRun() {

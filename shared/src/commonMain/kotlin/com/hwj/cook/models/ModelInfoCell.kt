@@ -6,6 +6,7 @@ package com.hwj.cook.models
  */
 data class ModelInfoCell(
     var apiKey: String,     //访问token
+    var modelName: String,
     var baseUrl: String,    //大模型域名
     var chatCompletionPath: String,     //对话接口地址
     var embeddingsPath: String?,         //具备向量化的接口地址

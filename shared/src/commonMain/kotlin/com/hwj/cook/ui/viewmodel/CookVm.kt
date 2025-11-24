@@ -19,12 +19,11 @@ import moe.tlaster.precompose.viewmodel.viewModelScope
  * des:菜谱处理
  */
 class CookVm : ViewModel() {
-
     private val _bookRootObs = MutableStateFlow(BookConfigState())
     val bookRootState = _bookRootObs.asStateFlow()
     private var lastTime = 0L
 
-    //记录展开的节点
+    //记录展开的节点数据源
     private val _expendNodeObs = MutableStateFlow<Set<String>>(emptySet())
     val expendNodeState = _expendNodeObs.asStateFlow()
 

@@ -41,7 +41,7 @@ class MemoryAgentProvider(
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
         val agentConfig = AIAgentConfig(prompt = prompt("prompt") {
-            system("Hi,I'm a worker agent.")
+            system("Hi,I'm a personal assistant.")
         }, model = OpenAIModels.Chat.GPT4o, maxAgentIterations = 50)
 
 

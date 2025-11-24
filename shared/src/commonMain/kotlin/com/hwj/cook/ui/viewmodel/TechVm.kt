@@ -4,6 +4,7 @@ import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
+import com.hwj.cook.global.saveString
 import com.hwj.cook.models.MemoryUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,7 @@ class TechVm : ViewModel() {
 
     suspend fun loadInputCache() {
         printLog("loadInputCache??")
+        //把输入的内容存下来，大模型的记忆不对外显示
         getCacheString(DATA_MEMORY_INPUT, "")?.let {
             updateInputText(it)
         }
@@ -61,6 +63,7 @@ class TechVm : ViewModel() {
                     memoryOfUser = result
                 )
             }
+            saveString(DATA_MEMORY_INPUT,userInput)
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.update {

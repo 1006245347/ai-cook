@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cTransparent
@@ -68,6 +71,7 @@ fun SettingEditModelScreen(navigator: Navigator, index: Int) {
 
     val alias = remember { mutableStateOf(model?.alias ?: "") }
     val apiKey = remember { mutableStateOf(model?.apiKey ?: "") }
+    val modelName = remember { mutableStateOf(model?.modelName ?: "") }
     val baseUrl = remember { mutableStateOf(model?.baseUrl ?: "") }
     val chatUrl = remember { mutableStateOf(model?.chatCompletionPath ?: "") }
     val embedUrl = remember { mutableStateOf(model?.embeddingsPath ?: "") }
@@ -86,11 +90,27 @@ fun SettingEditModelScreen(navigator: Navigator, index: Int) {
                 //smallTopAppBarColors
                 containerColor = MaterialTheme.colorScheme.background,
                 titleContentColor = PrimaryColor,
-            ), actions = {})
+            ), actions = {
+                if (!isAdd)
+                ToolTipCase(tip = "删除", content = {
+                    IconButton(onClick = {
+                        modelName.value.let {
+                            settingVm.deleteModel(it)
+                        }
+                         }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "删除", tint = PrimaryColor,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    }
+                })
+            })
 
         HorizontalDivider(thickness = 8.dp, color = cTransparent())
         InputBox(alias, isDark, "模型别名如：deepseek-v3")
         InputBox(apiKey, isDark, "ApiKey")
+        InputBox(modelName, isDark, "模型名如：deepseek-v3")
         InputBox(baseUrl, isDark, "域名如：https://baitong-it.com")
         InputBox(chatUrl, isDark, "模型对话接口：baitong/chat/completions")
         InputBox(
@@ -101,29 +121,34 @@ fun SettingEditModelScreen(navigator: Navigator, index: Int) {
         IconButton(
             onClick = {
                 subScope.launch {
+                    var flag: Boolean
                     if (isAdd) {
-                        settingVm.addModel(
+                        flag = settingVm.addModel(
                             alias.value,
                             apiKey.value,
+                            modelName.value,
                             baseUrl.value,
                             chatUrl.value,
                             embedUrl.value
                         )
                     } else {
-                        settingVm.updateModel(
+                        flag = settingVm.updateModel(
                             index - 1, alias.value,
                             apiKey.value,
+                            modelName.value,
                             baseUrl.value,
                             chatUrl.value,
                             embedUrl.value
                         )
                     }
-                    navigator.goBack()
+                    if (flag)
+                        navigator.goBackWith(modelName.value)
+                    //返回同时更新上个列表
                 }
             },//响应按钮事件
             modifier = Modifier
                 .padding(top = 10.dp)
-                .align  (alignment = Alignment.CenterHorizontally)
+                .align(alignment = Alignment.CenterHorizontally)
                 .size(30.dp)
                 .clip(CircleShape)
         ) {
@@ -147,7 +172,8 @@ private fun InputBox(inputState: MutableState<String>, isDark: Boolean, des: Str
                 printE("too long!")
             }
         },
-        modifier = Modifier.padding(start = 2.dp, top = 5.dp, end = 2.dp, bottom = 0.dp).fillMaxWidth(),
+        modifier = Modifier.padding(start = 2.dp, top = 5.dp, end = 2.dp, bottom = 0.dp)
+            .fillMaxWidth(),
         shape = RoundedCornerShape(8.dp), maxLines = 3,
         placeholder = {
             Text(

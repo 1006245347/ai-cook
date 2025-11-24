@@ -13,6 +13,7 @@ import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.models.ModelInfoCell
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
@@ -64,4 +65,16 @@ suspend fun chatStreaming(
         .collect { chunk: StreamFrame ->
             streaming(chunk)
         }
+}
+
+
+fun findNowAgent(index: Int): ModelInfoCell? {
+    if (index == 0) { //问答无智能体
+    } else {
+        var model: ModelInfoCell? = null
+        if (index == 1) {
+
+        }
+    }
+    return null
 }

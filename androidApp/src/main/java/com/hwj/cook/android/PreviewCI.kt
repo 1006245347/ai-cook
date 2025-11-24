@@ -1,10 +1,12 @@
 package com.hwj.cook.android
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.ui.chat.ChatScreenContent
+import com.hwj.cook.ui.chat.InputArea
 import com.hwj.cook.ui.settings.SettingsScreenContent
 import com.hwj.cook.ui.tech.TechScreenContent
 
@@ -12,18 +14,18 @@ import com.hwj.cook.ui.tech.TechScreenContent
  * @author by jason-何伟杰，2025/10/9
  * des:kmp下无法在shared组件直接预览ui,放这里看吧
  */
-@Preview
+//@Preview
 @Composable
-fun TechScreenPreview(){
+private fun TechScreenPreview(){
     ThemeChatLite {
         TechScreenContent(isDark = false,inputTxt = "ai", isInputEnabled = true, isLoading = false,
             isInputEnded = false,null,{},{})
     }
 }
 
-@Preview //kmp的bug吧，无法在shared预览
+//@Preview //kmp的bug吧，无法在shared预览
 @Composable
-fun AgentDemoScreenPreview() {
+private fun AgentDemoScreenPreview() {
 
     ThemeChatLite {
         ChatScreenContent(
@@ -39,7 +41,7 @@ fun AgentDemoScreenPreview() {
             inputTxt = "",
             isInputEnabled = true,
             isLoading = false,
-            isChatEnded = false,
+            isChatEnded = false,null,
             onInputTxtChanged = {},
             onSendClicked = {},
             onRestartClicked = {},
@@ -48,9 +50,9 @@ fun AgentDemoScreenPreview() {
     }
 }
 
-@Preview
+//@Preview
 @Composable
-fun AgentDemoScreenEndedPreview() {
+private fun AgentDemoScreenEndedPreview() {
     ThemeChatLite {
         ChatScreenContent(
             title = "Agent Demo",
@@ -63,7 +65,7 @@ fun AgentDemoScreenEndedPreview() {
             inputTxt = "",
             isInputEnabled = false,
             isLoading = false,
-            isChatEnded = true,
+            isChatEnded = true,null,
             onInputTxtChanged = {},
             onSendClicked = {},
             onRestartClicked = {},
@@ -72,10 +74,16 @@ fun AgentDemoScreenEndedPreview() {
     }
 }
 
-@Preview
+//@Preview
 @Composable
 private fun SettingScreenPreview(){
     ThemeChatLite {
         SettingsScreenContent(models=listOf(),isDark = false,{})
     }
+}
+
+@Preview
+@Composable
+private fun InputPreview(){
+    InputArea("xxx",{},{},true,false, null,FocusRequester.Default)
 }

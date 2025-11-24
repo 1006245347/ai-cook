@@ -1,6 +1,7 @@
 package com.hwj.cook.ui.chat
 
 import ai.koog.prompt.text.text
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,9 +26,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Start
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,9 +45,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.global.KeyEventEnter
+import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cBlue014AA7
 import com.hwj.cook.global.cBlue629DE8
 import com.hwj.cook.global.cLowOrange
@@ -232,7 +238,7 @@ fun RestartButton(onRestartClicked: () -> Unit) {
 
 @Composable
 fun InputArea(
-    text: String, 
+    text: String,
     onTextChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
     isEnabled: Boolean,
@@ -270,39 +276,51 @@ fun InputArea(
                 shape = RoundedCornerShape(dp10())
             )
 
-            // Send button or loading indicator
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(dp10())
-                        .padding(dp6())
-                )
-            } else {
-                IconButton(
-                    onClick = onSendClicked,
-                    enabled = isEnabled && text.isNotBlank(),
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isEnabled && text.isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send",
-                        tint = if (isEnabled && text.isNotBlank())
-                            MaterialTheme.colorScheme.onPrimary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            EnterSendButton(isLoading, isEnabled && text.isNotBlank(), onSendClicked, {})
         }
     }
+}
+
+@Composable
+private fun EnterSendButton(
+    isLoading: Boolean,
+    enabled: Boolean,
+    sendBlock: () -> Unit,
+    stopBlock: () -> Unit
+) {
+    ExtendedFloatingActionButton(
+        text = {
+            Text(text = "Stop", color = Color.White)
+        },
+        icon = {
+            if (isLoading) {
+                Icon(
+                    imageVector = Icons.Default.Stop, contentDescription = "Stop Generating",
+                    tint = Color.White, modifier = Modifier.size(23.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Send Message",
+                    tint = Color.White,
+                    modifier = Modifier.size(23.dp)
+                )
+            }
+        },
+        onClick = {
+            if (isLoading) {
+                stopBlock()
+            } else {
+                if (enabled) {
+                    sendBlock()
+                }
+            }
+        },
+        modifier = Modifier.animateContentSize().padding(start=4.dp,end = 6.dp).clip(CircleShape),
+        expanded = isLoading,
+        containerColor = PrimaryColor
+    )
+
 }
 
 

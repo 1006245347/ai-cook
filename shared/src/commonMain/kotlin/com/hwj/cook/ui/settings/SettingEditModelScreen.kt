@@ -41,12 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
+import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cTransparent
 import com.hwj.cook.global.printE
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
@@ -75,88 +77,93 @@ fun SettingEditModelScreen(navigator: Navigator, index: Int) {
     val baseUrl = remember { mutableStateOf(model?.baseUrl ?: "") }
     val chatUrl = remember { mutableStateOf(model?.chatCompletionPath ?: "") }
     val embedUrl = remember { mutableStateOf(model?.embeddingsPath ?: "") }
-    Column(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-    ) {
-        CenterAlignedTopAppBar(
-            navigationIcon = {
-                IconButton(onClick = { navigator.goBack() }) {
-                    Icon(Icons.Filled.ArrowBackIosNew, "back", tint = PrimaryColor)
-                }
-            }, title = {
-                Text(text = if (isAdd) "新增大模型" else "更新大模型", color = cAutoTxt(isDark))
-            }, colors = TopAppBarDefaults.topAppBarColors(
-                //smallTopAppBarColors
-                containerColor = MaterialTheme.colorScheme.background,
-                titleContentColor = PrimaryColor,
-            ), actions = {
-                if (!isAdd)
-                ToolTipCase(tip = "删除", content = {
-                    IconButton(onClick = {
-                        modelName.value.let {
-                            settingVm.deleteModel(it)
-                        }
-                         }) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "删除", tint = PrimaryColor,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                    }
-                })
-            })
 
-        HorizontalDivider(thickness = 8.dp, color = cTransparent())
-        InputBox(alias, isDark, "模型别名如：deepseek-v3")
-        InputBox(apiKey, isDark, "ApiKey")
-        InputBox(modelName, isDark, "模型名如：deepseek-v3")
-        InputBox(baseUrl, isDark, "域名如：https://baitong-it.com")
-        InputBox(chatUrl, isDark, "模型对话接口：baitong/chat/completions")
-        InputBox(
-            embedUrl, isDark,
-            "模型向量化（可空）：https://baitong-it.gree.com/openapi/v2/embeddings"
-        )
-
-        IconButton(
-            onClick = {
-                subScope.launch {
-                    var flag: Boolean
-                    if (isAdd) {
-                        flag = settingVm.addModel(
-                            alias.value,
-                            apiKey.value,
-                            modelName.value,
-                            baseUrl.value,
-                            chatUrl.value,
-                            embedUrl.value
-                        )
-                    } else {
-                        flag = settingVm.updateModel(
-                            index - 1, alias.value,
-                            apiKey.value,
-                            modelName.value,
-                            baseUrl.value,
-                            chatUrl.value,
-                            embedUrl.value
-                        )
-                    }
-                    if (flag)
-                        navigator.goBackWith(modelName.value)
-                    //返回同时更新上个列表
-                }
-            },//响应按钮事件
-            modifier = Modifier
-                .padding(top = 10.dp)
-                .align(alignment = Alignment.CenterHorizontally)
-                .size(30.dp)
-                .clip(CircleShape)
+    ThemeChatLite (){
+        Column(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
         ) {
-            Icon(
-                imageVector = Icons.Default.Save,
-                contentDescription = "Save",
-                tint = PrimaryColor
+            CenterAlignedTopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { //返回时上个页面被重载了
+                        navigator.goBack()
+                    }) {
+                        Icon(Icons.Filled.ArrowBackIosNew, "back", tint = PrimaryColor)
+                    }
+                }, title = {
+                    Text(text = if (isAdd) "新增大模型" else "更新大模型", color = cAutoTxt(isDark))
+                }, colors = TopAppBarDefaults.topAppBarColors(
+                    //smallTopAppBarColors
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = PrimaryColor,
+                ), actions = {
+                    if (!isAdd)
+                        ToolTipCase(tip = "删除", content = {
+                            IconButton(onClick = {
+                                modelName.value.let {
+                                    settingVm.deleteModel(it)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "删除", tint = PrimaryColor,
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
+                            }
+                        })
+                })
+
+            HorizontalDivider(thickness = 8.dp, color = cTransparent())
+            InputBox(alias, isDark, "模型别名如：deepseek-v3")
+            InputBox(apiKey, isDark, "ApiKey")
+            InputBox(modelName, isDark, "模型名如：deepseek-v3")
+            InputBox(baseUrl, isDark, "域名如：https://baitong-it.com")
+            InputBox(chatUrl, isDark, "模型对话接口：baitong/chat/completions")
+            InputBox(
+                embedUrl, isDark,
+                "模型向量化（可空）：https://baitong-it.gree.com/openapi/v2/embeddings"
             )
+
+            IconButton(
+                onClick = {
+                    subScope.launch(Dispatchers.Default) {
+                        var flag: Boolean
+                        if (isAdd) {
+                            flag = settingVm.addModel(
+                                alias.value,
+                                apiKey.value,
+                                modelName.value,
+                                baseUrl.value,
+                                chatUrl.value,
+                                embedUrl.value
+                            )
+                        } else {
+                            flag = settingVm.updateModel(
+                                index - 1, alias.value,
+                                apiKey.value,
+                                modelName.value,
+                                baseUrl.value,
+                                chatUrl.value,
+                                embedUrl.value
+                            )
+                        }
+                        if (flag)
+                            navigator.goBackWith(modelName.value)
+                        //返回同时更新上个列表
+                    }
+                },//响应按钮事件
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .size(30.dp)
+                    .clip(CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Save,
+                    contentDescription = "Save",
+                    tint = PrimaryColor
+                )
+            }
         }
     }
 }

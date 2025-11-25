@@ -48,4 +48,7 @@ sealed class ChatState {
 val JsonApi = Json {
     isLenient = true
     ignoreUnknownKeys = true
+    //    encodeDefaults = true
+//        prettyPrint = true
+//        coerceInputValues = true
 }

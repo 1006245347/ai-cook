@@ -1,9 +1,12 @@
 package com.hwj.cook.models
 
+import kotlinx.serialization.Serializable
+
 /**
  * @author by jason-何伟杰，2025/10/15
  * des:大模型接口参数
  */
+@Serializable
 data class ModelInfoCell(
     var apiKey: String,     //访问token
     var modelName: String,

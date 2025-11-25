@@ -34,6 +34,7 @@ import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cLightLine
+import com.hwj.cook.global.printD
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
@@ -55,6 +56,7 @@ fun SettingScreen(navigator: Navigator) {
                 navigator.navigateForResult(NavigationScene.SettingsEdit.path + "/$index")
                     .toString()
             lastModel.value = callback
+            printD("lastModel>$callback")
         }
     })
 }

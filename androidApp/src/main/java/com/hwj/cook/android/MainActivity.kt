@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
+import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.ui.widget.PlatformAppStart
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.init

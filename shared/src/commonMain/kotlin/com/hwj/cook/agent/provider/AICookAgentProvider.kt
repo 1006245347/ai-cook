@@ -144,7 +144,6 @@ class AICookAgentProvider : AgentProvider {
             install(AgentMemory) {
                 this.memoryProvider = createMemoryProvider()
                 this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
-
             }
             handleEvents {
                 onToolCallStarting { ctx ->

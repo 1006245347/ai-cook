@@ -6,6 +6,7 @@ import com.hwj.cook.global.DATA_MODEL_LIST
 import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
+import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.saveString
 import com.hwj.cook.models.ModelInfoCell
 import kotlinx.coroutines.Dispatchers
@@ -32,21 +33,25 @@ class SettingVm : ViewModel() {
                     _modelsObs.addAll(list)
                 }
             }
-            //得搞个默认的
-            if (_modelsObs.isEmpty()) {
-                addModel(
-                    "gpt-4o",
-                    "",//得换
-                    "gpt-4o",
-                    "https://baitong-it.gree.com",
-                    "aicodeOpen/baitong/chat/completions",
-                    "https://baitong-aiw.gree.com/openapi/v2/embeddings"
-                )
-            }
+            autoAddModel()
         }
     }
 
-    fun updateModel(
+    suspend fun autoAddModel() {
+        //得搞个默认的
+        if (_modelsObs.isEmpty()) {
+            addModel(
+                "gpt-4o",
+                "apikey",//得换
+                "gpt-4o",
+                "https://baitong-it.gree.com",
+                "aicodeOpen/baitong/chat/completions",
+                "https://baitong-aiw.gree.com/openapi/v2/embeddings"
+            )
+        }
+    }
+
+    suspend fun updateModel(
         index: Int,
         alias: String?,
         apiKey: String?,
@@ -67,35 +72,39 @@ class SettingVm : ViewModel() {
             this.chatCompletionPath = chat
             this.embeddingsPath = embed
         }
+        saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs.toList()))
         return true
     }
 
-    fun addModel(
+    suspend fun addModel(
         alias: String?,
         apiKey: String?,
         modelName: String?,
         baseUrl: String?,
         chat: String?,
-        embed: String?
+        embed: String?  //callback:(Boolean)->Unit
     ): Boolean {
         if (apiKey.isNullOrEmpty() || baseUrl.isNullOrEmpty() || chat.isNullOrEmpty() || modelName.isNullOrEmpty()) {
             ToastUtils.show("key/host/chat/modelName不能为空!")
             return false
         }
-        viewModelScope.launch(Dispatchers.Default) {
+        try {
             val modelInfoCell = ModelInfoCell(apiKey, modelName, baseUrl, chat, embed, alias)
             _modelsObs.add(0, modelInfoCell)
-            saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs))
+            saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs.toList()))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
         return true
     }
-
 
     fun deleteModel(modelName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val cache = getCacheString(DATA_MODEL_LIST)
             if (!cache.isNullOrEmpty()) {
                 val list = JsonApi.decodeFromString<MutableList<ModelInfoCell>>(cache)
+                _modelsObs.clear()
                 if (list.isNotEmpty()) {
                     val iterator = list.iterator()
                     while (iterator.hasNext()) {
@@ -105,9 +114,10 @@ class SettingVm : ViewModel() {
                             break
                         }
                     }
-                    _modelsObs.clear()
                     _modelsObs.addAll(list)
-                    saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs))
+                    saveString(DATA_MODEL_LIST, JsonApi.encodeToString(list))
+                } else {
+                    removeCacheKey(DATA_MODEL_LIST)
                 }
             }
         }

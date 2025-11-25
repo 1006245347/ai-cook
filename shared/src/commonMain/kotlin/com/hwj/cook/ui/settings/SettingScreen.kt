@@ -67,7 +67,7 @@ fun SettingsScreenContent(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Card(
-            modifier = Modifier.padding(top = 50.dp).wrapContentWidth()
+            modifier = Modifier.padding(top = 20.dp).wrapContentWidth().align(Alignment.TopCenter)
                 .clickable(onClick = { onAddClicked(0) }),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
@@ -82,7 +82,7 @@ fun SettingsScreenContent(
         }
 
         Card(
-            modifier = Modifier.padding(top=30.dp).fillMaxWidth(),
+            modifier = Modifier.padding(top = 40.dp).fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(contentColor = cAutoBg())
         ) {

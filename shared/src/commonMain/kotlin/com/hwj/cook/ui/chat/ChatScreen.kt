@@ -68,7 +68,7 @@ fun ChatScreen(navigator: Navigator) {
             inputTxt = uiObs.inputTxt,
             isInputEnabled = uiObs.isInputEnabled,
             isLoading = uiObs.isLoading,
-            isChatEnded = uiObs.isChatEnded, modelList[0],
+            isChatEnded = uiObs.isChatEnded, if (modelList.isEmpty()) null else modelList[0],
             onInputTxtChanged = chatVm::updateInputText,
             onSendClicked = chatVm::sendMessage,
             onRestartClicked = chatVm::restartRun,
@@ -76,13 +76,13 @@ fun ChatScreen(navigator: Navigator) {
 //        navigator.goBack()
             })
 
-    if (!showPermissionDialog) {
-        createPermission(PermissionPlatform.STORAGE, grantedAction = {
-            showPermissionDialog = false
-        }, deniedAction = {
-            showPermissionDialog = false
-        })
-    }
+        if (!showPermissionDialog) {
+            createPermission(PermissionPlatform.STORAGE, grantedAction = {
+                showPermissionDialog = false
+            }, deniedAction = {
+                showPermissionDialog = false
+            })
+        }
     }
 }
 

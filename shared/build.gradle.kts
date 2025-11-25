@@ -1,4 +1,3 @@
-import org.gradle.kotlin.dsl.api
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -178,9 +177,6 @@ kotlin {
             implementation(libs.multiplatform.datastore)
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.coroutines)
-
-            //远程日志上报
-            implementation(libs.android.bugly)
 
             //权限申请
             implementation(libs.permissionX.android)

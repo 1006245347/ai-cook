@@ -32,6 +32,17 @@ class SettingVm : ViewModel() {
                     _modelsObs.addAll(list)
                 }
             }
+            //得搞个默认的
+            if (_modelsObs.isEmpty()) {
+                addModel(
+                    "gpt-4o",
+                    "",//得换
+                    "gpt-4o",
+                    "https://baitong-it.gree.com",
+                    "aicodeOpen/baitong/chat/completions",
+                    "https://baitong-aiw.gree.com/openapi/v2/embeddings"
+                )
+            }
         }
     }
 
@@ -96,7 +107,7 @@ class SettingVm : ViewModel() {
                     }
                     _modelsObs.clear()
                     _modelsObs.addAll(list)
-                    saveString(DATA_MODEL_LIST,JsonApi.encodeToString(_modelsObs))
+                    saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs))
                 }
             }
         }

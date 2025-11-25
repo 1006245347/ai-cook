@@ -26,7 +26,6 @@ sheet = "0.1.2"
 pagingCommonVersion = "3.3.0-alpha02-0.5.1"
 precompose = "1.7.0-alpha01" #预发布
 okio = "3.9.0"
-bugly = "4.1.9"
 file = "0.11.0"
 coroutines = "1.10.1"
 coreSplashscreen = "1.0.1"
@@ -157,7 +156,6 @@ androidx-perference = { module = "androidx.preference:preference-ktx", version.r
 androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 appCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidAppCompatVersion" }
 lifecycle-extension = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "androidLifecycleVersion" }
-android-bugly = { module = "com.tencent.bugly:crashreport", version.ref = "bugly" }
 permissionX-android = { module = "com.guolindev.permissionx:permissionx", version.ref = "permissionX" }
 camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
 camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }

@@ -191,6 +191,7 @@ fun MainScreen(navigator: Navigator) {
                             Box(Modifier.padding(0.dp).weight(1f)) {
                                 TabNavRoot(navigator, drawerState, pagerState, { rect ->
                                     showNavDialog = true
+                                    curRoute = tabList[pagerState.currentPage].route
                                     if (rect != null)
                                         barBounds = rect
                                 })
@@ -208,8 +209,8 @@ fun MainScreen(navigator: Navigator) {
                             PopupBelowAnchor(barBounds!!, onDismiss = { showNavDialog = false }) {
                                 PopTabBar(tabList, curRoute) { tab ->
                                     curRoute = tab.route
-                                    subScope.launch { pagerState.scrollToPage(tab.index) }
                                     showNavDialog = false
+                                    subScope.launch { pagerState.scrollToPage(tab.index) }
                                 }
                             }
                         }

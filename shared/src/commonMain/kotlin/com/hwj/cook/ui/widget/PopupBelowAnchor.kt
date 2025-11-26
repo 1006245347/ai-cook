@@ -1,5 +1,6 @@
 package com.hwj.cook.ui.widget
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.absoluteOffset
@@ -15,6 +16,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.hwj.cook.global.cHalfGrey80717172
+import com.hwj.cook.global.cTransparent
 
 /**
  * @author by jason-何伟杰，2025/11/14
@@ -37,7 +40,7 @@ fun PopupBelowAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable (
                     (anchor.right - popWidth).toDp()
                 },
                 y = with(density) { anchor.bottom.toDp() }
-            )
+            ).background(cHalfGrey80717172())
         ) { content() }
     }
 }

@@ -23,6 +23,7 @@ fun cBlue244260FF() = Color(0x244260FF)
 //background
 fun cGreyEEEEEE() = Color(0xFFEEEEEE)
 fun cHalfGrey80717171() = Color(0x80717171)
+fun cHalfGrey80717172() = Color(0x30717171)
 
 fun cDark99000000() = Color(0x99000000)
 

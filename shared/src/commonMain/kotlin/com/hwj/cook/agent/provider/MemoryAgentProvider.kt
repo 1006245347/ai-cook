@@ -180,7 +180,7 @@ class MemoryAgentProvider(
             nodeStart then loadMemory then supportSession then saveToMemory then nodeFinish
         }
 
-        val agent = AIAgent.Companion.invoke(
+        val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor, strategy = strategy, agentConfig = agentConfig
         ) {
             install(AgentMemory.Feature) {

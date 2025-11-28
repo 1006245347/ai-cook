@@ -45,17 +45,22 @@ object AgentManager {
        llm.writeSession {
 //           prompt.messages //历史消息
 
-
            //以下是主动发起请求
            val stream1= requestLLM()
            if (stream1 is Message.Tool.Call){
                //handle tool call
            }
 
-           //
+
            val stream = requestLLMStreaming()
-           stream.collect { chunk-> }
+           stream.collect { chunk->
+
+           }
        }
+    }
+
+    suspend fun t11(){
+
     }
 
 }

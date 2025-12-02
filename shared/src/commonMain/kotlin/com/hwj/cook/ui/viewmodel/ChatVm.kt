@@ -84,7 +84,6 @@ class ChatVm(
     val isAgentModelState = _isAgentModelObs.asStateFlow()
 
 
-
     fun createAgent(isForce: Boolean = false) {
         if (agentProvider == null || isForce) {
             agentProvider = AICookAgentProvider()

@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Navigation
@@ -49,10 +47,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
-import com.hwj.cook.global.cLowOrange
-import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToAvatarGPT
-import com.hwj.cook.global.urlToImageAuthor
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.MainVm
 import moe.tlaster.precompose.koin.koinViewModel
@@ -66,24 +61,27 @@ fun AppBar(
     onShowNav: (Rect?) -> Unit
 ) {
     val mainVm = koinViewModel(MainVm::class)
-    val chatVm = koinViewModel (ChatVm::class)
+    val chatVm = koinViewModel(ChatVm::class)
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     val isAgentModelState by chatVm.isAgentModelState.collectAsState()
-    var isAgentModel= if (isAgentModelState==0) false else true
+    var isAskModel = if (isAgentModelState == 0) true else false
     CenterAlignedTopAppBar(
         title = {
             val paddingSizeModifier = Modifier
                 .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
                 .size(32.dp)
             Box {
-                    SlidingToggle(paddingSizeModifier, options = "Ask" to "Agent", selected = isAgentModel,
-                        onSelectedChange = {
-                            if (isAgentModel){
+                SlidingToggle(
+                    paddingSizeModifier, options = "Ask" to "Agent", selected = !isAskModel,
+                    onSelectedChange = { selected ->
+                        isAskModel = !selected
 
-                            }else{
+                        if (isAskModel) {
 
-                            }
-                        })
+                        } else {
+
+                        }
+                    })
             }
         },
         navigationIcon = {
@@ -202,7 +200,7 @@ fun SlidingToggle(
 
 
 @Composable
-fun BoxScope.CenterTitle(modifier: Modifier){
+fun BoxScope.CenterTitle(modifier: Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = rememberAsyncImagePainter(urlToAvatarGPT),//urlToAvatarGPT 好丑

@@ -44,3 +44,25 @@ fun PopupBelowAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable (
         ) { content() }
     }
 }
+
+@Composable
+fun PopupTopAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable () -> Unit) {
+
+    Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+        detectTapGestures { onDismiss() }
+    }) {
+        val density = LocalDensity.current
+        var popWidth by remember { mutableStateOf(0f) }
+
+        Box(
+            modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                popWidth = layoutCoordinates.size.width.toFloat()
+            }.absoluteOffset(
+                x = with(density) {
+                    (anchor.left + anchor.width / 2f - popWidth / 2f).toDp()
+                },
+                y = with(density) { anchor.bottom.toDp() }
+            ).background(cHalfGrey80717172())
+        ) { content() }
+    }
+}

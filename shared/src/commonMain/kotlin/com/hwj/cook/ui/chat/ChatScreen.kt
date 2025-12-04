@@ -32,12 +32,14 @@ import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.createPermission
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.dp10
+import com.hwj.cook.global.printList
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
+import org.koin.compose.getKoin
 
 /**
  * @author by jason-何伟杰，2025/10/øø9
@@ -49,14 +51,18 @@ fun ChatScreen(navigator: Navigator) {
     val chatVm = koinViewModel(ChatVm::class)
     val uiObs by chatVm.uiObs.collectAsState()
     var showPermissionDialog by remember { mutableStateOf(false) }
-    val isAgentModelState by chatVm.isAgentModelState.collectAsState()
+    val agentModelIndex by chatVm.agentModelState.collectAsState()
+    val validAgentState = chatVm.validAgentState.collectAsState().value
     val settingVm = koinViewModel(SettingVm::class)
     val modelList = settingVm.modelsState.collectAsState().value
 
     val sessionId = chatVm.currentSessionState.collectAsState()
+    val koin = getKoin()
     LaunchedEffect(sessionId) {
         subScope.launch {
-            chatVm.createAgent()
+            printList(validAgentState,"launch?")
+            if (agentModelIndex != 0)
+                chatVm.createAgent(koin, validAgentState[agentModelIndex - 1].name)
             chatVm.loadAskSession()
         }
     }

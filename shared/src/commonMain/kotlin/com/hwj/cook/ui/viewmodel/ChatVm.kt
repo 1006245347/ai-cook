@@ -7,20 +7,29 @@ import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.streaming.StreamFrame
 import ai.koog.utils.io.use
+import androidx.compose.runtime.mutableStateListOf
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.agent.ChatSession
 import com.hwj.cook.agent.ChatState
 import com.hwj.cook.agent.chatStreaming
 import com.hwj.cook.agent.provider.AICookAgentProvider
+import com.hwj.cook.agent.provider.AgentInfoCell
+import com.hwj.cook.agent.provider.AgentManager
+import com.hwj.cook.agent.provider.AgentProvider
+import com.hwj.cook.agent.provider.CalculatorAgentProvider
+import com.hwj.cook.agent.provider.ChatAgentProvider
+import com.hwj.cook.agent.provider.McpSearchProvider
+import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgs
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
+import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
-import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheInt
-import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
+import com.hwj.cook.global.saveInt
 import com.hwj.cook.global.stopAnswerTip
 import com.hwj.cook.global.stopByErrTip
 import com.hwj.cook.global.thinkingTip
@@ -39,6 +48,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
+import org.koin.core.Koin
+import org.koin.core.qualifier.named
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -49,7 +60,7 @@ import kotlin.uuid.Uuid
 class ChatVm(
     private val globalRepository: GlobalRepository, private val sessionRepository: SessionRepository
 ) : ViewModel() {
-    private var agentProvider: AICookAgentProvider? = null
+    private var agentProvider: AgentProvider? = null
     private var agentInstance: AIAgent<String, String>? = null
     private val _uiState = MutableStateFlow(
         AgentUiState(
@@ -80,13 +91,38 @@ class ChatVm(
     val stopReceivingState = _stopReceivingObs.asStateFlow()
 
     //搞两种模式，文本问答（单轮无上下文）和智能体（多轮带记忆）,适配多种智能体
-    private val _isAgentModelObs = MutableStateFlow(0)
-    val isAgentModelState = _isAgentModelObs.asStateFlow()
+    private val _agentModelObs = MutableStateFlow(0)
+    val agentModelState = _agentModelObs.asStateFlow()
 
+//    private val _validAgentsObs: MutableStateFlow<MutableList<AgentInfoCell>> =
+//        MutableStateFlow(mutableListOf())
+//    val validAgentState = _validAgentsObs.asStateFlow()
 
-    fun createAgent(isForce: Boolean = false) {
-        if (agentProvider == null || isForce) {
+    private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
+    val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
+    fun createAgent(koin: Koin, name: String) {
+        if (agentProvider == null) {
             agentProvider = AICookAgentProvider()
+        } else {
+            if (name == "chat") {
+                agentProvider = koin.get(named(name)) as ChatAgentProvider
+            } else if (name == "search") {
+                agentProvider = koin.get(named(name)) as McpSearchProvider
+            } else if (name == "memory") {
+                agentProvider = koin.get(named(name)) as MemoryAgentProvider
+            } else if (name == "calculator")
+                agentProvider = koin.get(named(name)) as CalculatorAgentProvider
+            else {
+                agentProvider = koin.get(named(name)) as AICookAgentProvider
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch { //agent=0是问答模式不是智能体
+            _agentModelObs.value = getCacheInt(DATA_AGENT_INDEX, 0)
+            _validAgentObs.clear()
+            _validAgentObs.addAll(AgentManager.validAgentList())
         }
     }
 
@@ -98,7 +134,7 @@ class ChatVm(
         val userInput = _uiState.value.inputTxt.trim()
         if (userInput.isEmpty()) return
 
-        if (_isAgentModelObs.value == 0) {
+        if (_agentModelObs.value == 0) {
             workInSub {
                 runAnswer(userInput)
             }
@@ -337,9 +373,18 @@ class ChatVm(
         _uiState.update { it.copy(messages = msgList) }
     }
 
-    fun updateAgentModel() {
+    fun updateAgentModel() { //index=0是问答模式，其他是各类agent
         viewModelScope.launch {
-            _isAgentModelObs.value = getCacheInt(DATA_AGENT_INDEX)
+            _agentModelObs.value = getCacheInt(DATA_AGENT_INDEX)
+        }
+    }
+
+    suspend fun changeChatModel(model: Int) {
+        if (model == 0) {
+            saveInt(DATA_AGENT_DEF, _agentModelObs.value)
+            _agentModelObs.value = 0
+        } else {
+            _agentModelObs.value = model
         }
     }
 

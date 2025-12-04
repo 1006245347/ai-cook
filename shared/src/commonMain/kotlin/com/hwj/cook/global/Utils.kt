@@ -234,12 +234,13 @@ suspend fun saveLong(key: String, value: Long) {
     settingsCache.putLong(key, value)
 }
 
-suspend fun getCacheInt(key: String): Int {
-    return settingsCache.getInt(key, 0)
+
+suspend fun getCacheInt(key: String, def: Int = 0): Int {
+    return settingsCache.getInt(key, def)
 }
 
-suspend fun getCacheLong(key: String): Long {
-    return settingsCache.getLong(key, 0L)
+suspend fun getCacheLong(key: String, def: Long = 0L): Long {
+    return settingsCache.getLong(key, def)
 }
 
 suspend fun getCacheString(key: String): String? {
@@ -254,20 +255,16 @@ fun getAsyncString(key: String): Deferred<String?> {
     return globalScope.async { getCacheString(key) }
 }
 
-suspend fun getCacheBoolean(key: String): Boolean {
-    return getCacheBoolean(key, false)
-}
-
-suspend fun getCacheBoolean(key: String, def: Boolean): Boolean {
+suspend fun getCacheBoolean(key: String, def: Boolean = false): Boolean {
     return settingsCache.getBoolean(key, def)
 }
 
-suspend fun getCacheFloat(key: String): Float {
-    return settingsCache.getFloat(key, 0f)
+suspend fun getCacheFloat(key: String, def: Float = 0f): Float {
+    return settingsCache.getFloat(key, def)
 }
 
-suspend fun getCacheDouble(key: String): Double {
-    return settingsCache.getDouble(key, 0.0)
+suspend fun getCacheDouble(key: String, def: Double = 0.0): Double {
+    return settingsCache.getDouble(key, def)
 }
 
 suspend fun hasCacheKey(key: String): Boolean {

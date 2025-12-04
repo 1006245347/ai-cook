@@ -10,10 +10,10 @@ const val urlToAuthor =
 
 const val thinkingTip = "思考中..."
 const val stopAnswerTip = "已停止生成"
-const val stopByErrTip="异常导致回复中断"
+const val stopByErrTip = "异常导致回复中断"
 const val answerUseEw = ",\nplease answer in English."
 const val answerUseZw = ",\n请用中文回答。"
-const val loadingTip="加载中..."
+const val loadingTip = "加载中..."
 
 //标识
 const val CODE_IS_DARK = "CODE_IS_DARK" //是否黑暗模式
@@ -21,15 +21,18 @@ const val CODE_LANGUAGE_ZH = "CODE_LANGUAGE_ZH"//语言是否是中文
 
 
 const val DATA_USER_NAME = "DATA_USER_NAME"
-const val DATA_APP_TOKEN="DATA_APP_TOKEN"
+const val DATA_APP_TOKEN = "DATA_APP_TOKEN"
 const val DATA_SIZE_INPUT_SEND = 300
 const val DATA_FIRST_WELCOME = "DATA_FIRST_WELCOME"
-const val DATA_BOOK_ROOT="DATA_BOOK_ROOT"
-const val DATA_USER_ID="DATA_USER_ID"
-const val DATA_APPLICATION_NAME="AI_COOK"
-const val DATA_MEMORY_INPUT="DATA_MEMORY_INPUT"
-const val DATA_MODEL_LIST="DATA_MODEL_LIST"
+const val DATA_BOOK_ROOT = "DATA_BOOK_ROOT"
+const val DATA_USER_ID = "DATA_USER_ID"
+const val DATA_APPLICATION_NAME = "AI_COOK"
+const val DATA_MEMORY_INPUT = "DATA_MEMORY_INPUT"   //记忆输入
+const val DATA_MODEL_LIST = "DATA_MODEL_LIST"
+
+const val DATA_MODEL_INDEX = "DATA_MODEL_INDEX"  //当前选中的大模型位置
 const val DATA_MESSAGE_TAG = "DATA_MESSAGE_TAG"
 const val DATA_SESSION_TAG = "DATA_SESSION_TAG"
 
-const val DATA_AGENT_INDEX="DATA_AGENT_INDEX"
+const val DATA_AGENT_INDEX = "DATA_AGENT_INDEX" //当前选中的agent位置
+const val DATA_AGENT_DEF = "DATA_AGENT_DEF"

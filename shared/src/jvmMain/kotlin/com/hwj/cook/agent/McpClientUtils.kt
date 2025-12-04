@@ -10,6 +10,7 @@ import ai.koog.agents.core.dsl.extension.nodeLLMSendMultipleToolResults
 import ai.koog.agents.core.dsl.extension.onAssistantMessage
 import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
+import ai.koog.agents.core.tools.reflect.ToolSet
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.agents.mcp.McpToolRegistryProvider

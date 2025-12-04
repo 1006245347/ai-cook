@@ -1,10 +1,22 @@
 package di
 
+import ai.koog.prompt.executor.clients.LLMClient
+import ai.koog.prompt.executor.clients.openai.OpenAIModels
+import ai.koog.prompt.llm.LLModel
+import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.provider.AICookAgentProvider
+import com.hwj.cook.agent.provider.AgentProvider
+import com.hwj.cook.agent.provider.CalculatorAgentProvider
+import com.hwj.cook.agent.provider.ChatAgentProvider
+import com.hwj.cook.agent.provider.McpSearchProvider
+import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.data.local.SettingsFactory
-import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.data.repository.GlobalRepository
+import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.except.DataSettings
+import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.CookVm
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -13,6 +25,7 @@ import com.hwj.cook.ui.viewmodel.TechVm
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
@@ -45,15 +58,30 @@ val mainModule = module {
 
     single { GlobalRepository(get()) }
     single { SessionRepository() }
+    //智能体单例
+    factory<suspend () -> Pair<LLMClient, LLModel>> {
+        {
+            val apiKey = getCacheString(DATA_APP_TOKEN, "")
+            Pair(OpenAiRemoteLLMClient(apiKey!!), OpenAIModels.Chat.GPT4o)
+        }
+    }
+    single<AgentProvider>(named("calculator")) { CalculatorAgentProvider(provideLLMClient = get()) }
+
+    single<AgentProvider>(named("cook")) { AICookAgentProvider() }
+    single<AgentProvider>(named("chat")) { ChatAgentProvider() }
+    single<AgentProvider>(named("search")) { McpSearchProvider() }
+    single<AgentProvider>(named("memory")) { MemoryAgentProvider() }
+
+
 }
 
-val modelModule = module {
+val modelModule = module { //viewModel一般用factory
 //    factory { WelcomeScreenModel(get()) }
 //    single { SettingsViewModel(get(), get(), get()) }
-    single { MainVm(get(),get()) }
+    single { MainVm(get(), get()) }
     single { SettingVm() }
     single { CookVm() }
-    single { ChatVm(get(),get()) }
+    single { ChatVm(get(), get()) }
     single { TechVm() }
 }
 

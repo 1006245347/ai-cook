@@ -57,12 +57,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hwj.cook.agent.provider.AgentManager
 import com.hwj.cook.global.CODE_IS_DARK
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
+import com.hwj.cook.global.cHalfGrey80717171
 import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.cTransparent
 import com.hwj.cook.global.cWhite
@@ -86,6 +88,7 @@ import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.BackHandler
 import moe.tlaster.precompose.navigation.Navigator
+import org.koin.compose.getKoin
 
 val tabList = listOf(
     TabCell("/main/chat", "AI", 0),
@@ -118,8 +121,10 @@ fun MainScreen(navigator: Navigator) {
     var curRoute by remember { mutableStateOf(tabList.first().route) }
 
     var showNavDialog by remember { mutableStateOf(false) }
+    var showAgentDialog by remember { mutableStateOf(false) }
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     var initialized by rememberSaveable { mutableStateOf(false) }
+    val koin = getKoin()
 
     val subScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
@@ -184,16 +189,18 @@ fun MainScreen(navigator: Navigator) {
                                     }
                                 }
                             }
-                            TabNavRoot(navigator, drawerState, pagerState)
+                            TabNavRoot(navigator, drawerState, pagerState, onAgentPop = {})
                         }
                     } else {
                         Column {
                             Box(Modifier.padding(0.dp).weight(1f)) {
                                 TabNavRoot(navigator, drawerState, pagerState, { rect ->
+                                    showAgentDialog = true
+                                    if (rect != null) barBounds = rect
+                                }, { rect ->
                                     showNavDialog = true
                                     curRoute = tabList[pagerState.currentPage].route
-                                    if (rect != null)
-                                        barBounds = rect
+                                    if (rect != null) barBounds = rect
                                 })
                             }
                             HorizontalDivider(thickness = (0.5f).dp, color = cLightLine())
@@ -211,6 +218,14 @@ fun MainScreen(navigator: Navigator) {
                                     curRoute = tab.route
                                     showNavDialog = false
                                     subScope.launch { pagerState.scrollToPage(tab.index) }
+                                }
+                            }
+                        }
+
+                        if (showAgentDialog && barBounds != null) {
+                            PopupTopAnchor(barBounds!!, onDismiss = { showAgentDialog = false }) {
+                                PopAgentView { agentName->//智能体列表  切换
+                                    chatVm.createAgent(koin,agentName)
                                 }
                             }
                         }
@@ -238,6 +253,7 @@ private fun TabNavRoot(
     navigator: Navigator,
     drawerState: DrawerState,
     pagerState: PagerState,
+    onAgentPop: (Rect?) -> Unit = {},
     onShowNav: (Rect?) -> Unit = {}
 ) {
     val subScope = rememberCoroutineScope()
@@ -271,7 +287,7 @@ private fun TabNavRoot(
                 drawerState.close()
                 chatVm.createSession()
             }
-        }, onShowNav = onShowNav)
+        }, onAgentPop = onAgentPop, onShowNav = onShowNav)
         HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
             if (page !in loadedPages) {
                 loadedPages.add(page)
@@ -359,6 +375,20 @@ private fun PopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell)
                         unselectedTextColor = Color.Gray
                     )
                 )
+            }
+        }
+    }
+}
+
+//智能体列表视图
+@Composable
+private fun PopAgentView(onClicked: (String) -> Unit) {//  onClick: () -> Unit
+    val list = AgentManager.validAgentList()
+    Column(Modifier.width(120.dp).wrapContentHeight()) {
+        list.forEach { cell ->
+            Column(Modifier.clickable(onClick = {onClicked(cell.name)})) {
+                Text("Agent ${cell.name}", fontSize = 11.sp)
+                HorizontalDivider(thickness = 1.dp, color = cHalfGrey80717171())
             }
         }
     }

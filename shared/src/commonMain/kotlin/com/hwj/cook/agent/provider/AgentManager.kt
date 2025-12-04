@@ -12,8 +12,20 @@ import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
+import org.koin.compose.koinInject
 
 object AgentManager {
+
+    //把设计的Agent都放出
+    fun validAgentList(): List<AgentInfoCell> {
+        //小心大模型跟Agent是匹配的，某些大模型不支持工具、记忆等，会导致运行错误
+        val cookAgent = AgentInfoCell("cook")
+        val chatAgent = AgentInfoCell("chat")
+        val searchAgent = AgentInfoCell("search")
+        val memoryAgent = AgentInfoCell("memory")
+        return listOf(cookAgent, chatAgent, searchAgent, memoryAgent)
+    }
+
 
     suspend fun quickAgent(input: String) {
         val apiKey = getCacheString(DATA_APP_TOKEN)
@@ -34,28 +46,28 @@ object AgentManager {
         }
 
 
-       val result= agent.run(input).also { //默认非流式
+        val result = agent.run(input).also { //默认非流式
             printLog("agent>$it")
         }
 
         agent.isRunning()
     }
 
-    suspend fun AIAgentContext.test1(){
-       llm.writeSession {
+    suspend fun AIAgentContext.test1() {
+        llm.writeSession {
 //           prompt.messages //历史消息
 
-           //以下是主动发起请求
-           val stream1= requestLLM()
-           if (stream1 is Message.Tool.Call){
-               //handle tool call
-           }
+            //以下是主动发起请求
+            val stream1 = requestLLM()
+            if (stream1 is Message.Tool.Call) {
+                //handle tool call
+            }
 
 
-           val stream = requestLLMStreaming()
-           stream.collect { chunk->
+            val stream = requestLLMStreaming()
+            stream.collect { chunk ->
 
-           }
-       }
+            }
+        }
     }
 }

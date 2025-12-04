@@ -1,10 +1,11 @@
 package com.hwj.cook.agent.tools
 
 import ai.koog.agents.core.tools.Tool
-import ai.koog.agents.core.tools.ToolResult
-import ai.koog.agents.core.tools.ToolResultUtils
 import ai.koog.agents.core.tools.annotations.LLMDescription
+import ai.koog.prompt.message.Message
+import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.getDeviceInfo
+import com.hwj.cook.models.DeviceInfoCell
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
@@ -14,6 +15,7 @@ import kotlinx.serialization.Serializable
  *
  * sdk自带的tool,  agents/agents-ext/src/commonMain/kotlin/ai/koog/agents/ext/tool
  *
+ * 描述arg参数，在execute接收参数后执行逻辑构建json结果，整个工具的描述也是对json的定义
  */
 object ToolCI {
 
@@ -21,31 +23,29 @@ object ToolCI {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.toTextSerializer<Result>()
+            get() = Result.serializer()
         override val description: String
             get() = "获取设备信息的工具"
 
         override suspend fun execute(args: Args): Result {
-            return Result("cpu-babalala")
+            val devInfo=printDeviceInfo()
+            return Result(JsonApi.encodeToString(devInfo))
         }
 
         @Serializable
         data class Args(@property: LLMDescription("设备信息") val device: String)
 
         @Serializable
-        data class Result(val cpu: String) : ToolResult.TextSerializable() {
-            override fun textForLLM(): String {
-                return "当前设备cpu: $cpu"
-            }
-        }
+        data class Result(val devInfo: String)
 
-        fun printDeviceInfo() {
+        fun printDeviceInfo(): DeviceInfoCell {
             val info = getDeviceInfo()
             println("Platform: ${info.platform}")
             println("CPU: ${info.cpuCores} cores (${info.cpuArch})")
             println("Memory: ${info.totalMemoryMB} MB")
             println("Brand: ${info.brand}, Model: ${info.model}")
             println("OS: ${info.osVersion}")
+            return info
         }
     }
 
@@ -53,22 +53,18 @@ object ToolCI {
         override val argsSerializer: KSerializer<Args>
             get() = Args.serializer()
         override val resultSerializer: KSerializer<Result>
-            get() = ToolResultUtils.Companion.toTextSerializer<Result>()
+            get() = Result.serializer()
         override val description: String
-            get() = "获取用户信息的工具"
+            get() = "获取用户姓名的工具"
 
         override suspend fun execute(args: Args): Result {
-            return Result("x7")
+            return Result(args.name)
         }
 
         @Serializable
         data class Args(@property:LLMDescription("user 's name") val name: String)
 
         @Serializable
-        data class Result(val name: String) : ToolResult.TextSerializable() {
-            override fun textForLLM(): String {
-                return "user name is $name"
-            }
-        }
+        data class Result(val name: String)
     }
 }

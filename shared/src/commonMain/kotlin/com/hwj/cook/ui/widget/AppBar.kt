@@ -3,7 +3,7 @@ package com.hwj.cook.ui.widget
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,10 +47,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.hwj.cook.except.ToolTipCase
+import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.PrimaryColor
+import com.hwj.cook.global.cBlue244260FF
+import com.hwj.cook.global.cHalfGrey80717171
+import com.hwj.cook.global.cOrangeFFB8664
+import com.hwj.cook.global.getCacheInt
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToAvatarGPT
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.MainVm
+import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,28 +66,36 @@ fun AppBar(
     pagerState: PagerState,
     onClickMenu: () -> Unit,
     onNewChat: () -> Unit,
+    onAgentPop: (Rect?) -> Unit,
     onShowNav: (Rect?) -> Unit
 ) {
     val mainVm = koinViewModel(MainVm::class)
     val chatVm = koinViewModel(ChatVm::class)
+    val subScope = rememberCoroutineScope()
     var barBounds by remember { mutableStateOf<Rect?>(null) }
-    val isAgentModelState by chatVm.isAgentModelState.collectAsState()
-    var isAskModel = if (isAgentModelState == 0) true else false
+    val agentModelState by chatVm.agentModelState.collectAsState()
+//    var isAskModelState = remember {  }
+    //弹窗选择 智能体列表
+
     CenterAlignedTopAppBar(
         title = {
             val paddingSizeModifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
-                .size(32.dp)
+                .padding(start = 16.dp, top = 10.dp, bottom = 10.dp)
+                .size(160.dp)
             Box {
                 SlidingToggle(
-                    paddingSizeModifier, options = "Ask" to "Agent", selected = !isAskModel,
-                    onSelectedChange = { selected ->
-                        isAskModel = !selected
-
-                        if (isAskModel) {
-
-                        } else {
-
+                    paddingSizeModifier, options = "Ask" to "Agent", selected = !isAskModelState,
+                    onChangeAgent = {  //长按 弹窗
+                        onAgentPop(barBounds)
+                    },
+                    onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态
+                        isAskModelState = !selected
+                        subScope.launch {
+                            if (!selected) {
+                                chatVm.changeChatModel(0)
+                            } else {
+                                chatVm.changeChatModel(getCacheInt(DATA_AGENT_DEF,1))
+                            }
                         }
                     })
             }
@@ -144,7 +160,7 @@ fun AppBar(
 fun SlidingToggle(
     modifier: Modifier = Modifier,
     options: Pair<String, String> = "Ask" to "Agent",
-    selected: Boolean,
+    selected: Boolean, onChangeAgent: () -> Unit,
     onSelectedChange: (Boolean) -> Unit
 ) {
     val thumbOffset by animateDpAsState(targetValue = if (selected) 80.dp else 0.dp)
@@ -153,11 +169,18 @@ fun SlidingToggle(
         modifier = modifier
             .width(160.dp)
             .height(40.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(10.dp))
             .background(Color(0x33000000))
-            .clickable {
-                onSelectedChange(!selected)
-            }
+            .combinedClickable(
+                onLongClickLabel = "长按切换Agent",
+                onClickLabel = "点击切换问答模式",
+                onLongClick = {
+                    onChangeAgent()
+                },
+                onClick = { onSelectedChange(!selected)
+                    printD("clickToggle? $selected")
+                }
+            )
     ) {
         // 滑块
         Box(
@@ -165,8 +188,8 @@ fun SlidingToggle(
                 .offset(x = thumbOffset)
                 .width(80.dp)
                 .height(40.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFF4CAF50))
+                .clip(RoundedCornerShape(10.dp))
+                .background(cHalfGrey80717171())
         )
 
         // 左标签
@@ -178,7 +201,8 @@ fun SlidingToggle(
         ) {
             Text(
                 text = options.first,
-                color = if (!selected) Color.White else Color.Black
+                color = if (!selected) Color.White else Color.Black,
+                fontSize = 9.sp
             )
         }
 
@@ -192,7 +216,9 @@ fun SlidingToggle(
         ) {
             Text(
                 text = options.second,
-                color = if (selected) Color.White else Color.Black
+//                color = if (selected) Color.White else Color.Black,
+                color= if (selected) cOrangeFFB8664() else cBlue244260FF(),
+                fontSize = 9.sp
             )
         }
     }

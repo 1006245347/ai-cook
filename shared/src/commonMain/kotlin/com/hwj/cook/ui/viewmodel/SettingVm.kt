@@ -23,7 +23,6 @@ class SettingVm : ViewModel() {
     val modelsState = MutableStateFlow(_modelsObs).asStateFlow()
 
     fun initialize() {
-        printLog("setInit>")
         viewModelScope.launch {
             val cache = getCacheString(DATA_MODEL_LIST)
             cache?.let {

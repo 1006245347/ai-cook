@@ -13,3 +13,6 @@ interface AgentProvider {
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String>
 }
+
+
+data class AgentInfoCell(var name: String)

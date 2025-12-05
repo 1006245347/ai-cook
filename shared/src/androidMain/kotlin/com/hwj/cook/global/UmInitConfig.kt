@@ -4,6 +4,7 @@ import com.umeng.commonsdk.UMConfigure
 import com.umeng.umcrash.IUMCrashCallbackWithType
 import com.umeng.umcrash.IUMCrashCallbackWithType.CrashType
 import com.umeng.umcrash.UMCrash
+import com.umeng.umcrash.UMCrashUtils
 
 
 object UmInitConfig {
@@ -18,7 +19,14 @@ object UmInitConfig {
             UMConfigure.DEVICE_TYPE_PHONE,
             "d4a0647f4c1fcd9e2521109e66cd7a38"
         )
-        UMConfigure.setLogEnabled(true)
+        UMConfigure.setLogEnabled(true)  //接入友盟日志框架，本地logcat不打印了，被um接管异常，下面是处理方法
+        UMCrash.setDebug(true)
+       val defHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { t, e->
+            android.util.Log.e(logTAG,"Uncaught",e)
+            defHandler?.uncaughtException(t,e)
+        }
+
 //        UMCrash.registerUMCrashCallback(object : IUMCrashCallbackWithType {
 //            override fun onCallback(type: CrashType): String? {
 //                when (type) {

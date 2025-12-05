@@ -49,9 +49,12 @@ import coil3.compose.rememberAsyncImagePainter
 import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.PrimaryColor
+import com.hwj.cook.global.cBlack333333
+import com.hwj.cook.global.cBlackTxt
 import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.cHalfGrey80717171
 import com.hwj.cook.global.cOrangeFFB8664
+import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheInt
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToAvatarGPT
@@ -74,7 +77,7 @@ fun AppBar(
     val subScope = rememberCoroutineScope()
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     val agentModelState by chatVm.agentModelState.collectAsState()
-//    var isAskModelState = remember {  }
+    var isAskModelState by remember { mutableStateOf(agentModelState == 0) }
     //弹窗选择 智能体列表
 
     CenterAlignedTopAppBar(
@@ -94,7 +97,7 @@ fun AppBar(
                             if (!selected) {
                                 chatVm.changeChatModel(0)
                             } else {
-                                chatVm.changeChatModel(getCacheInt(DATA_AGENT_DEF,1))
+                                chatVm.changeChatModel(getCacheInt(DATA_AGENT_DEF, 1))
                             }
                         }
                     })
@@ -163,21 +166,27 @@ fun SlidingToggle(
     selected: Boolean, onChangeAgent: () -> Unit,
     onSelectedChange: (Boolean) -> Unit
 ) {
+    val mainVm = koinViewModel(MainVm::class)
+    val isDark = mainVm.darkState.collectAsState().value
     val thumbOffset by animateDpAsState(targetValue = if (selected) 80.dp else 0.dp)
+    val cBottom = if (isDark) Color(0xFF22262C) else Color(0xFFE7EAEF) //全部底色 22262C  FF22282F
+    val cTop = if (isDark) cBlackTxt() else cWhite() //滑块颜色
+    val cTxt = if (isDark) cWhite() else cBlackTxt()
 
     Box(
         modifier = modifier
             .width(160.dp)
             .height(40.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0x33000000))
+            .background(cBottom)
             .combinedClickable(
                 onLongClickLabel = "长按切换Agent",
                 onClickLabel = "点击切换问答模式",
                 onLongClick = {
                     onChangeAgent()
                 },
-                onClick = { onSelectedChange(!selected)
+                onClick = {
+                    onSelectedChange(!selected)
                     printD("clickToggle? $selected")
                 }
             )
@@ -189,7 +198,7 @@ fun SlidingToggle(
                 .width(80.dp)
                 .height(40.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(cHalfGrey80717171())
+                .background(cTop)
         )
 
         // 左标签
@@ -201,8 +210,8 @@ fun SlidingToggle(
         ) {
             Text(
                 text = options.first,
-                color = if (!selected) Color.White else Color.Black,
-                fontSize = 9.sp
+                color = cTxt,
+                fontSize = if (!selected) 14.sp else 15.sp
             )
         }
 
@@ -216,9 +225,8 @@ fun SlidingToggle(
         ) {
             Text(
                 text = options.second,
-//                color = if (selected) Color.White else Color.Black,
-                color= if (selected) cOrangeFFB8664() else cBlue244260FF(),
-                fontSize = 9.sp
+                color = cTxt,
+                fontSize = if (!selected) 14.sp else 15.sp
             )
         }
     }

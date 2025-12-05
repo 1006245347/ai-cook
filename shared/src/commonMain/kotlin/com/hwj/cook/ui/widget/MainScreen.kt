@@ -72,6 +72,7 @@ import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.onlyMobile
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printE
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
 import com.hwj.cook.models.AppIntent
@@ -225,6 +226,7 @@ fun MainScreen(navigator: Navigator) {
                         if (showAgentDialog && barBounds != null) {
                             PopupTopAnchor(barBounds!!, onDismiss = { showAgentDialog = false }) {
                                 PopAgentView { agentName->//智能体列表  切换
+                                    showAgentDialog=false
                                     chatVm.createAgent(koin,agentName)
                                 }
                             }
@@ -384,10 +386,10 @@ private fun PopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell)
 @Composable
 private fun PopAgentView(onClicked: (String) -> Unit) {//  onClick: () -> Unit
     val list = AgentManager.validAgentList()
-    Column(Modifier.width(120.dp).wrapContentHeight()) {
+    Column(Modifier.padding(top=10.dp).width(120.dp).wrapContentHeight()) {
         list.forEach { cell ->
-            Column(Modifier.clickable(onClick = {onClicked(cell.name)})) {
-                Text("Agent ${cell.name}", fontSize = 11.sp)
+            Column(Modifier.align(Alignment.CenterHorizontally).height(35.dp).clickable(onClick = {onClicked(cell.name)})) {
+                Text("Agent ${cell.name}", fontSize = 14.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
                 HorizontalDivider(thickness = 1.dp, color = cHalfGrey80717171())
             }
         }

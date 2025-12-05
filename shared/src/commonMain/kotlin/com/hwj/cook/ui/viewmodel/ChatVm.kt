@@ -100,21 +100,37 @@ class ChatVm(
 
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
     val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
-    fun createAgent(koin: Koin, name: String) {
-        if (agentProvider == null) {
+    fun createAgent(koin: Koin, name: String?) {
+        if (name == null) {
             agentProvider = AICookAgentProvider()
         } else {
-            if (name == "chat") {
-                agentProvider = koin.get(named(name)) as ChatAgentProvider
-            } else if (name == "search") {
-                agentProvider = koin.get(named(name)) as McpSearchProvider
-            } else if (name == "memory") {
-                agentProvider = koin.get(named(name)) as MemoryAgentProvider
-            } else if (name == "calculator")
-                agentProvider = koin.get(named(name)) as CalculatorAgentProvider
-            else {
-                agentProvider = koin.get(named(name)) as AICookAgentProvider
-            }
+         agentProvider=   koin.get <AgentProvider> (named(name))  //(agentProvider is McpSearchProvider)
+//            when (name) {
+//                "chat" -> {
+//                    val tmp: ChatAgentProvider = koin.get(named(name))
+//                    agentProvider = tmp
+//                }
+//
+//                "search" -> {
+//                    val tmp: McpSearchProvider = koin.get(named(name))
+//                    agentProvider = tmp
+//                }
+//
+//                "memory" -> {
+//                    val tmp: MemoryAgentProvider = koin.get(named(name))
+//                    agentProvider = tmp
+//                }
+//
+//                "calculator" -> {
+//                    val tmp: CalculatorAgentProvider = koin.get(named(name))
+//                    agentProvider = tmp
+//                }
+//
+//                else -> {
+//                    val tmp: AICookAgentProvider = koin.get(named(name))
+//                    agentProvider = tmp
+//                }
+//            }
         }
     }
 

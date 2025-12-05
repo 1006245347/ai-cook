@@ -2,6 +2,8 @@ package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
+import ai.koog.agents.core.agent.isFinished
+import ai.koog.agents.core.agent.isRunning
 import ai.koog.agents.core.dsl.builder.forwardTo
 import ai.koog.agents.core.dsl.builder.strategy
 import ai.koog.agents.core.dsl.extension.nodeExecuteMultipleTools
@@ -26,6 +28,9 @@ class McpSearchProvider(
     override var title: String="search from internet",
     override val description: String="A agent that support search from internet with mcp tool."
 ) : AgentProvider {
+
+    private var agentInstance: AIAgent<String, String>? = null
+
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
@@ -115,11 +120,19 @@ class McpSearchProvider(
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor, strategy = strategy, agentConfig = agentConfig
         ) {
-            install(AgentMemory.Feature) {
-                this.memoryProvider = createMemoryProvider()
-                this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
-            }
+//            install(AgentMemory.Feature) {
+//                this.memoryProvider = createMemoryProvider()
+//                this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
+//            }
         }
         return agent
+    }
+
+    suspend fun isRunning(): Boolean {
+        return agentInstance!!.isRunning()
+    }
+
+    suspend fun isFinished(): Boolean {
+        return agentInstance!!.isFinished()
     }
 }

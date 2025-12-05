@@ -2,6 +2,8 @@ package com.hwj.cook.global
 
 import android.app.Application
 import android.content.Context
+import co.touchlab.kermit.LogcatWriter
+import co.touchlab.kermit.Logger
 import di.initKoin
 import org.koin.android.ext.koin.androidContext
 import java.io.File
@@ -19,7 +21,7 @@ open class MainApplication : Application() {
 
         initKermitLog()
         //采集用户信息的应在用户隐私同意后再初始化
-        UmInitConfig.init()
+//        UmInitConfig.init()
     }
 
     companion object {

@@ -10,7 +10,6 @@ import ai.koog.agents.core.dsl.extension.nodeLLMSendMultipleToolResults
 import ai.koog.agents.core.dsl.extension.onAssistantMessage
 import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
-import ai.koog.agents.core.tools.reflect.ToolSet
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.agents.mcp.McpToolRegistryProvider
@@ -20,6 +19,7 @@ import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
+
 /**
  * @author by jason-何伟杰，2025/8/26
  * des:需要安装本地npx命令   mcp大部分都只适合nodejs/jvm
@@ -28,6 +28,7 @@ object McpClientUtils {
 
     suspend fun t1() {
 //        McpToolRegistryProvider.fromTransport()
+
 
     }
 
@@ -38,13 +39,11 @@ object McpClientUtils {
         val toolRegistry = McpToolRegistryProvider.fromTransport(transport)
 
         toolRegistry.tools.forEach {
-            printD(it.name+"："+it.descriptor)
+            printD(it.name + "：" + it.descriptor)
         }
 
 
-
     }
-
 
 
     //注意mcp的进程要销毁

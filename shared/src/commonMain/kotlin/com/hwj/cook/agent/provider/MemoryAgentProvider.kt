@@ -17,7 +17,8 @@ import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.markdown.markdown
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.createMemoryProvider
-import com.hwj.cook.agent.tools.ToolCI
+import com.hwj.cook.agent.tools.DiagnosticTool
+import com.hwj.cook.agent.tools.UserInfoTool
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
@@ -29,7 +30,7 @@ import com.hwj.cook.global.getCacheString
 class MemoryAgentProvider(
     override var title: String = "Chat",
     override val description: String = "A conversational agent that supports long-term memory, with clear and concise responses."
-) : AgentProvider {
+) : AgentProvider <String, String> {
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
@@ -123,7 +124,7 @@ class MemoryAgentProvider(
             }
 
             //  推理过程用到的工具
-            val listTools = listOf(ToolCI.UserInfoTool, ToolCI.DiagnosticTool)
+            val listTools = listOf(UserInfoTool, DiagnosticTool)
             val supportSession by subgraphWithTask<String, String>(tools = listTools) { userInput ->
                 markdown {
                     h2(

@@ -17,7 +17,7 @@ import com.hwj.cook.global.getCacheString
 class ChatAgentProvider(
     override var title: String = "Chat",
     override val description: String = "A conversational agent that supports long-term memory, with clear and concise responses."
-) : AgentProvider {
+) : AgentProvider <String, String> {
 
     private var agentInstance: AIAgent<String, String>? = null
 //    private val msgHistory = mutableListOf<Pair<String, String>>() //用户问题-》智能体回答

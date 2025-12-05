@@ -1,5 +1,7 @@
 package  com.hwj.cook
 
+import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.reflect.ToolSet
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
@@ -28,6 +30,7 @@ import java.io.InputStream
 import java.lang.management.ManagementFactory
 import java.util.zip.ZipInputStream
 import kotlin.io.path.Path
+import kotlin.reflect.jvm.jvmName
 
 class DesktopPlatform : Platform {
     override val name: String
@@ -184,4 +187,11 @@ actual fun getDeviceInfo(): DeviceInfoCell {
         osVersion = System.getProperty("os.version"),
         platform = getPlatform().os.name
     )
+}
+
+actual  interface  KmpToolSet : PlatformToolSet
+actual typealias  PlatformToolSet = ToolSet
+
+actual fun platformAgentTools():List<Tool<*, *>>{
+    return listOf()
 }

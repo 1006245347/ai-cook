@@ -9,7 +9,9 @@ import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.message.Message
 import co.touchlab.stately.isFrozen
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.getPlatform
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
 import org.koin.compose.koinInject
@@ -23,7 +25,11 @@ object AgentManager {
         val chatAgent = AgentInfoCell("chat")
         val searchAgent = AgentInfoCell("search")
         val memoryAgent = AgentInfoCell("memory")
-        return listOf(cookAgent, chatAgent, searchAgent, memoryAgent)
+        val suggestCookAgent =
+            AgentInfoCell("suggest", getPlatform().os != OsStatus.IOS)
+
+
+        return listOf(cookAgent, chatAgent, searchAgent, memoryAgent,suggestCookAgent).filter { it.isSupport }
     }
 
 

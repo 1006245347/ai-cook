@@ -30,7 +30,7 @@ import com.hwj.cook.global.getCacheString
  * des: demo
  */
 class CalculatorAgentProvider(private val provideLLMClient: suspend () -> Pair<LLMClient, LLModel>) :
-    AgentProvider {
+    AgentProvider<String, String>  {
 
     override var title: String = "Calculator"
     override val description: String = "Hi, I'm a calculator agent, I can do math"

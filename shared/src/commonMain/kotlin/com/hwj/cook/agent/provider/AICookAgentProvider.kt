@@ -29,7 +29,7 @@ import com.hwj.cook.global.getCacheString
  * @author by jason-何伟杰，2025/10/10
  * des: Agent for cook
  */
-class AICookAgentProvider : AgentProvider {
+class AICookAgentProvider : AgentProvider<String, String> {
     override var title: String = "Chef Agent"
 
     override val description: String = "Hi,I'm a chef agent,I can teach how to cook."

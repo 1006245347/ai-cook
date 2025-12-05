@@ -1,5 +1,7 @@
 package com.hwj.cook
 
+import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.reflect.ToolSet
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
@@ -62,6 +64,7 @@ import java.io.File
 import java.io.InputStream
 import java.util.zip.ZipInputStream
 import kotlin.io.path.Path
+import kotlin.reflect.jvm.jvmName
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
@@ -286,4 +289,12 @@ actual fun getDeviceInfo(): DeviceInfoCell {
         osVersion = "Android ${Build.VERSION.RELEASE}",
         platform = "Android"
     )
+}
+
+
+actual  interface  KmpToolSet : PlatformToolSet
+actual typealias  PlatformToolSet = ToolSet
+//jvm可用的tool
+actual fun platformAgentTools():List<Tool<*, *>>{
+    return listOf()
 }

@@ -1,5 +1,7 @@
+
 package com.hwj.cook
 
+import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -39,6 +41,11 @@ expect fun loadZipRes(): String?
 expect fun createFileMemoryProvider(scopeId: String=""): AgentMemoryProvider
 expect fun getDeviceInfo(): DeviceInfoCell
 
+//这样设计是为了保持使用jvm的ToolSet,却忽略iOS的ToolSet实现(根本就没有)
+//这种做工具只能显示描述，不能用注解反射
+expect interface PlatformToolSet
+expect interface KmpToolSet: PlatformToolSet
 
+expect fun platformAgentTools():List<Tool<*, *>>
 
 

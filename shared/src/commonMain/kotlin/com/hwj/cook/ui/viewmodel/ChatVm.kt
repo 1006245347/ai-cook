@@ -16,10 +16,6 @@ import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.provider.AgentManager
 import com.hwj.cook.agent.provider.AgentProvider
-import com.hwj.cook.agent.provider.CalculatorAgentProvider
-import com.hwj.cook.agent.provider.ChatAgentProvider
-import com.hwj.cook.agent.provider.McpSearchProvider
-import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgs
 import com.hwj.cook.data.repository.GlobalRepository
@@ -27,7 +23,6 @@ import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.getCacheInt
-import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveInt
 import com.hwj.cook.global.stopAnswerTip
@@ -60,8 +55,8 @@ import kotlin.uuid.Uuid
 class ChatVm(
     private val globalRepository: GlobalRepository, private val sessionRepository: SessionRepository
 ) : ViewModel() {
-    private var agentProvider: AgentProvider? = null
-    private var agentInstance: AIAgent<String, String>? = null
+    private var agentProvider: AgentProvider<String,*>? = null
+    private var agentInstance: AIAgent<String, *>? = null
     private val _uiState = MutableStateFlow(
         AgentUiState(
             title = agentProvider?.title,
@@ -94,43 +89,15 @@ class ChatVm(
     private val _agentModelObs = MutableStateFlow(0)
     val agentModelState = _agentModelObs.asStateFlow()
 
-//    private val _validAgentsObs: MutableStateFlow<MutableList<AgentInfoCell>> =
-//        MutableStateFlow(mutableListOf())
-//    val validAgentState = _validAgentsObs.asStateFlow()
-
+    //所有智能体
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
     val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
     fun createAgent(koin: Koin, name: String?) {
         if (name == null) {
             agentProvider = AICookAgentProvider()
         } else {
-         agentProvider=   koin.get <AgentProvider> (named(name))  //(agentProvider is McpSearchProvider)
-//            when (name) {
-//                "chat" -> {
-//                    val tmp: ChatAgentProvider = koin.get(named(name))
-//                    agentProvider = tmp
-//                }
-//
-//                "search" -> {
-//                    val tmp: McpSearchProvider = koin.get(named(name))
-//                    agentProvider = tmp
-//                }
-//
-//                "memory" -> {
-//                    val tmp: MemoryAgentProvider = koin.get(named(name))
-//                    agentProvider = tmp
-//                }
-//
-//                "calculator" -> {
-//                    val tmp: CalculatorAgentProvider = koin.get(named(name))
-//                    agentProvider = tmp
-//                }
-//
-//                else -> {
-//                    val tmp: AICookAgentProvider = koin.get(named(name))
-//                    agentProvider = tmp
-//                }
-//            }
+            agentProvider =
+                koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
         }
     }
 
@@ -178,6 +145,7 @@ class ChatVm(
 
     private suspend fun runAgent(userInput: String) {
         try {
+//            agentProvider?.provideAgent()
             agentInstance = agentProvider?.provideAgent(onToolCallEvent = { msg ->
                 viewModelScope.launch {
                     _uiState.update { it.copy(messages = it.messages + ChatMsg.ToolCallMsg(msg)) }
@@ -218,11 +186,17 @@ class ChatVm(
 
             agentInstance?.use { t ->
                 val result = t.run(userInput)
+                var outS:String
+                if (result is String){ //List
+                    outS=result
+                }else{
+                    outS="wait>"
+                }
 
                 _uiState.update {
                     it.copy(
                         messages = it.messages +
-                                ChatMsg.ResultMsg(result),// + ChatMsg.SystemMsg("The agent has stopped."),
+                                ChatMsg.ResultMsg(outS),// + ChatMsg.SystemMsg("The agent has stopped."),
                         isInputEnabled = false,
                         isLoading = false,
                         isChatEnded = true
@@ -279,7 +253,7 @@ class ChatVm(
         _currentSessionId.value = Uuid.random().toString()
     }
 
-    private suspend fun runAnswer(userInput: String) {
+    private suspend fun runAnswer(userInput: String) { //问答流式
         _stopReceivingObs.value = false
 
         //先根据sessionId找消息队列，如果空则要新建对话

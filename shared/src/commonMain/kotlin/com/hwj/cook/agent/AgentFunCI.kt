@@ -68,19 +68,3 @@ suspend fun chatStreaming(
             streaming(chunk)
         }
 }
-
-suspend fun createAI(){
-
-}
-
-
-fun findNowAgent(index: Int): ModelInfoCell? {
-    if (index == 0) { //问答无智能体
-    } else {
-        var model: ModelInfoCell? = null
-        if (index == 1) {
-
-        }
-    }
-    return null
-}

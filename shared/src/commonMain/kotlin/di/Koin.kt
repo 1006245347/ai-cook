@@ -8,7 +8,7 @@ import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.agent.provider.AgentProvider
 import com.hwj.cook.agent.provider.CalculatorAgentProvider
 import com.hwj.cook.agent.provider.ChatAgentProvider
-import com.hwj.cook.agent.provider.McpSearchProvider
+import com.hwj.cook.agent.provider.McpSearchAgentProvider
 import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.data.local.SettingsFactory
@@ -69,9 +69,9 @@ val mainModule = module {
 
     single<AgentProvider>(named("cook")) { AICookAgentProvider() }
     single<AgentProvider>(named("chat")) { ChatAgentProvider() }
-    single<AgentProvider>(named("search")) { McpSearchProvider() }
+    single<AgentProvider>(named("search")) { McpSearchAgentProvider() }
     single<AgentProvider>(named("memory")) { MemoryAgentProvider() }
-
+    single<AgentProvider>(named("suggest")){sugg}
 
 }
 

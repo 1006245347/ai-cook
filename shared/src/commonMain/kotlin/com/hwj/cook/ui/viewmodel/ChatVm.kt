@@ -5,6 +5,7 @@ package com.hwj.cook.ui.viewmodel
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
+import ai.koog.prompt.message.Message
 import ai.koog.prompt.streaming.StreamFrame
 import ai.koog.utils.io.use
 import androidx.compose.runtime.mutableStateListOf
@@ -23,6 +24,7 @@ import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.getCacheInt
+import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveInt
 import com.hwj.cook.global.stopAnswerTip
@@ -55,7 +57,7 @@ import kotlin.uuid.Uuid
 class ChatVm(
     private val globalRepository: GlobalRepository, private val sessionRepository: SessionRepository
 ) : ViewModel() {
-    private var agentProvider: AgentProvider<String,*>? = null
+    private var agentProvider: AgentProvider<String, *>? = null
     private var agentInstance: AIAgent<String, *>? = null
     private val _uiState = MutableStateFlow(
         AgentUiState(
@@ -145,6 +147,7 @@ class ChatVm(
 
     private suspend fun runAgent(userInput: String) {
         try {
+            var answerFromGPT=""
             agentInstance = agentProvider?.provideAgent(onToolCallEvent = { msg ->
                 viewModelScope.launch {
                     _uiState.update { it.copy(messages = it.messages + ChatMsg.ToolCallMsg(msg)) }
@@ -181,15 +184,25 @@ class ChatVm(
 
                 // Return it to the agent
                 userResponse
+            }, onLLMStreamFrameEvent = { frame->//流式
+                answerFromGPT+=frame
+                _uiState.update {
+                    it.copy(messages = it.messages+ ChatMsg.ResultMsg(answerFromGPT),
+                        isInputEnabled = false, isLoading = false, isChatEnded = true)
+                }
             })
 
-            agentInstance?.use { t ->
-                val result = t.run(userInput)
-                var outS:String
-                if (result is String){ //List
-                    outS=result
-                }else{
-                    outS="wait>"
+            agentInstance?.use { _agent ->
+                val result = _agent.run(userInput)
+                var outS = ""
+                if (result is String) { //List
+                    outS = result
+                } else if (result is List<*>) {
+                    if (result.all { it is Message.Response }) {
+                        val list = result.filterIsInstance<Message.Response>()
+                        printList(list, "chat done?")
+                    }
+                    outS = "wait>"
                 }
 
                 _uiState.update {

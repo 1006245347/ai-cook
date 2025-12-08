@@ -1,6 +1,7 @@
 package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
+import ai.koog.agents.core.agent.AIAgentService
 import ai.koog.agents.core.agent.isFinished
 import ai.koog.agents.core.agent.isRunning
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
@@ -17,19 +18,21 @@ import com.hwj.cook.global.getCacheString
 class ChatAgentProvider(
     override var title: String = "Chat",
     override val description: String = "A conversational agent that supports long-term memory, with clear and concise responses."
-) : AgentProvider <String, String> {
+) : AgentProvider<String, String> {
 
     private var agentInstance: AIAgent<String, String>? = null
 //    private val msgHistory = mutableListOf<Pair<String, String>>() //用户问题-》智能体回答
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
+        onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String> {
         val apiKey = getCacheString(DATA_APP_TOKEN)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
+
 
         agentInstance = AIAgent.Companion.invoke(
             promptExecutor = remoteAiExecutor,

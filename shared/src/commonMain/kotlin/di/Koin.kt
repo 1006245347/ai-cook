@@ -11,6 +11,7 @@ import com.hwj.cook.agent.provider.CalculatorAgentProvider
 import com.hwj.cook.agent.provider.ChatAgentProvider
 import com.hwj.cook.agent.provider.McpSearchAgentProvider
 import com.hwj.cook.agent.provider.MemoryAgentProvider
+import com.hwj.cook.agent.provider.ResponseStreamList
 import com.hwj.cook.agent.provider.SuggestCookAgentProvider
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.data.local.SettingsFactory
@@ -67,14 +68,20 @@ val mainModule = module {
             Pair(OpenAiRemoteLLMClient(apiKey!!), OpenAIModels.Chat.GPT4o)
         }
     }
-    single<AgentProvider<String, String>>(named("calculator")) { CalculatorAgentProvider(provideLLMClient = get()) }
+    single<AgentProvider<String, String>>(named("calculator")) {
+        CalculatorAgentProvider(
+            provideLLMClient = get()
+        )
+    }
 
     single<AgentProvider<String, String>>(named("cook")) { AICookAgentProvider() }
     single<AgentProvider<String, String>>(named("chat")) { ChatAgentProvider() }
     single<AgentProvider<String, String>>(named("search")) { McpSearchAgentProvider() }
     single<AgentProvider<String, String>>(named("memory")) { MemoryAgentProvider() }
-    single<AgentProvider<String, List<Message.Response>>>(named("suggest")){ SuggestCookAgentProvider() }
+//    single<AgentProvider<String, List<Message.Response>>(named("suggest")){ SuggestCookAgentProvider() }
+//    single<AgentProvider<String, List<Message.Response>>(named("suggest")) { SuggestCookAgentProvider() }
 
+    single<AgentProvider<String, String>>(named("suggest")) { SuggestCookAgentProvider() }
 }
 
 val modelModule = module { //viewModel一般用factory

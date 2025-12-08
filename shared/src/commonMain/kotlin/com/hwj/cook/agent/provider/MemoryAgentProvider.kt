@@ -34,6 +34,7 @@ class MemoryAgentProvider(
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
+        onLLMStreamFrameEvent:suspend (String)-> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String> {

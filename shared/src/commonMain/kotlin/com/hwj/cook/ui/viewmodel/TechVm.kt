@@ -53,7 +53,7 @@ class TechVm : ViewModel() {
         try {
             val agent = agentProvider?.provideAgent({}, onErrorEvent = { errorMsg ->
                 _uiState.update { it.copy(isInputEnded = true, isLoading = false) }
-            }, { "" })
+            }, onLLMStreamFrameEvent = {}, onAssistantMessage = { "" })
             val result = agent?.run(userInput)
             _uiState.update {
                 it.copy(
@@ -63,7 +63,7 @@ class TechVm : ViewModel() {
                     memoryOfUser = result
                 )
             }
-            saveString(DATA_MEMORY_INPUT,userInput)
+            saveString(DATA_MEMORY_INPUT, userInput)
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.update {

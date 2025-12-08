@@ -11,6 +11,7 @@ import com.hwj.cook.global.askPermission
 import com.hwj.cook.agent.IOSFileMemoryProvider
 import com.hwj.cook.agent.IOSFileSystemProvider
 import com.hwj.cook.agent.createRootDir
+import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
@@ -218,4 +219,8 @@ actual interface KmpToolSet: PlatformToolSet
 
 actual fun platformAgentTools():ToolRegistry{
     return ToolRegistry()
+}
+
+actual fun plusAgentList(): List<AgentInfoCell>{
+    return listOf()
 }

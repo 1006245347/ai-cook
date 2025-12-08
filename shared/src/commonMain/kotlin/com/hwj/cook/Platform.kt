@@ -6,6 +6,7 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.models.BookNode
@@ -47,6 +48,10 @@ expect fun getDeviceInfo(): DeviceInfoCell
 expect interface PlatformToolSet
 expect interface KmpToolSet: PlatformToolSet
 
+//各个平台特属的工具
 expect fun platformAgentTools(): ToolRegistry
+
+//各个平台特属的智能体 累加
+expect fun plusAgentList(): List<AgentInfoCell>
 
 

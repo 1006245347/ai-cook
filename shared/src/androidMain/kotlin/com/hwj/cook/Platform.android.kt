@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import com.hwj.cook.agent.createRootDir
+import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
@@ -303,4 +304,8 @@ actual fun platformAgentTools():ToolRegistry{
     return ToolRegistry {
         SwitchTools(SuggestCookSwitch()).asTools()
     }
+}
+
+actual fun plusAgentList(): List<AgentInfoCell>{
+    return listOf()
 }

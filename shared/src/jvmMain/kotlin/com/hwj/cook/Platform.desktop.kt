@@ -13,6 +13,7 @@ import ai.koog.rag.base.files.JVMFileSystemProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.agent.createRootDir
+import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
@@ -200,4 +201,9 @@ actual fun platformAgentTools(): ToolRegistry {
     return ToolRegistry {
         SwitchTools(SuggestCookSwitch()).asTools()
     }
+}
+
+actual fun plusAgentList(): List<AgentInfoCell> {
+    val list = mutableListOf<AgentInfoCell>()
+    return list
 }

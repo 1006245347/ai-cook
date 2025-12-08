@@ -14,6 +14,7 @@ import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
+import com.hwj.cook.plusAgentList
 import org.koin.compose.koinInject
 
 object AgentManager {
@@ -28,10 +29,16 @@ object AgentManager {
         val suggestCookAgent =
             AgentInfoCell("suggest", getPlatform().os != OsStatus.IOS)
 
-
-        return listOf(cookAgent, chatAgent, searchAgent, memoryAgent,suggestCookAgent).filter { it.isSupport }
+        val list = listOf(
+            cookAgent,
+            chatAgent,
+            searchAgent,
+            memoryAgent,
+            suggestCookAgent
+        ).filter { it.isSupport }.toMutableList()
+        list.addAll(plusAgentList())
+        return list
     }
-
 
     suspend fun quickAgent(input: String) {
         val apiKey = getCacheString(DATA_APP_TOKEN)
@@ -50,7 +57,6 @@ object AgentManager {
                 }
             }
         }
-
 
         val result = agent.run(input).also { //默认非流式
             printLog("agent>$it")

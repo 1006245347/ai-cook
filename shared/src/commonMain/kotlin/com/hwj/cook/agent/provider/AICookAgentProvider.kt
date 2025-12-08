@@ -28,6 +28,9 @@ import com.hwj.cook.global.getCacheString
 /**
  * @author by jason-何伟杰，2025/10/10
  * des: Agent for cook
+ *
+ * 理解下 单次运行，koog的设计都是单次允许agent,避免重复的上下文和状态被多次加入调用，
+ * 它的开发者有提到 AIAgentService来处理多次会话
  */
 class AICookAgentProvider : AgentProvider<String, String> {
     override var title: String = "Chef Agent"
@@ -36,6 +39,7 @@ class AICookAgentProvider : AgentProvider<String, String> {
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
+        onLLMStreamFrameEvent:suspend (String)-> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String> {

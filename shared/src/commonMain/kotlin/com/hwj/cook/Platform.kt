@@ -2,6 +2,7 @@
 package com.hwj.cook
 
 import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
@@ -46,6 +47,6 @@ expect fun getDeviceInfo(): DeviceInfoCell
 expect interface PlatformToolSet
 expect interface KmpToolSet: PlatformToolSet
 
-expect fun platformAgentTools():List<Tool<*, *>>
+expect fun platformAgentTools(): ToolRegistry
 
 

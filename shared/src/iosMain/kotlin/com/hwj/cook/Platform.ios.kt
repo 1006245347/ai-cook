@@ -1,6 +1,7 @@
 package com.hwj.cook
 
 import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.SimpleStorage
@@ -215,6 +216,6 @@ actual fun getDeviceInfo(): DeviceInfoCell {
 actual interface PlatformToolSet
 actual interface KmpToolSet: PlatformToolSet
 
-actual fun platformAgentTools():List<Tool<*, *>>{
-    return listOf()
+actual fun platformAgentTools():ToolRegistry{
+    return ToolRegistry()
 }

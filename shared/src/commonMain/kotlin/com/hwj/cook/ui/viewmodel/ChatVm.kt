@@ -145,7 +145,6 @@ class ChatVm(
 
     private suspend fun runAgent(userInput: String) {
         try {
-//            agentProvider?.provideAgent()
             agentInstance = agentProvider?.provideAgent(onToolCallEvent = { msg ->
                 viewModelScope.launch {
                     _uiState.update { it.copy(messages = it.messages + ChatMsg.ToolCallMsg(msg)) }

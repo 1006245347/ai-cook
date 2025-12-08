@@ -22,8 +22,8 @@ import com.hwj.cook.global.getCacheString
 import com.hwj.cook.platformAgentTools
 
 class SuggestCookAgentProvider(
-    override var title: String,
-    override val description: String
+    override var title: String = "",
+    override val description: String = "You are a agent,you're responsible for running a Switch and perform operations on it by request"
 ) : AgentProvider<String, List<Message.Response>> {
 
     override suspend fun provideAgent(
@@ -36,9 +36,8 @@ class SuggestCookAgentProvider(
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
-        val toolRegistry = ToolRegistry {
-            tools(platformAgentTools())
-        }
+        val toolRegistry = ToolRegistry {}.plus(platformAgentTools())
+
 
         val agent = openAiAgent(toolRegistry, remoteAiExecutor) {
             handleEvents {

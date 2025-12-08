@@ -1,7 +1,9 @@
 package com.hwj.cook
 
 import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.core.tools.reflect.ToolSet
+import ai.koog.agents.core.tools.reflect.asTools
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
@@ -26,6 +28,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import com.hwj.cook.agent.createRootDir
+import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
@@ -38,6 +41,7 @@ import com.hwj.cook.global.printLog
 import com.hwj.cook.global.purePermission
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.hwj.cook.models.SuggestCookSwitch
 import com.permissionx.guolindev.PermissionX
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
@@ -295,6 +299,8 @@ actual fun getDeviceInfo(): DeviceInfoCell {
 actual  interface  KmpToolSet : PlatformToolSet
 actual typealias  PlatformToolSet = ToolSet
 //jvm可用的tool
-actual fun platformAgentTools():List<Tool<*, *>>{
-    return listOf()
+actual fun platformAgentTools():ToolRegistry{
+    return ToolRegistry {
+        SwitchTools(SuggestCookSwitch()).asTools()
+    }
 }

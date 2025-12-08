@@ -1,7 +1,9 @@
 package  com.hwj.cook
 
 import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.core.tools.reflect.ToolSet
+import ai.koog.agents.core.tools.reflect.asTools
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
@@ -11,11 +13,13 @@ import ai.koog.rag.base.files.JVMFileSystemProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.agent.createRootDir
+import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.hwj.cook.models.SuggestCookSwitch
 import com.sun.management.OperatingSystemMXBean
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -171,7 +175,7 @@ actual fun createFileMemoryProvider(scopeId: String): AgentMemoryProvider {
             encryption = Aes256GCMEncryptor("7UL8fsTqQDq9siUZgYO3bLGqwMGXQL4vKMWMscKB7Cw=")
         ),
         fs = JVMFileSystemProvider.ReadWrite,
-        root= Path(createRootDir())
+        root = Path(createRootDir())
     )
 }
 
@@ -189,9 +193,11 @@ actual fun getDeviceInfo(): DeviceInfoCell {
     )
 }
 
-actual  interface  KmpToolSet : PlatformToolSet
-actual typealias  PlatformToolSet = ToolSet
+actual interface KmpToolSet : PlatformToolSet
+actual typealias PlatformToolSet = ToolSet
 
-actual fun platformAgentTools():List<Tool<*, *>>{
-    return listOf()
+actual fun platformAgentTools(): ToolRegistry {
+    return ToolRegistry {
+        SwitchTools(SuggestCookSwitch()).asTools()
+    }
 }

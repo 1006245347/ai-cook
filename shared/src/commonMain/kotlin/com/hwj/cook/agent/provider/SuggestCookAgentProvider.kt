@@ -79,6 +79,7 @@ class SuggestCookAgentProvider(
             }
         }
 
+        //是可以考虑用bean-> json的方式？
 
         //得到agent的类型是 openAiAgent return  GraphAIAgent<String, List<Message.Response>>
         return agent //error  agent type is  GraphAIAgent<String, String>

@@ -25,6 +25,7 @@ import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.getCacheInt
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.removeCacheKey
@@ -93,9 +94,6 @@ class ChatVm(
     //搞两种模式，文本问答（单轮无上下文）和智能体（多轮带记忆）,适配多种智能体
     private val _agentModelObs = MutableStateFlow<String?>(null)
     val agentModelState = _agentModelObs.asStateFlow()
-
-    private val _lastAgentObs = MutableStateFlow<String>("")
-    val lastAgentState = _lastAgentObs.asStateFlow()
 
     //所有智能体
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
@@ -378,6 +376,7 @@ class ChatVm(
 
     //问答的信息肯定在顶部，UI会令消息倒序显示
     fun updateLocalResponse(response: String) {
+        printD("updateLocalResponse>$response")
         val msgList = _uiState.value.messages.toMutableList()
         msgList[1] = (msgList[1] as ChatMsg.ResultMsg).copy(txt = response)
         _uiState.update { it.copy(messages = msgList) }

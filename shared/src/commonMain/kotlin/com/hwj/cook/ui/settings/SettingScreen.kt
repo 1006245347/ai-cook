@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,20 +68,27 @@ fun SettingsScreenContent(
     isDark: Boolean,
     onAddClicked: (Int) -> Unit
 ) {
+
     Box(modifier = Modifier.fillMaxSize()) {
         Card(
-            modifier = Modifier.padding(top = 20.dp).wrapContentWidth().align(Alignment.TopCenter)
-                .clickable(onClick = { onAddClicked(0) }),
+            modifier = Modifier.padding(top = 20.dp).wrapContentWidth().align(Alignment.TopCenter),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Text(
-                text = "新增大模型",
-                fontSize = 15.sp,
-                color = PrimaryColor,
-                modifier = Modifier.align(
-                    Alignment.CenterHorizontally
+            Row() {
+                Text(
+                    text = "新增大模型",
+                    fontSize = 15.sp,
+                    color = PrimaryColor,
+                    modifier = Modifier.weight(1f).clickable(onClick = { onAddClicked(0) })
                 )
-            )
+
+                Text(
+                    text = "默认大模型",
+                    fontSize = 15.sp,
+                    color = PrimaryColor,
+                    modifier = Modifier.weight(1f). clickable(onClick = {  })
+                )
+            }
         }
 
         Card(

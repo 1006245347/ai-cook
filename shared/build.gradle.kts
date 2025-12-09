@@ -93,6 +93,11 @@ kotlin {
             //分页库
             implementation(libs.paging.compose)
 
+            //下拉选择菜单列表 单选、多选、搜索命中
+            implementation(libs.drop.view)
+
+            //长列表 rvList https://github.com/Calvin-LL/Reorderable
+            implementation(libs.rv.view)
 
             //**************************数据处理相关********************
             implementation(libs.stdlib)

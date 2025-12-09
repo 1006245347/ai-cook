@@ -34,7 +34,6 @@ import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.getCacheString
-import com.hwj.cook.global.printList
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.SettingVm

@@ -124,6 +124,7 @@ fun MainScreen(navigator: Navigator) {
     var showAgentDialog by remember { mutableStateOf(false) }
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     var initialized by rememberSaveable { mutableStateOf(false) }
+    val agentModelState by chatVm.agentModelState.collectAsState()
     val koin = getKoin()
 
     val subScope = rememberCoroutineScope()
@@ -189,18 +190,22 @@ fun MainScreen(navigator: Navigator) {
                                     }
                                 }
                             }
-                            TabNavRoot(navigator, drawerState, pagerState, onAgentPop = {})
+                            TabNavRoot(navigator, drawerState, pagerState, onAgentPop = { rect ->
+                                if (agentModelState != null) {
+                                    showAgentDialog = true
+                                    if (rect != null) barBounds = rect
+                                }
+                            })
                         }
                     } else {
                         Column {
                             Box(Modifier.padding(0.dp).weight(1f)) {
-                                TabNavRoot(
-                                    navigator,
-                                    drawerState,
-                                    pagerState,
+                                TabNavRoot(navigator, drawerState, pagerState,
                                     onAgentPop = { rect ->
-                                        showAgentDialog = true
-                                        if (rect != null) barBounds = rect
+                                        if (agentModelState != null) {
+                                            showAgentDialog = true
+                                            if (rect != null) barBounds = rect
+                                        }
                                     },
                                     onShowNav = { rect ->
                                         showNavDialog = true

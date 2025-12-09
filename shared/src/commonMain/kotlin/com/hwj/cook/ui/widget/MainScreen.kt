@@ -34,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -59,6 +58,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.agent.provider.AgentManager
 import com.hwj.cook.global.CODE_IS_DARK
+import com.hwj.cook.global.DATA_AGENT_DEF
+import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.global.ToastUtils
@@ -66,13 +67,11 @@ import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cHalfGrey80717171
 import com.hwj.cook.global.cLightLine
-import com.hwj.cook.global.cTransparent
 import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.onlyMobile
-import com.hwj.cook.global.printD
-import com.hwj.cook.global.printE
+import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
 import com.hwj.cook.models.AppIntent
@@ -195,14 +194,19 @@ fun MainScreen(navigator: Navigator) {
                     } else {
                         Column {
                             Box(Modifier.padding(0.dp).weight(1f)) {
-                                TabNavRoot(navigator, drawerState, pagerState, { rect ->
-                                    showAgentDialog = true
-                                    if (rect != null) barBounds = rect
-                                }, { rect ->
-                                    showNavDialog = true
-                                    curRoute = tabList[pagerState.currentPage].route
-                                    if (rect != null) barBounds = rect
-                                })
+                                TabNavRoot(
+                                    navigator,
+                                    drawerState,
+                                    pagerState,
+                                    onAgentPop = { rect ->
+                                        showAgentDialog = true
+                                        if (rect != null) barBounds = rect
+                                    },
+                                    onShowNav = { rect ->
+                                        showNavDialog = true
+                                        curRoute = tabList[pagerState.currentPage].route
+                                        if (rect != null) barBounds = rect
+                                    })
                             }
                             HorizontalDivider(thickness = (0.5f).dp, color = cLightLine())
 //                            MobileTabBar(tabList, curRoute) { tab ->
@@ -225,9 +229,11 @@ fun MainScreen(navigator: Navigator) {
 
                         if (showAgentDialog && barBounds != null) {
                             PopupTopAnchor(barBounds!!, onDismiss = { showAgentDialog = false }) {
-                                PopAgentView { agentName->//智能体列表  切换
-                                    showAgentDialog=false
-                                    chatVm.createAgent(koin,agentName)
+                                PopAgentView { agentName ->//智能体列表  切换
+                                    subScope.launch {
+                                        showAgentDialog = false
+                                        chatVm.createAgent(koin, agentName)
+                                    }
                                 }
                             }
                         }
@@ -386,10 +392,17 @@ private fun PopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell)
 @Composable
 private fun PopAgentView(onClicked: (String) -> Unit) {//  onClick: () -> Unit
     val list = AgentManager.validAgentList()
-    Column(Modifier.padding(top=10.dp).width(120.dp).wrapContentHeight()) {
+    Column(Modifier.padding(top = 10.dp).width(120.dp).wrapContentHeight()) {
         list.forEach { cell ->
-            Column(Modifier.align(Alignment.CenterHorizontally).height(35.dp).clickable(onClick = {onClicked(cell.name)})) {
-                Text("Agent ${cell.name}", fontSize = 14.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Column(
+                Modifier.align(Alignment.CenterHorizontally).height(35.dp)
+                    .clickable(onClick = { onClicked(cell.name) })
+            ) {
+                Text(
+                    "Agent ${cell.name}",
+                    fontSize = 14.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
                 HorizontalDivider(thickness = 1.dp, color = cHalfGrey80717171())
             }
         }

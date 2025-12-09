@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.DATA_AGENT_DEF
+import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cBlack333333
 import com.hwj.cook.global.cBlackTxt
@@ -56,6 +58,7 @@ import com.hwj.cook.global.cHalfGrey80717171
 import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheInt
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToAvatarGPT
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -77,8 +80,14 @@ fun AppBar(
     val subScope = rememberCoroutineScope()
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     val agentModelState by chatVm.agentModelState.collectAsState()
-    var isAskModelState by remember { mutableStateOf(agentModelState == 0) }
+    var isAskModelState by remember { mutableStateOf(agentModelState == null) }
+    var lastAgentState by remember { mutableStateOf<String>("") }
     //弹窗选择 智能体列表
+    LaunchedEffect(Unit) {
+        subScope.launch {
+            lastAgentState = chatVm.getCacheAgent(isAskModelState)
+        }
+    }
 
     CenterAlignedTopAppBar(
         title = {
@@ -87,7 +96,9 @@ fun AppBar(
                 .size(160.dp)
             Box {
                 SlidingToggle(
-                    paddingSizeModifier, options = "Ask" to "Agent", selected = !isAskModelState,
+                    paddingSizeModifier,
+                    options = "Ask" to "Agent ${agentModelState ?: lastAgentState}",
+                    selected = !isAskModelState,
                     onChangeAgent = {  //长按 弹窗
                         onAgentPop(barBounds)
                     },
@@ -95,10 +106,11 @@ fun AppBar(
                         isAskModelState = !selected
                         subScope.launch {
                             if (!selected) {
-                                chatVm.changeChatModel(0)
+                                chatVm.changeChatModel(null)
                             } else {
-                                chatVm.changeChatModel(getCacheInt(DATA_AGENT_DEF, 1))
+                                chatVm.changeChatModel(getCacheString(DATA_AGENT_DEF, "cook"))
                             }
+                            lastAgentState=chatVm.getCacheAgent(isAskModelState)
                         }
                     })
             }
@@ -170,7 +182,7 @@ fun SlidingToggle(
     val isDark = mainVm.darkState.collectAsState().value
     val thumbOffset by animateDpAsState(targetValue = if (selected) 80.dp else 0.dp)
     val cBottom = if (isDark) Color(0xFF22262C) else Color(0xFFE7EAEF) //全部底色 22262C  FF22282F
-    val cTop = if (isDark) cBlackTxt() else cWhite() //滑块颜色
+    val cTop = if (isDark) cOrangeFFB8664() else cWhite() //滑块颜色
     val cTxt = if (isDark) cWhite() else cBlackTxt()
 
     Box(
@@ -226,7 +238,7 @@ fun SlidingToggle(
             Text(
                 text = options.second,
                 color = cTxt,
-                fontSize = if (!selected) 14.sp else 15.sp
+                fontSize = if (!selected) 10.sp else 10.sp
             )
         }
     }

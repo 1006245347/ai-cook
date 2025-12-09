@@ -31,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.createPermission
 import com.hwj.cook.data.local.PermissionPlatform
+import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.dp10
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printList
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -52,7 +54,7 @@ fun ChatScreen(navigator: Navigator) {
     val uiObs by chatVm.uiObs.collectAsState()
     var showPermissionDialog by remember { mutableStateOf(false) }
     val agentModelIndex by chatVm.agentModelState.collectAsState()
-    val validAgentState = chatVm.validAgentState.collectAsState().value
+//    val validAgentState = chatVm.validAgentState.collectAsState().value
     val settingVm = koinViewModel(SettingVm::class)
     val modelList = settingVm.modelsState.collectAsState().value
 
@@ -60,9 +62,9 @@ fun ChatScreen(navigator: Navigator) {
     val koin = getKoin()
     LaunchedEffect(sessionId) {
         subScope.launch {
-            printList(validAgentState,"launch?")
-            if (agentModelIndex != 0)
-                chatVm.createAgent(koin, validAgentState[agentModelIndex - 1].name)
+
+            if (agentModelIndex != null)
+                chatVm.createAgent(koin, getCacheString(DATA_AGENT_INDEX))
             chatVm.loadAskSession()
         }
     }

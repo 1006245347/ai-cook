@@ -24,9 +24,12 @@ import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.getCacheInt
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
+import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.saveInt
+import com.hwj.cook.global.saveString
 import com.hwj.cook.global.stopAnswerTip
 import com.hwj.cook.global.stopByErrTip
 import com.hwj.cook.global.thinkingTip
@@ -88,24 +91,28 @@ class ChatVm(
     val stopReceivingState = _stopReceivingObs.asStateFlow()
 
     //搞两种模式，文本问答（单轮无上下文）和智能体（多轮带记忆）,适配多种智能体
-    private val _agentModelObs = MutableStateFlow(0)
+    private val _agentModelObs = MutableStateFlow<String?>(null)
     val agentModelState = _agentModelObs.asStateFlow()
+
+    private val _lastAgentObs = MutableStateFlow<String>("")
+    val lastAgentState = _lastAgentObs.asStateFlow()
 
     //所有智能体
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
     val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
-    fun createAgent(koin: Koin, name: String?) {
-        if (name == null) {
-            agentProvider = AICookAgentProvider()
+    suspend fun createAgent(koin: Koin, name: String?) {
+        saveString(DATA_AGENT_INDEX, name ?: "cook")
+        _agentModelObs.value = name ?: "cook"
+        agentProvider = if (name == null) {
+            AICookAgentProvider()
         } else {
-            agentProvider =
-                koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
+            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
         }
     }
 
     init {
         viewModelScope.launch { //agent=0是问答模式不是智能体
-            _agentModelObs.value = getCacheInt(DATA_AGENT_INDEX, 0)
+            _agentModelObs.value = getCacheString(DATA_AGENT_INDEX, "cook")!!
             _validAgentObs.clear()
             _validAgentObs.addAll(AgentManager.validAgentList())
         }
@@ -119,7 +126,8 @@ class ChatVm(
         val userInput = _uiState.value.inputTxt.trim()
         if (userInput.isEmpty()) return
 
-        if (_agentModelObs.value == 0) {
+        printLog("agent_${_agentModelObs.value}")
+        if (_agentModelObs.value == null) {
             workInSub {
                 runAnswer(userInput)
             }
@@ -147,7 +155,7 @@ class ChatVm(
 
     private suspend fun runAgent(userInput: String) {
         try {
-            var answerFromGPT=""
+            var answerFromGPT = ""
             agentInstance = agentProvider?.provideAgent(onToolCallEvent = { msg ->
                 viewModelScope.launch {
                     _uiState.update { it.copy(messages = it.messages + ChatMsg.ToolCallMsg(msg)) }
@@ -184,11 +192,13 @@ class ChatVm(
 
                 // Return it to the agent
                 userResponse
-            }, onLLMStreamFrameEvent = { frame->//流式
-                answerFromGPT+=frame
+            }, onLLMStreamFrameEvent = { frame ->//流式
+                answerFromGPT += frame
                 _uiState.update {
-                    it.copy(messages = it.messages+ ChatMsg.ResultMsg(answerFromGPT),
-                        isInputEnabled = false, isLoading = false, isChatEnded = true)
+                    it.copy(
+                        messages = it.messages + ChatMsg.ResultMsg(answerFromGPT),
+                        isInputEnabled = false, isLoading = false, isChatEnded = true
+                    )
                 }
             })
 
@@ -207,8 +217,7 @@ class ChatVm(
 
                 _uiState.update {
                     it.copy(
-                        messages = it.messages +
-                                ChatMsg.ResultMsg(outS),// + ChatMsg.SystemMsg("The agent has stopped."),
+                        messages = it.messages + ChatMsg.ResultMsg(outS),// + ChatMsg.SystemMsg("The agent has stopped."),
                         isInputEnabled = false,
                         isLoading = false,
                         isChatEnded = true
@@ -216,7 +225,6 @@ class ChatVm(
                 }
 //                "Agent done with $result"//有什么用？
             }
-
         } catch (e: Exception) {
             _uiState.update {
                 it.copy(
@@ -375,20 +383,32 @@ class ChatVm(
         _uiState.update { it.copy(messages = msgList) }
     }
 
-    fun updateAgentModel() { //index=0是问答模式，其他是各类agent
-        viewModelScope.launch {
-            _agentModelObs.value = getCacheInt(DATA_AGENT_INDEX)
+    suspend fun changeChatModel(model: String?) {
+        if (model == null) {
+            if (_agentModelObs.value == null) {
+                removeCacheKey(DATA_AGENT_INDEX)
+            } else {
+                saveString(DATA_AGENT_DEF, _agentModelObs.value!!)
+                removeCacheKey(DATA_AGENT_INDEX)
+            }
+            _agentModelObs.value = null
+        } else {
+            _agentModelObs.value?.let {
+                saveString(DATA_AGENT_DEF, it)
+            }
+            _agentModelObs.value = model
+            saveString(DATA_AGENT_INDEX, model)
         }
     }
 
-    suspend fun changeChatModel(model: Int) {
-        if (model == 0) {
-            saveInt(DATA_AGENT_DEF, _agentModelObs.value)
-            _agentModelObs.value = 0
+    suspend fun getCacheAgent(isAskModel: Boolean): String {
+        return if (isAskModel) {
+            getCacheString(DATA_AGENT_DEF, "cook")!!
         } else {
-            _agentModelObs.value = model
+            getCacheString(DATA_AGENT_INDEX, "cook")!!
         }
     }
+
 
     fun restartRun() {
         _uiState.update {

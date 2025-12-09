@@ -80,8 +80,8 @@ class SuggestCookAgentProvider(
         }
 
 
-        //得到agent的类型是 GraphAIAgent<String, List<Message.Response>>
-        return agent //报错 无法对应函数的 GraphAIAgent<String, String>
+        //得到agent的类型是 openAiAgent return  GraphAIAgent<String, List<Message.Response>>
+        return agent //error  agent type is  GraphAIAgent<String, String>
     }
 
 
@@ -104,7 +104,7 @@ class SuggestCookAgentProvider(
 
     fun streamingWithToolsStrategy() = strategy("streaming_loop") {
         val executeMultipleTools by nodeExecuteMultipleTools(parallelTools = true)
-        val nodeStreaming by nodeLLMRequestStreamingAndSendResults() // 返回 List<Message.Response>
+        val nodeStreaming by nodeLLMRequestStreamingAndSendResults() // return List<Message.Response>
 
         val mapStringToRequests by node<String, List<Message.Request>> { input ->
             listOf(Message.User(content = input, metaInfo = RequestMetaInfo.Empty))
@@ -133,8 +133,12 @@ class SuggestCookAgentProvider(
             input.map { it.toMessage() }
         }
 
-        val lastRequest by node<List<Message.Response>, String> { input ->
+//        val lastRequest by node<List<Message.Response>, ResponseStreamList> { input ->
 //            ResponseStreamList(input) //covert bean
+//        }
+
+        val lastRequest by node<List<Message.Response>, String> { input ->
+            ResponseStreamList(input) //covert bean
             input.toString()
         }
 

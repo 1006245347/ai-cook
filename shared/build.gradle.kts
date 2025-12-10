@@ -197,7 +197,7 @@ kotlin {
             api(files("../androidApp/libs/umeng-apm-v2.0.6.aar"))
             api(files("../androidApp/libs/umeng-asms-v1.8.7.aar"))
             api(files("../androidApp/libs/umeng-common-9.8.8.aar"))
-            api(files("../androidApp/libs/uyumao-1.1.4.aar"))
+//            api(files("../androidApp/libs/uyumao-1.1.4.aar"))
         }
 
         iosMain.dependencies {

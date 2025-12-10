@@ -78,7 +78,7 @@ private fun AgentDemoScreenEndedPreview() {
 @Composable
 private fun SettingScreenPreview(){
     ThemeChatLite {
-        SettingsScreenContent(models=listOf(),isDark = false,{})
+        SettingsScreenContent(models=listOf(),isDark = false,{},{},{})
     }
 }
 

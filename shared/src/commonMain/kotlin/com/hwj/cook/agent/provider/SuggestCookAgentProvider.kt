@@ -4,6 +4,7 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.AIAgentService
 import ai.koog.agents.core.agent.GraphAIAgent
 import ai.koog.agents.core.agent.entity.AIAgentGraphStrategy
+import ai.koog.agents.core.agent.invoke
 import ai.koog.agents.core.dsl.builder.forwardTo
 import ai.koog.agents.core.dsl.builder.strategy
 import ai.koog.agents.core.dsl.extension.nodeExecuteMultipleTools
@@ -23,6 +24,7 @@ import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
 import com.hwj.cook.platformAgentTools
+import io.ktor.client.request.invoke
 
 class SuggestCookAgentProvider(
     override var title: String = "Switch",
@@ -79,7 +81,9 @@ class SuggestCookAgentProvider(
             }
         }
 
+
         //是可以考虑用bean-> json的方式？
+
 
         //得到agent的类型是 openAiAgent return  GraphAIAgent<String, List<Message.Response>>
         return agent //error  agent type is  GraphAIAgent<String, String>

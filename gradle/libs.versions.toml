@@ -52,7 +52,7 @@ dialog-libs="1.3.0"
 dropdown="1.1.0"
 rvk="3.0.0"
 
-[libraries]
+[libraries]  #https://klibs.io/  kmp develop libs
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }

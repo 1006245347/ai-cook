@@ -57,7 +57,7 @@ class SettingVm : ViewModel() {
         modelName: String?,
         baseUrl: String?,
         chat: String?,
-        embed: String?
+        embed: String?,
     ): Boolean {
         if (apiKey.isNullOrEmpty() || baseUrl.isNullOrEmpty() || chat.isNullOrEmpty() || modelName.isNullOrEmpty()) {
             ToastUtils.show("key/host/chat/modelName不能为空!")
@@ -89,8 +89,21 @@ class SettingVm : ViewModel() {
         }
         try {
             val modelInfoCell = ModelInfoCell(apiKey, modelName, baseUrl, chat, embed, alias)
-            _modelsObs.add(0, modelInfoCell)
-            saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs.toList()))
+            //不允许相同的name/alias 大模型添加，不然会混
+            var isAdd = true
+            _modelsObs.forEach { cell ->
+                if (cell.modelName == modelInfoCell.modelName &&
+                    cell.alias == modelInfoCell.alias
+                ) {
+                    isAdd = false
+                }
+            }
+            if (isAdd) {
+                _modelsObs.add(0, modelInfoCell)
+                saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs.toList()))
+            } else {
+                ToastUtils.show("modelName/alias已存在，请修改")
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             return false
@@ -117,6 +130,20 @@ class SettingVm : ViewModel() {
                     saveString(DATA_MODEL_LIST, JsonApi.encodeToString(list))
                 } else {
                     removeCacheKey(DATA_MODEL_LIST)
+                }
+            }
+        }
+    }
+
+    //只允许一个默认大模型
+    fun setDefModel(model: ModelInfoCell) {
+        viewModelScope.launch {
+            _modelsObs.forEach { cell ->
+                cell.default = false
+                if (cell.modelName == model.modelName &&
+                    cell.alias == model.alias
+                ) {
+                    cell.default = true
                 }
             }
         }

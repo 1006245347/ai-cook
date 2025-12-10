@@ -8,6 +8,10 @@ import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.emptyPrompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import ai.koog.prompt.llm.LLMCapability
+import ai.koog.prompt.llm.LLMProvider
+import ai.koog.prompt.llm.LLModel
+import ai.koog.prompt.llm.OllamaModels
 import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
@@ -67,4 +71,26 @@ suspend fun chatStreaming(
         .collect { chunk: StreamFrame ->
             streaming(chunk)
         }
+}
+
+fun buildQwen3LLM(): LLModel {
+    //预设的模型
+//    OllamaModels.Alibaba.QWQ_32B
+
+    //自定义的模型定义
+    return LLModel(
+        provider = LLMProvider.Alibaba, "Qwen/Qwen3-Omni-30B-A3B-Instruct", capabilities = listOf(
+            LLMCapability.Tools,
+            LLMCapability.Temperature,
+            LLMCapability.Schema.JSON.Basic
+        ), contextLength =  65_536// //32k 32_768   64k 65_536   128k 131_072  1M 1_048_576
+    )
+}
+
+fun buildQwen3EmeLLM(): LLModel {
+    return LLModel(
+        provider = LLMProvider.Alibaba, id = "Qwen/Qwen3-Embedding-8B", capabilities = listOf(
+            LLMCapability.Embed
+        ), contextLength = 32_768
+    )
 }

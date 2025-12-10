@@ -13,5 +13,6 @@ data class ModelInfoCell(
     var baseUrl: String,    //大模型域名
     var chatCompletionPath: String,     //对话接口地址
     var embeddingsPath: String?,         //具备向量化的接口地址
-    var alias: String?      //模型别名或平台
+    var alias: String? ,     //模型别名或平台
+    var default: Boolean=false //默认模型
 )

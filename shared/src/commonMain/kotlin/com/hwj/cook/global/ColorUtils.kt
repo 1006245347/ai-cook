@@ -26,6 +26,7 @@ fun cHalfGrey80717171() = Color(0x80717171)
 fun cHalfGrey80717172() = Color(0x30717171)
 
 fun cDark99000000() = Color(0x99000000)
+fun cHalf80565353() =Color(0x80565353)
 
 //textColor
 fun cGreyB5B5B5() = Color(0xFFB5B5B5)

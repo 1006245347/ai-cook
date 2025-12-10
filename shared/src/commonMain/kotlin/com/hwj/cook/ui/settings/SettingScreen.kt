@@ -1,5 +1,7 @@
 package com.hwj.cook.ui.settings
 
+import ai.koog.prompt.executor.clients.openai.OpenAIModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,19 +15,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,7 +37,10 @@ import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
+import com.hwj.cook.global.cBlue629DE8
+import com.hwj.cook.global.cHalf80565353
 import com.hwj.cook.global.cLightLine
+import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.printD
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -42,6 +48,14 @@ import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
+import org.example.dropdown.data.DefaultDropdownItem
+import org.example.dropdown.data.DropdownConfig
+import org.example.dropdown.data.DropdownItemSeparator
+import org.example.dropdown.data.ToggleIcon
+import org.example.dropdown.data.listener.DropdownActionListener
+import org.example.dropdown.data.search.SearchSettings
+import org.example.dropdown.data.selection.SingleItemContentConfig
+import org.example.project.ui.SearchableDropdown
 
 @Composable
 fun SettingScreen(navigator: Navigator) {
@@ -59,16 +73,20 @@ fun SettingScreen(navigator: Navigator) {
             lastModel.value = callback
             printD("lastModel>$callback")
         }
-    })
+    }, onDefClicked = { model ->
+        model?.let { settingVm.setDefModel(model) }
+    }, onNavScreen = { navigator.navigate(NavigationScene.SettingsDef.path) })
 }
 
 @Composable
 fun SettingsScreenContent(
     models: List<ModelInfoCell>,
     isDark: Boolean,
-    onAddClicked: (Int) -> Unit
+    onAddClicked: (Int) -> Unit,
+    onDefClicked: (ModelInfoCell?) -> Unit,
+    onNavScreen: () -> Unit
 ) {
-
+    var isShowDefView by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         Card(
             modifier = Modifier.padding(top = 20.dp).wrapContentWidth().align(Alignment.TopCenter),
@@ -76,17 +94,20 @@ fun SettingsScreenContent(
         ) {
             Row() {
                 Text(
-                    text = "新增大模型",
+                    text = "新增大模型>",
                     fontSize = 15.sp,
                     color = PrimaryColor,
                     modifier = Modifier.weight(1f).clickable(onClick = { onAddClicked(0) })
                 )
 
                 Text(
-                    text = "默认大模型",
+                    text = "默认大模型>",
                     fontSize = 15.sp,
                     color = PrimaryColor,
-                    modifier = Modifier.weight(1f). clickable(onClick = {  })
+                    modifier = Modifier.weight(1f).clickable(onClick = {
+                        isShowDefView = true
+//                        onNavScreen()//测试 正确呀
+                    })
                 )
             }
         }
@@ -113,13 +134,84 @@ fun SettingsScreenContent(
                         )
                         Text(text = cell.baseUrl, fontSize = 13.sp, color = cAutoTxt(isDark))
                         HorizontalDivider(
-                            Modifier.padding(top = 3.dp),
-                            thickness = 1.dp,
-                            color = cLightLine()
+                            Modifier.padding(top = 3.dp), thickness = 1.dp, color = cLightLine()
                         )
                     }
                 }
             }
         }
+
+        if (isShowDefView) {
+            Column(
+                modifier = Modifier.padding(horizontal = 60.dp).fillMaxSize()
+                    .clickable(onClick = { isShowDefView = false }), //背景取消){
+            ) {
+                Spacer(Modifier.height(70.dp).background(cOrangeFFB8664()))
+                SingleCheckUI(
+                    isDark, models, mutableStateOf(models.firstOrNull { it.default })
+                ) { model ->
+                    isShowDefView = false
+                    onDefClicked(model)
+                }
+            }
+        }
     }
+}
+
+//单选列表
+@Composable
+fun SingleCheckUI(
+    isDark: Boolean,
+    models: List<ModelInfoCell>,
+    selected: MutableState<ModelInfoCell?>,
+    callback: (ModelInfoCell?) -> Unit
+) {
+    val singleConfig = SingleItemContentConfig.Default(
+        defaultItem = DefaultDropdownItem(
+            title = ModelInfoCell::modelName, subtitle = ModelInfoCell::alias, withIcon = false
+        )
+    )
+    val list = mutableListOf<ModelInfoCell>() //测试
+    list.addAll(models)
+//    list.addAll(models)
+//    list.addAll(models)
+//    list.addAll(models)
+//    list.addAll(models)
+//    list.addAll(models)
+//    list.addAll(models)
+
+//    Column(
+//        modifier = Modifier.padding(horizontal = 60.dp)
+//            .clickable(onClick = { callback(null) }), //背景取消
+////        contentAlignment = Alignment.TopCenter
+//    ) {
+//        //发现直接在父布局用padding top=70dp会导致分隔很远
+//        Spacer(Modifier.height(70.dp).background(cBlue629DE8()))
+        SearchableDropdown(
+            items = list,
+            searchSettings = SearchSettings(searchEnabled = false),
+            dropdownConfig = DropdownConfig(
+                headerHeight = 60.dp,
+                headerBackgroundColor = cHalf80565353(),
+                headerPlaceholder = {
+                    Text(
+                        "默认大模型：${selected.value?.modelName ?: ""}",
+                        color = cAutoTxt(isDark),
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
+                },
+                maxHeight = 280.dp,
+                separationSpace = 10,
+                toggleIcon = ToggleIcon(iconTintColor = cAutoTxt(isDark)),
+                itemSeparator = DropdownItemSeparator(color = cAutoTxt(isDark)),
+                shape = RoundedCornerShape(8.dp),
+                dropdownActionListener = object : DropdownActionListener() {
+                    override fun <T> onItemSelect(item: T) {
+                        callback(item as ModelInfoCell?)
+                    }
+                }),
+            selectedItem = selected,
+            itemContentConfig = singleConfig
+        )
+//    }
 }

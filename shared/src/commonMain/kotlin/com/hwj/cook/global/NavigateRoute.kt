@@ -2,6 +2,7 @@ package com.hwj.cook.global
 
 import androidx.compose.runtime.Composable
 import com.hwj.cook.ui.cook.BookReadScreen
+import com.hwj.cook.ui.settings.SettingDefScreen
 import com.hwj.cook.ui.settings.SettingEditModelScreen
 import com.hwj.cook.ui.widget.FirstScreen
 import com.hwj.cook.ui.widget.MainScreen
@@ -37,6 +38,9 @@ fun NavigateRoute(navigator: Navigator) {
                 SettingEditModelScreen(navigator,modelId)
             }
         }
+        scene(NavigationScene.SettingsDef.path){
+            SettingDefScreen(navigator)
+        }
     }
 }
 
@@ -47,4 +51,5 @@ sealed class NavigationScene(val path: String, val title: String? = null) {
     object Main : NavigationScene("/main", "main")
     object BookRead : NavigationScene("/main/cook/read")
     object SettingsEdit : NavigationScene("/main/settings/edit")
+    object SettingsDef: NavigationScene("/main/settings/def")
 }

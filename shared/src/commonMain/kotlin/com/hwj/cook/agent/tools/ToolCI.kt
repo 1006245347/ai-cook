@@ -7,7 +7,6 @@ import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.getDeviceInfo
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.SuggestCookSwitch
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,21 +20,18 @@ import kotlinx.serialization.Serializable
  * demo有个SimpleTool的设计、还有个ToolSet(靠jvm反射实现注解等，ios不适用)
  */
 
-object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>() {
-    override val argsSerializer: KSerializer<Args>
-        get() = Args.serializer()
-    override val resultSerializer: KSerializer<Result>
-        get() = Result.serializer()
-    override val description: String
-        get() = "获取设备信息的工具"
-
+object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>(
+    argsSerializer = Args.serializer(),
+    resultSerializer = Result.serializer(),
+    name = "DiagnosticTool", description = "获取设备信息的工具"
+) {
     override suspend fun execute(args: Args): Result {
         val devInfo = printDeviceInfo()
         return Result(JsonApi.encodeToString(devInfo))
     }
 
     @Serializable
-    data class Args(@property: LLMDescription("设备信息") val device: String)
+    data class Args(@property:LLMDescription("设备信息") val device: String)
 
     @Serializable
     data class Result(val devInfo: String)
@@ -51,14 +47,11 @@ object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>() {
     }
 }
 
-object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>() {
-    override val argsSerializer: KSerializer<Args>
-        get() = Args.serializer()
-    override val resultSerializer: KSerializer<Result>
-        get() = Result.serializer()
-    override val description: String
-        get() = "获取用户姓名的工具"
-
+object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>(
+    argsSerializer = Args.serializer(),
+    resultSerializer = Result.serializer(),
+    name = "信息工具", description = "获取用户姓名的工具"
+) {
     override suspend fun execute(args: Args): Result {
         return Result(args.name)
     }
@@ -71,9 +64,9 @@ object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>() {
 }
 
 //使用TooSet设计一个开关，agent去操作开关
-class SuggestSwitchTools(val switch: SuggestCookSwitch): KmpToolSet{
+class SuggestSwitchTools(val switch: SuggestCookSwitch) : KmpToolSet {
 
-    fun change(){
+    fun change() {
 
     }
 }

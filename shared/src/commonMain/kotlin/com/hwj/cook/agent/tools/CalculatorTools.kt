@@ -8,7 +8,13 @@ import kotlinx.serialization.Serializable
  * @author by jason-何伟杰，2025/12/4
  * des: 多平台用Tool ,jvm平台用ToolSet
  */
-sealed class CalculatorTools (override val name: String,override val description: String): Tool<CalculatorTools.Args, CalculatorTools.Result>() {
+sealed class CalculatorTools(name: String, description: String) :
+    Tool<CalculatorTools.Args, CalculatorTools.Result>(
+        argsSerializer = Args.serializer(),
+        resultSerializer = Result.serializer(),
+        name = name,
+        description = description
+    ) {
 
     @Serializable
     data class Args(
@@ -21,8 +27,6 @@ sealed class CalculatorTools (override val name: String,override val description
     @Serializable
     class Result(val result: Float)
 
-    final override val argsSerializer = Args.serializer()
-    final override val resultSerializer = Result.serializer()
 
     /**
      * 2. Implement the tool (tools).

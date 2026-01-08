@@ -5,21 +5,16 @@ import ai.koog.agents.memory.model.MemoryScope
 import ai.koog.agents.memory.model.MemorySubject
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.prompt.dsl.Prompt
-import ai.koog.prompt.dsl.emptyPrompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.llm.LLMCapability
 import ai.koog.prompt.llm.LLMProvider
 import ai.koog.prompt.llm.LLModel
-import ai.koog.prompt.llm.OllamaModels
 import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
-import com.hwj.cook.global.LLM_MODEL
 import com.hwj.cook.global.getCacheString
-import com.hwj.cook.models.ModelInfoCell
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -83,7 +78,7 @@ fun buildQwen3LLM(): LLModel {
             LLMCapability.Tools,
             LLMCapability.Temperature,
             LLMCapability.Schema.JSON.Basic
-        ), contextLength =  65_536// //32k 32_768   64k 65_536   128k 131_072  1M 1_048_576
+        ), contextLength = 65_536// //32k 32_768   64k 65_536   128k 131_072  1M 1_048_576
     )
 }
 

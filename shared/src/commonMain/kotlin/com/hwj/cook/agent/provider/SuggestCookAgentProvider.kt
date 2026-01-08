@@ -48,7 +48,7 @@ class SuggestCookAgentProvider(
             handleEvents {
                 onToolCallStarting { context ->
 //                    println("\n🔧 Using ${context.tool.name} with ${context.toolArgs}... ")
-                    onToolCallEvent("\n🔧 Using ${context.tool.name} with ${context.toolArgs}... ")
+                    onToolCallEvent("\n🔧 Using ${context.toolName} with ${context.toolArgs}... ")
                 }
                 onLLMStreamingFrameReceived { context ->
                     val chunk = context.streamFrame

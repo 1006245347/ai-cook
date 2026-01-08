@@ -5,6 +5,7 @@ package com.hwj.cook.agent
 import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
 import ai.koog.prompt.executor.clients.openai.OpenAILLMClient
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import ai.koog.prompt.executor.llms.all.simpleOpenAIExecutor
 import com.hwj.cook.global.printLog
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.LogLevel
@@ -53,3 +54,4 @@ fun createAiExecutor(apiKey: String): SingleLLMPromptExecutor {
             })
     )
 }
+

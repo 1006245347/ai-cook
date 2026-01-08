@@ -14,13 +14,12 @@ import kotlin.time.ExperimentalTime
 object RecipeTools {
 
     //从本地知识库找内容
-    object SearchRecipeTool : Tool<SearchRecipeTool.Args, SearchRecipeTool.Result>() {
-        override val argsSerializer: KSerializer<Args>
-            get() = Args.serializer()
-        override val resultSerializer: KSerializer<Result>
-            get() = Result.serializer()
-        override val description: String
-            get() = "查询菜谱内容的工具"
+    object SearchRecipeTool : Tool<SearchRecipeTool.Args, SearchRecipeTool.Result>(
+        argsSerializer = Args.serializer(),
+        resultSerializer = Result.serializer(),
+        name = "searchRecipe",
+        description = "搜索合适的菜谱"
+    ) {
 
         @OptIn(ExperimentalTime::class)
         override suspend fun execute(args: Args): Result {
@@ -46,14 +45,12 @@ object RecipeTools {
     }
 
     //获取用户的口味偏好
-    object UserFlavorTool : Tool<UserFlavorTool.Args, UserFlavorTool.Result>() {
-        override val argsSerializer: KSerializer<Args>
-            get() = Args.serializer()
-        override val resultSerializer: KSerializer<Result>
-            get() = Result.serializer()
-        override val description: String
-            get() = "获取口味偏好的工具"
-
+    object UserFlavorTool : Tool<UserFlavorTool.Args, UserFlavorTool.Result>(
+        argsSerializer = Args.serializer(),
+        resultSerializer = Result.serializer(),
+        name = "userFlavor",
+        description = "获取口味偏好的工具"
+    ) {
         override suspend fun execute(args: Args): Result {
             return Result(args.userFlavor) //这里要加？？工具逻辑
         }

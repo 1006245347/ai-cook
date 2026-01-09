@@ -4,13 +4,16 @@ package com.hwj.cook.agent
 
 import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
 import ai.koog.prompt.executor.clients.openai.OpenAILLMClient
+import ai.koog.prompt.executor.clients.openai.base.OpenAICompatibleToolDescriptorSchemaGenerator
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.executor.llms.all.simpleOpenAIExecutor
+import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.printLog
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /**
@@ -20,9 +23,9 @@ import kotlin.time.ExperimentalTime
  */
 open class OpenAiRemoteLLMClient(
     apiKey: String, settings: OpenAIClientSettings = OpenAIClientSettings(
-        baseUrl = "https://baitong-it.gree.com",
-        chatCompletionsPath = "aicodeOpen/baitong/chat/completions",
-        embeddingsPath = "https://baitong-aiw.gree.com/openapi/v2/embeddings"
+        baseUrl = baseHostUrl,
+        chatCompletionsPath = "chat/completions",
+        embeddingsPath = "embeddings"
     ), baseClient: HttpClient = HttpClient { }.config {
         install(Logging) {
             level = LogLevel.ALL
@@ -33,15 +36,21 @@ open class OpenAiRemoteLLMClient(
             }
         }
     }
-) : OpenAILLMClient(apiKey, settings, baseClient) //kotlin.time.Clock
+) : OpenAILLMClient(
+    apiKey = apiKey,
+    settings = settings,
+    baseClient = baseClient,
+    clock = Clock.System,
+    toolsConverter = OpenAICompatibleToolDescriptorSchemaGenerator()
+)
 
 fun createAiExecutor(apiKey: String): SingleLLMPromptExecutor {
     return SingleLLMPromptExecutor(
         OpenAILLMClient(
             apiKey = apiKey, settings = OpenAIClientSettings(
-                baseUrl = "https://baitong-it.gree.com",
-                chatCompletionsPath = "aicodeOpen/baitong/chat/completions",
-                embeddingsPath = "https://baitong-aiw.gree.com/openapi/v2/embeddings"
+                baseUrl = baseHostUrl,
+                chatCompletionsPath = "chat/completions",
+                embeddingsPath = "embeddings"
             ), baseClient = HttpClient().config {
                 install(Logging) {
                     level = LogLevel.ALL

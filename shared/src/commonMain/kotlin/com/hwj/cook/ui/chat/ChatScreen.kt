@@ -61,7 +61,6 @@ fun ChatScreen(navigator: Navigator) {
     val koin = getKoin()
     LaunchedEffect(sessionId) {
         subScope.launch {
-
             if (agentModelIndex != null)
                 chatVm.createAgent(koin, getCacheString(DATA_AGENT_INDEX))
             chatVm.loadAskSession()

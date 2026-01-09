@@ -24,7 +24,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +49,7 @@ import com.hwj.cook.global.cHalf80565353
 import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.dp10
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.saveAsyncString
 import com.hwj.cook.global.saveString
@@ -96,6 +99,13 @@ fun SettingsScreenContent(
 ) {
     var isShowDefView by remember { mutableStateOf(false) }
     var isShowMcpInput by remember { mutableStateOf(false) }
+    var mcpKey by remember { mutableStateOf<String?>(null) }
+    val subScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        subScope.launch {
+            mcpKey = getCacheString(DATA_MCP_KEY)
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Card(
             modifier = Modifier.padding(top = 20.dp).wrapContentWidth().align(Alignment.TopCenter),
@@ -138,6 +148,12 @@ fun SettingsScreenContent(
                 contentPadding = PaddingValues(10.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
+                mcpKey?.let {
+                    item {
+                        Text(text = "mcp key:$mcpKey")
+                    }
+                }
+
                 itemsIndexed(models) { index, cell ->
                     Column(
                         Modifier.clickable(onClick = { onAddClicked(index + 1) })
@@ -226,6 +242,7 @@ fun SingleCheckUI(
             shape = RoundedCornerShape(8.dp),
             dropdownActionListener = object : DropdownActionListener() {
                 override fun <T> onItemSelect(item: T) {
+                    printD("click>$item")
                     callback(item as ModelInfoCell?)
                 }
             }),
@@ -238,6 +255,10 @@ fun SingleCheckUI(
 @Composable
 private fun InputKey(isDark: Boolean, callback: () -> Unit) {
     var inputTxt by remember { mutableStateOf("") }
+    val colors = TextFieldDefaults.colors(
+        focusedTextColor = cAutoTxt(isDark),
+        unfocusedTextColor = cAutoTxt(isDark)
+    )
     Column {
         OutlinedTextField(
             value = inputTxt,
@@ -247,6 +268,7 @@ private fun InputKey(isDark: Boolean, callback: () -> Unit) {
             singleLine = false,
             minLines = 5,
             maxLines = 10,
+            colors = colors,
             shape = RoundedCornerShape(dp10())
         )
         Button(onClick = {

@@ -383,7 +383,7 @@ class ChatVm(
     }
 
     suspend fun changeChatModel(model: String?) {
-        if (model == null) {
+        if (model == null) { //切到ask
             if (_agentModelObs.value == null) {
                 removeCacheKey(DATA_AGENT_INDEX)
             } else {
@@ -392,18 +392,18 @@ class ChatVm(
             }
             _agentModelObs.value = null
         } else {
-            _agentModelObs.value?.let {
-                saveString(DATA_AGENT_DEF, it)
-            }
+            //从ask切到agent,先找历史agent，没有就cook
             _agentModelObs.value = model
             saveString(DATA_AGENT_INDEX, model)
+            saveString(DATA_AGENT_DEF,model)
         }
     }
 
+    //返回历史agent
     suspend fun getCacheAgent(isAskModel: Boolean): String {
-        return if (isAskModel) {
+        return if (isAskModel) { //是ask模式，那么找历史agent
             getCacheString(DATA_AGENT_DEF, "cook")!!
-        } else {
+        } else { //直接给当前agent
             getCacheString(DATA_AGENT_INDEX, "cook")!!
         }
     }

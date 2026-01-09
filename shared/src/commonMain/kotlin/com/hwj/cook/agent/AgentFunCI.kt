@@ -4,7 +4,9 @@ import ai.koog.agents.memory.model.Fact
 import ai.koog.agents.memory.model.MemoryScope
 import ai.koog.agents.memory.model.MemorySubject
 import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.prompt.dsl.Prompt
+import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.llm.LLMCapability
@@ -14,6 +16,7 @@ import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.getCacheString
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
@@ -22,7 +25,6 @@ import kotlinx.coroutines.flow.onStart
 /**
  * @author by jason-何伟杰，2025/10/11
  * des:智能体中零散的功能api汇总
- *
  */
 
 /**
@@ -82,10 +84,24 @@ fun buildQwen3LLM(): LLModel {
     )
 }
 
+//嵌入模型
 fun buildQwen3EmeLLM(): LLModel {
     return LLModel(
         provider = LLMProvider.Alibaba, id = "Qwen/Qwen3-Embedding-8B", capabilities = listOf(
             LLMCapability.Embed
         ), contextLength = 32_768
     )
+}
+
+//处理向量化
+fun buildEmbedder(apiKey: String, llModel: LLModel = buildQwen3EmeLLM()): LLMEmbedder {
+    val client = OpenAiRemoteLLMClient(
+        apiKey = apiKey, settings = OpenAIClientSettings(
+            baseUrl = baseHostUrl,
+            chatCompletionsPath = "chat/completions",
+            embeddingsPath = "embeddings",
+        )
+    )
+    val embedder = LLMEmbedder(client, llModel)
+    return embedder
 }

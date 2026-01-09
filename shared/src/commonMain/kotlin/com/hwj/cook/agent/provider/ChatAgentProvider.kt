@@ -4,10 +4,15 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.AIAgentService
 import ai.koog.agents.core.agent.isFinished
 import ai.koog.agents.core.agent.isRunning
+import ai.koog.agents.core.tools.ToolRegistry
+import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.createAiExecutor
+import com.hwj.cook.agent.tools.McpToolCI
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.getCacheString
 
 /**
@@ -30,14 +35,22 @@ class ChatAgentProvider(
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String> {
         val apiKey = getCacheString(DATA_APP_TOKEN)
+        val mcpKey = getCacheString(DATA_MCP_KEY)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
-        val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
+//        val client = OpenAiRemoteLLMClient(apiKey)
+//        val remoteAiExecutor = SingleLLMPromptExecutor(client)
+        val remoteAiExecutor = createAiExecutor(apiKey)
 
-        agentInstance = AIAgent.Companion.invoke(
+        val toolRegistry = ToolRegistry {
+            tool(ExitTool)
+        }.plus(McpToolCI.searchSSE(mcpKey!!))
+            .plus(McpToolCI.webParserSSE(mcpKey))
+        agentInstance = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             systemPrompt = "Hi,I'm a Chef agent",
-            llmModel = OpenAIModels.Chat.GPT4o
+            llmModel = OpenAIModels.Chat.GPT4o,
+            toolRegistry = toolRegistry
         )
 
         return agentInstance!!

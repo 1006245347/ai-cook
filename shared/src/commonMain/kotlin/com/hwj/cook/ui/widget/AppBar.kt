@@ -80,12 +80,13 @@ fun AppBar(
     val subScope = rememberCoroutineScope()
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     val agentModelState by chatVm.agentModelState.collectAsState()
-    var isAskModelState by remember { mutableStateOf(agentModelState == null) }
+//    var isAskModelState by remember { mutableStateOf(agentModelState == null) }
     var lastAgentState by remember { mutableStateOf<String>("") }
     //弹窗选择 智能体列表
     LaunchedEffect(Unit) {
         subScope.launch {
-            lastAgentState = chatVm.getCacheAgent(isAskModelState)
+            lastAgentState = chatVm.getCacheAgent(agentModelState == null)
+            printD("last-$lastAgentState")
         }
     }
 
@@ -98,19 +99,18 @@ fun AppBar(
                 SlidingToggle(
                     paddingSizeModifier,
                     options = "Ask" to "Agent ${agentModelState ?: lastAgentState}",
-                    selected = !isAskModelState,
+                    selectedAgent = agentModelState != null,
                     onChangeAgent = {  //长按 弹窗
                         onAgentPop(barBounds)
                     },
                     onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态
-                        isAskModelState = !selected
                         subScope.launch {
-                            if (!selected) {
-                                chatVm.changeChatModel(null)
-                            } else {
+                            if (selected) { //切到agent模式，那么就是ask切过来的，找ask上次缓存的模式
                                 chatVm.changeChatModel(getCacheString(DATA_AGENT_DEF, "cook"))
+                            } else {
+                                chatVm.changeChatModel(null)
                             }
-                            lastAgentState=chatVm.getCacheAgent(isAskModelState)
+                            lastAgentState = chatVm.getCacheAgent(agentModelState == null)
                         }
                     })
             }
@@ -175,12 +175,12 @@ fun AppBar(
 fun SlidingToggle(
     modifier: Modifier = Modifier,
     options: Pair<String, String> = "Ask" to "Agent",
-    selected: Boolean, onChangeAgent: () -> Unit,
+    selectedAgent: Boolean, onChangeAgent: () -> Unit,
     onSelectedChange: (Boolean) -> Unit
 ) {
     val mainVm = koinViewModel(MainVm::class)
     val isDark = mainVm.darkState.collectAsState().value
-    val thumbOffset by animateDpAsState(targetValue = if (selected) 80.dp else 0.dp)
+    val thumbOffset by animateDpAsState(targetValue = if (selectedAgent) 80.dp else 0.dp)
     val cBottom = if (isDark) Color(0xFF22262C) else Color(0xFFE7EAEF) //全部底色 22262C  FF22282F
     val cTop = if (isDark) cOrangeFFB8664() else cWhite() //滑块颜色
     val cTxt = if (isDark) cWhite() else cBlackTxt()
@@ -198,8 +198,8 @@ fun SlidingToggle(
                     onChangeAgent()
                 },
                 onClick = {
-                    onSelectedChange(!selected)
-                    printD("clickToggle? $selected")
+                    onSelectedChange(!selectedAgent)
+                    printD("clickToggle? $selectedAgent")
                 }
             )
     ) {
@@ -223,7 +223,7 @@ fun SlidingToggle(
             Text(
                 text = options.first,
                 color = cTxt,
-                fontSize = if (!selected) 14.sp else 15.sp
+                fontSize = if (!selectedAgent) 14.sp else 15.sp
             )
         }
 
@@ -238,7 +238,7 @@ fun SlidingToggle(
             Text(
                 text = options.second,
                 color = cTxt,
-                fontSize = if (!selected) 10.sp else 10.sp
+                fontSize = if (!selectedAgent) 10.sp else 10.sp
             )
         }
     }

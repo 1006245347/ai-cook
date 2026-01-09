@@ -2,13 +2,16 @@
 agp = "8.13.0"
 kotlin = "2.2.10"
 ksp="2.2.10-2.0.2"
-kotlinxSerializationJson = "1.9.0"
+#kotlinxSerializationJson = "1.9.0"
+kotlinxSerializationJson = "1.10.0-RC"
+
 #kotlin = "2.1.21"
 #ksp = "2.1.0-1.0.29"
 #这里有个大坑，compose的版本影响对应的渲染引擎版本，如果引入第三方UI框架版本差别太大会导致编译报错
 compose = "1.8.2"
 compose-material3 = "1.3.2"
 kotlinxDatetime = "0.7.1"
+#kotlinxDatetime = "0.7.1-0.6.x-compat"
 activityCompose = "1.9.2"
 androidAppCompatVersion = "1.7.0"
 koin = "4.0.0"

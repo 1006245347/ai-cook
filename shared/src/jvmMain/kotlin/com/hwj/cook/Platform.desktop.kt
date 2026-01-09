@@ -1,6 +1,5 @@
 package  com.hwj.cook
 
-import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.core.tools.reflect.ToolSet
 import ai.koog.agents.core.tools.reflect.asTools
@@ -18,6 +17,7 @@ import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
+import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.SuggestCookSwitch
@@ -25,9 +25,15 @@ import com.sun.management.OperatingSystemMXBean
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.bearerAuth
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.URLBuilder
+import io.ktor.http.headers
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -35,7 +41,6 @@ import java.io.InputStream
 import java.lang.management.ManagementFactory
 import java.util.zip.ZipInputStream
 import kotlin.io.path.Path
-import kotlin.reflect.jvm.jvmName
 
 class DesktopPlatform : Platform {
     override val name: String
@@ -75,8 +80,12 @@ actual fun createPermission(
     grantedAction()
 }
 
-actual fun createKtorHttpClient(timeout: Long?): HttpClient {
+actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Unit): HttpClient {
     return HttpClient {
+       defaultRequest {
+           url.takeFrom(URLBuilder().takeFrom(baseHostUrl))
+           headers(builder)
+       }
         install(HttpTimeout) {
             timeout?.let {
 //                requestTimeoutMillis = it //完整请求超时

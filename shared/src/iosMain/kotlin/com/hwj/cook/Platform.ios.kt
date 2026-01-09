@@ -26,9 +26,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
@@ -55,8 +58,11 @@ class IOSPlatform : Platform {
 
 actual fun getPlatform(): Platform = IOSPlatform()
 
-actual fun createKtorHttpClient(timeout: Long?): HttpClient {
+actual fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.() -> Unit): HttpClient {
     return HttpClient(Darwin) {
+        defaultRequest {
+            headers(builder)
+        }
         install(HttpTimeout) {
             timeout?.let {
 //                requestTimeoutMillis = it

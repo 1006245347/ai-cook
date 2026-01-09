@@ -12,6 +12,7 @@ import com.hwj.cook.global.OsStatus
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import io.ktor.client.HttpClient
+import io.ktor.http.HeadersBuilder
 
 interface Platform {
 
@@ -21,7 +22,7 @@ interface Platform {
 
 expect fun getPlatform(): Platform
 
-expect fun createKtorHttpClient(timeout: Long?): HttpClient
+expect fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.() -> Unit): HttpClient
 
 @Composable
 expect fun setColorScheme(isDark: Boolean): ColorScheme

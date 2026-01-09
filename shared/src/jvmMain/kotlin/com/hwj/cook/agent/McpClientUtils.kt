@@ -10,15 +10,19 @@ import ai.koog.agents.core.dsl.extension.nodeLLMSendMultipleToolResults
 import ai.koog.agents.core.dsl.extension.onAssistantMessage
 import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
+import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.agents.mcp.McpToolRegistryProvider
 import ai.koog.agents.mcp.defaultStdioTransport
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
+import io.ktor.http.HttpHeaders
+import io.ktor.http.headers
 
 /**
  * @author by jason-何伟杰，2025/8/26
@@ -26,29 +30,34 @@ import com.hwj.cook.global.printD
  */
 object McpClientUtils {
 
-    suspend fun t1() {
-//        McpToolRegistryProvider.fromTransport()
-
-
-    }
 
     //不是所有环境有nodejs,最好引入modelcontextprotocol/kotlin-sdk ,还可以引入ktor-server/client
-    suspend fun searchMcpClientSSE(input: String) {
+    //用百炼广场的mcp工具，mcp服务端在云服务器，我这实现客户端就行，不走本地mcp就不用nodejs
+    suspend fun searchMcpClientSSE(input: String, mcpKey: String): ToolRegistry {
+        //token 在executor再给？ ,不对，百炼一个token,chat又一个
+//        header("Authorization", "Bearer $apiKey")
         val transport =
-            McpToolRegistryProvider.defaultSseTransport("https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/sse")
+            McpToolRegistryProvider.defaultSseTransport(
+                "https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/sse",
+                baseClient = createKtorHttpClient(15000, builder = {
+                    headers {
+                        append("cook", "ai")
+                        append(HttpHeaders.Authorization, "Bearer $mcpKey")
+                    }
+                })
+            )
         val toolRegistry = McpToolRegistryProvider.fromTransport(transport)
 
         toolRegistry.tools.forEach {
             printD(it.name + "：" + it.descriptor)
         }
-
-
+        return toolRegistry
     }
 
 
     //注意mcp的进程要销毁
-    suspend fun searchMcpClientStudio(input: String) {
-        val AUTH_HEADER = "Bearer sk-a6429dbcef8e49fc88d08c039cd3c2c6"
+    suspend fun searchMcpClientStudio(input: String, mcpKey: String) {
+        val AUTH_HEADER = "Bearer $mcpKey"
         createMcpClientStudio(
             input,
             "D:\\ideawork\\node\\npx.cmd",
@@ -140,7 +149,7 @@ object McpClientUtils {
         {
             handleEvents {
                 onToolCallStarting { ctx ->
-                    printD("t>${ctx.tool.name}, args ${ctx.toolArgs} ,${ctx.toolCallId}")
+                    printD("t>${ctx.toolName}, args ${ctx.toolArgs} ,${ctx.toolCallId}")
 //                    onToolCallEvent("Tool ${ctx.tool.name}, args ${ctx.toolArgs}")
                 }
 

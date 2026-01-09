@@ -36,3 +36,5 @@ const val DATA_SESSION_TAG = "DATA_SESSION_TAG"
 
 const val DATA_AGENT_INDEX = "DATA_AGENT_INDEX" //当前选中的agent位置
 const val DATA_AGENT_DEF = "DATA_AGENT_DEF"
+
+const val DATA_MCP_KEY="DATA_MCP_KEY"

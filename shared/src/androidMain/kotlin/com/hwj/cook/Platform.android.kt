@@ -60,7 +60,9 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.sse.SSE
+import io.ktor.http.HeadersBuilder
 import io.ktor.http.URLBuilder
+import io.ktor.http.headers
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -79,10 +81,11 @@ class AndroidPlatform : Platform {
 
 actual fun getPlatform(): Platform = AndroidPlatform()
 
-actual fun createKtorHttpClient(timeout: Long?): HttpClient {
-    return HttpClient() {
+actual fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.()-> Unit): HttpClient {
+    return HttpClient {
         defaultRequest {
             url.takeFrom(URLBuilder().takeFrom(baseHostUrl))
+            headers(builder)
         }
 
         install(HttpTimeout) {

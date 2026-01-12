@@ -15,6 +15,8 @@ const val answerUseEw = ",\nplease answer in English."
 const val answerUseZw = ",\n请用中文回答。"
 const val loadingTip = "加载中..."
 
+const val defSystemTip ="Hi, I'm an agent that can help you"
+
 //标识
 const val CODE_IS_DARK = "CODE_IS_DARK" //是否黑暗模式
 const val CODE_LANGUAGE_ZH = "CODE_LANGUAGE_ZH"//语言是否是中文
@@ -30,7 +32,7 @@ const val DATA_APPLICATION_NAME = "AI_COOK"
 const val DATA_MEMORY_INPUT = "DATA_MEMORY_INPUT"   //记忆输入
 const val DATA_MODEL_LIST = "DATA_MODEL_LIST"
 
-const val DATA_MODEL_INDEX = "DATA_MODEL_INDEX"  //当前选中的大模型位置
+const val DATA_MODEL_DEF = "DATA_MODEL_DEF"  //当前选中的大模型
 const val DATA_MESSAGE_TAG = "DATA_MESSAGE_TAG"
 const val DATA_SESSION_TAG = "DATA_SESSION_TAG"
 

@@ -118,7 +118,7 @@ fun ErrorMessageItem(text: String) {
                 .widthIn(max = 280.dp)
         ) {
             Text(
-                text = "Error",
+                text = "Error3",
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(start = dp10())
@@ -228,6 +228,7 @@ fun InputArea(
     text: String,
     onTextChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
+    onStopChat:()->Unit,
     isEnabled: Boolean,
     isLoading: Boolean,agentModel: ModelInfoCell?,
     focusRequester: FocusRequester
@@ -263,7 +264,7 @@ fun InputArea(
                 shape = RoundedCornerShape(dp10())
             )
 
-            EnterSendButton(isLoading, isEnabled && text.isNotBlank(), onSendClicked, {})
+            EnterSendButton(isLoading, isEnabled && text.isNotBlank(), onSendClicked, onStopChat)
         }
     }
 }

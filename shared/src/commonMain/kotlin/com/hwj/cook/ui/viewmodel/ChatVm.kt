@@ -6,30 +6,32 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.message.Message
+import ai.koog.prompt.params.LLMParams
 import ai.koog.prompt.streaming.StreamFrame
 import ai.koog.utils.io.use
 import androidx.compose.runtime.mutableStateListOf
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.agent.ChatSession
 import com.hwj.cook.agent.ChatState
+import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.agent.chatStreaming
 import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.provider.AgentManager
 import com.hwj.cook.agent.provider.AgentProvider
 import com.hwj.cook.data.local.addMsg
-import com.hwj.cook.data.local.fetchMsgs
+import com.hwj.cook.data.local.fetchMsgList
+import com.hwj.cook.data.local.fetchMsgListFlow
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
-import com.hwj.cook.global.getCacheInt
+import com.hwj.cook.global.defSystemTip
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.removeCacheKey
-import com.hwj.cook.global.saveInt
 import com.hwj.cook.global.saveString
 import com.hwj.cook.global.stopAnswerTip
 import com.hwj.cook.global.stopByErrTip
@@ -108,11 +110,20 @@ class ChatVm(
         }
     }
 
-    init {
-        viewModelScope.launch { //agent=0是问答模式不是智能体
-            _agentModelObs.value = getCacheString(DATA_AGENT_INDEX, "cook")!!
+    init {  //这个创建时间顺序影响逻辑吧？
+        viewModelScope.launch { //agent=null是问答模式不是智能体
+            _agentModelObs.value = getCacheString(DATA_AGENT_INDEX)
+
             _validAgentObs.clear()
             _validAgentObs.addAll(AgentManager.validAgentList())
+            createSession()
+
+            _uiState.update {
+                it.copy(
+                    title = if (isAgentAsk()) "Ask" else agentProvider?.title,
+                    messages = listOf(ChatMsg.SystemMsg(if (isAgentAsk()) defSystemTip else agentProvider?.description))
+                )
+            }
         }
     }
 
@@ -124,11 +135,12 @@ class ChatVm(
         val userInput = _uiState.value.inputTxt.trim()
         if (userInput.isEmpty()) return
 
-        printLog("agent_${_agentModelObs.value}")
-        if (_agentModelObs.value == null) {
-            workInSub {
+        if (_agentModelObs.value.isNullOrEmpty()) {
+//            workInSub {
+            viewModelScope.launch {
                 runAnswer(userInput)
             }
+//            }
         } else {
             if (_uiState.value.userResponseRequested) { //回复智能体的问题，用户再输入
                 _uiState.update {
@@ -226,18 +238,17 @@ class ChatVm(
         } catch (e: Exception) {
             _uiState.update {
                 it.copy(
-                    messages = it.messages + ChatMsg.ErrorMsg("error:${e.message}"),
+                    messages = it.messages + ChatMsg.ErrorMsg("error2:${e.message}"),
                     isInputEnabled = true, isLoading = false
                 )
             }
+            printD(e.message)
         }
     }
 
     //根据会话id找它的消息列表
-    suspend fun findSessionMsg(sessionId: String): MutableList<ChatMsg> {
-        val list = mutableListOf<ChatMsg>()
-        fetchMsgs(sessionId).collectLatest { list.addAll(it) }
-        return list
+    suspend fun findSessionMsg(sessionId: String): List<ChatMsg> {
+        return fetchMsgList(sessionId)
     }
 
     suspend fun loadAskSession() {
@@ -247,7 +258,7 @@ class ChatVm(
     suspend fun loadSessionById(sessionId: String) {
         _currentSessionId.value = sessionId
 
-        val flow: Flow<List<ChatMsg>> = fetchMsgs(_currentSessionId.value)
+        val flow: Flow<List<ChatMsg>> = fetchMsgListFlow(_currentSessionId.value)
         flow.collectLatest { list ->//从缓存中捞会话消息数据，加载到意图中，意图热加载触发ui更新
             _uiState.update { it.copy(messages = list) }
         }
@@ -259,11 +270,16 @@ class ChatVm(
 
     //构建新的会话并缓存，标题是输入
     suspend fun addSession(input: String) {
-        val session = ChatSession(title = input)
-        sessionRepository.addSession(session) //本地缓存
-        val sessionList = _sessionObs.value.toMutableList()
-        sessionList.add(0, session)
-        _sessionObs.value = sessionList
+        try {
+            val session = ChatSession(title = input)
+            sessionRepository.addSession(session) //本地缓存
+            val sessionList = _sessionObs.value.toMutableList()
+            sessionList.add(0, session)
+            _sessionObs.value = sessionList
+        } catch (e: Exception) {
+            printD(e.message)
+        }
+
     }
 
     //新建会话
@@ -271,41 +287,65 @@ class ChatVm(
         _currentSessionId.value = Uuid.random().toString()
     }
 
-    private suspend fun runAnswer(userInput: String) { //问答流式
+    suspend fun runAnswer(userInput: String) { //问答流式
+        printD("runAnswer>$userInput")
         _stopReceivingObs.value = false
+        try {
+            //先根据sessionId找消息队列，如果空则要新建对话  findSessionMsg!!bug
+            if (findSessionMsg(_currentSessionId.value).isEmpty()) {
+                workInSub {
+                    addSession(userInput)
+                }
 
-        //先根据sessionId找消息队列，如果空则要新建对话
-        if (findSessionMsg(_currentSessionId.value).isEmpty()) {
-            workInSub {
-                addSession(userInput)
             }
+        } catch (e: Exception) {
+            printD(e.message)
         }
+
         val userMsg = ChatMsg.UserMsg(userInput).apply {
             sessionId = _currentSessionId.value
             state = ChatState.Idle
         }
         val newMsg = ChatMsg.ResultMsg(thinkingTip).apply {
-            sessionId = _currentSessionId.value
+            sessionId = _currentSessionId.value //提示思考中，但是不要给接口用
             state = ChatState.Thinking
         }
 
+        //搞倒序缓存才行，要改
         val list = mutableListOf<ChatMsg>()
+        _uiState.value.messages
         list.addAll(_uiState.value.messages)
         list.add(0, userMsg)
         list.add(1, newMsg)
 
-        _uiState.update { it.copy(messages = list) }
-
+        _uiState.update {
+            it.copy(
+                messages = list,
+                inputTxt = "",
+                isInputEnabled = false,
+                isLoading = true
+            )
+        }
         //抽出来是为了后面做重新生成
-        callAgentApi(userMsg, newMsg)
+        callLLMAnswer(userMsg, newMsg)
     }
 
     //还差apiKey没搞
-    private fun callAgentApi(userMsg: ChatMsg.UserMsg, resultMsg: ChatMsg.ResultMsg) {
+    private fun callLLMAnswer(userMsg: ChatMsg.UserMsg, resultMsg: ChatMsg.ResultMsg) {
         curChatJob = viewModelScope.launch {
             var responseFromAgent = ""
+            val tmpList = _uiState.value.messages.reversed().dropLastWhile { it is ChatMsg.ResultMsg }
+            printList(tmpList)
             chatStreaming(
-                prompt = createPrompt(_uiState.value.messages), onStart = {},
+                prompt = createPrompt(
+                    tmpList,
+                    params = LLMParams(
+                        temperature = 0.8,
+                        //没用，这样的设定不认
+//                        additionalProperties = mapOf("enable_thinking" to JsonPrimitive(false))
+                    )
+                ), //qwen关闭深度思考
+                llModel = buildQwen3LLM(), onStart = {},
                 onCompletion = { cause ->
                     stopReceiveMsg(userMsg, resultMsg.txt, cause)
                 }, catch = {
@@ -316,7 +356,7 @@ class ChatVm(
                 }, streaming = { chunk: StreamFrame ->
                     when (chunk) {
                         is StreamFrame.Append -> {
-                            responseFromAgent = chunk.text
+                            responseFromAgent += chunk.text
                         }
 
                         is StreamFrame.ToolCall -> {
@@ -327,13 +367,13 @@ class ChatVm(
                             printLog("\n[END] reason=${chunk.finishReason}")
                         }
                     }
-                    updateLocalResponse(responseFromAgent)
+                    updateLocalResponse(responseFromAgent.trim())
                 })
         }
     }
 
-    private fun createPrompt(list: List<ChatMsg>): Prompt {
-        return prompt(_currentSessionId.value) {
+    private fun createPrompt(list: List<ChatMsg>, params: LLMParams = LLMParams()): Prompt {
+        return prompt(id = _currentSessionId.value, params = params) {
             list.forEach { msg ->
                 when (msg) {
                     is ChatMsg.UserMsg -> user(msg.txt)
@@ -376,27 +416,35 @@ class ChatVm(
 
     //问答的信息肯定在顶部，UI会令消息倒序显示
     fun updateLocalResponse(response: String) {
-        printD("updateLocalResponse>$response")
         val msgList = _uiState.value.messages.toMutableList()
         msgList[1] = (msgList[1] as ChatMsg.ResultMsg).copy(txt = response)
-        _uiState.update { it.copy(messages = msgList) }
+        _uiState.update {
+            it.copy(
+                messages = msgList,
+                isInputEnabled = true,
+                isLoading = false,
+                userResponseRequested = false
+            )
+        }
     }
 
     suspend fun changeChatModel(model: String?) {
         if (model == null) { //切到ask
-            if (_agentModelObs.value == null) {
-                removeCacheKey(DATA_AGENT_INDEX)
-            } else {
+            if (_agentModelObs.value != null) {
                 saveString(DATA_AGENT_DEF, _agentModelObs.value!!)
-                removeCacheKey(DATA_AGENT_INDEX)
             }
+            removeCacheKey(DATA_AGENT_INDEX)
             _agentModelObs.value = null
         } else {
-            //从ask切到agent,先找历史agent，没有就cook
+            //从ask切到agent,当前model就是下次的默认
             _agentModelObs.value = model
             saveString(DATA_AGENT_INDEX, model)
-            saveString(DATA_AGENT_DEF,model)
+            saveString(DATA_AGENT_DEF, model)
         }
+    }
+
+    fun isAgentAsk(): Boolean {
+        return _agentModelObs.value == null
     }
 
     //返回历史agent
@@ -407,7 +455,6 @@ class ChatVm(
             getCacheString(DATA_AGENT_INDEX, "cook")!!
         }
     }
-
 
     fun restartRun() {
         _uiState.update {

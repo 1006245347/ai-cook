@@ -18,6 +18,7 @@ import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -52,6 +53,7 @@ suspend fun saveMemory(
 //放在协程内运行，也能捕捉主动暂停
 suspend fun chatStreaming(
     prompt: Prompt,
+    llModel: LLModel,
     onStart: suspend () -> Unit,
     onCompletion: suspend (Throwable?) -> Unit,
     catch: suspend (Throwable) -> Unit,
@@ -61,13 +63,58 @@ suspend fun chatStreaming(
     require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
     val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
     val flow =
-        remoteAiExecutor.executeStreaming(prompt = prompt, OpenAIModels.Chat.GPT4o)
+        remoteAiExecutor.executeStreaming(prompt = prompt, llModel)
     flow.onStart { onStart() }
         .onCompletion { cause: Throwable? -> onCompletion(cause) }
-        .catch { e: Throwable -> catch(e) }
+        .catch { e: Throwable ->
+            catch(e)
+            printD(e.message)
+        }
         .collect { chunk: StreamFrame ->
             streaming(chunk)
         }
+}
+
+fun buildEditLLM(id: String): LLModel {
+    return LLModel(
+        provider = if (id.uppercase().contains("qwen")) LLMProvider.Alibaba else LLMProvider.OpenAI,
+        id = id, capabilities = listOf(
+            LLMCapability.Temperature,
+            LLMCapability.Schema.JSON.Basic,
+            LLMCapability.Schema.JSON.Standard,
+            LLMCapability.Speculation,
+            LLMCapability.Tools,
+            LLMCapability.ToolChoice,
+            LLMCapability.Vision.Image,
+            LLMCapability.Document,
+            LLMCapability.Completion,
+            LLMCapability.MultipleChoices,
+            LLMCapability.OpenAIEndpoint.Completions,
+            LLMCapability.OpenAIEndpoint.Responses
+        ), contextLength = 65_536
+    )
+}
+
+//硅基流动中，有深度思考能力的模型才有enable_thinking字段控制，如  Qwen/Qwen3-8B,他默认启动思考。。
+//Qwen/Qwen3-8B //128k 免费
+
+fun buildQwen3LLM_8B(): LLModel {
+    return LLModel(
+        provider = LLMProvider.Alibaba, id = "Qwen/Qwen3-8B", capabilities = listOf(
+            LLMCapability.Temperature,
+            LLMCapability.Schema.JSON.Basic,
+            LLMCapability.Schema.JSON.Standard,
+            LLMCapability.Speculation,
+            LLMCapability.Tools,
+            LLMCapability.ToolChoice,
+            LLMCapability.Vision.Image,
+            LLMCapability.Document,
+            LLMCapability.Completion,
+            LLMCapability.MultipleChoices,
+            LLMCapability.OpenAIEndpoint.Completions,
+            LLMCapability.OpenAIEndpoint.Responses
+        ), contextLength = 131_072
+    )
 }
 
 fun buildQwen3LLM(): LLModel {
@@ -76,10 +123,22 @@ fun buildQwen3LLM(): LLModel {
 
     //自定义的模型定义
     return LLModel(
-        provider = LLMProvider.Alibaba, "Qwen/Qwen3-Omni-30B-A3B-Instruct", capabilities = listOf(
-            LLMCapability.Tools,
+        provider = LLMProvider.Alibaba, "Qwen/Qwen3-VL-8B-Instruct", capabilities = listOf(
+//            LLMCapability.Tools,
+//            LLMCapability.Temperature,
+//            LLMCapability.Schema.JSON.Basic
             LLMCapability.Temperature,
-            LLMCapability.Schema.JSON.Basic
+            LLMCapability.Schema.JSON.Basic,
+            LLMCapability.Schema.JSON.Standard,
+            LLMCapability.Speculation,
+            LLMCapability.Tools,
+            LLMCapability.ToolChoice,
+            LLMCapability.Vision.Image,
+            LLMCapability.Document,
+            LLMCapability.Completion,
+            LLMCapability.MultipleChoices,
+            LLMCapability.OpenAIEndpoint.Completions,
+            LLMCapability.OpenAIEndpoint.Responses,
         ), contextLength = 65_536// //32k 32_768   64k 65_536   128k 131_072  1M 1_048_576
     )
 }

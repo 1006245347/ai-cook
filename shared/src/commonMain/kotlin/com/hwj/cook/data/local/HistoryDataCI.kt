@@ -88,7 +88,7 @@ suspend fun buildMsgTag(sessionId: String): String {
     return DATA_MESSAGE_TAG + getCacheLong(DATA_USER_ID) + "_$sessionId"
 }
 
-fun fetchMsgs(sessionId: String): Flow<List<ChatMsg>> = callbackFlow {
+fun fetchMsgListFlow(sessionId: String): Flow<List<ChatMsg>> = callbackFlow {
     val list = getMsgList(sessionId)
     if (list.isNullOrEmpty()) {
         trySend(listOf())
@@ -97,6 +97,16 @@ fun fetchMsgs(sessionId: String): Flow<List<ChatMsg>> = callbackFlow {
     }
     awaitClose { close() }
 }
+
+suspend fun fetchMsgList(sessionId: String): List<ChatMsg> {
+    val list = getMsgList(sessionId)
+    return if (list.isNullOrEmpty()) {
+        listOf()
+    } else {
+        list
+    }
+}
+
 
 //保存单条消息
 suspend fun addMsg(chatMsg: ChatMsg): ChatMsg {

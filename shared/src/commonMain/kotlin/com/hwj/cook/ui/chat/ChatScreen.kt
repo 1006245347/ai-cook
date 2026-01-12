@@ -77,6 +77,7 @@ fun ChatScreen(navigator: Navigator) {
             isChatEnded = uiObs.isChatEnded, if (modelList.isEmpty()) null else modelList[0],
             onInputTxtChanged = chatVm::updateInputText,
             onSendClicked = chatVm::sendMessage,
+            onStopChat = chatVm::stopReceivingResults,
             onRestartClicked = chatVm::restartRun,
             onNavigateBack = {
 //        navigator.goBack()
@@ -102,6 +103,7 @@ fun ChatScreenContent(
     isChatEnded: Boolean, agentModel: ModelInfoCell?,
     onInputTxtChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
+    onStopChat: () -> Unit,
     onRestartClicked: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -141,7 +143,7 @@ fun ChatScreenContent(
                 onSendClicked = { //触发模型功能
                     onSendClicked()
                     focusManager.clearFocus()
-                }, isEnabled = isInputEnabled,
+                }, onStopChat = onStopChat, isEnabled = isInputEnabled,
                 isLoading = isLoading, agentModel,
                 focusRequester = focusRequester
             )

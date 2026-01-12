@@ -25,12 +25,19 @@ sealed class ChatMsg {
     var sessionId: String=""
     val createTime: Long = 0L
     var state: ChatState = ChatState.Idle
+    var content: String?=null
 
+    @Serializable
     data class UserMsg(val txt: String) : ChatMsg()
+    @Serializable
     data class AgentMsg(val txt: String) : ChatMsg()
+    @Serializable
     data class SystemMsg(val txt: String?) : ChatMsg()
+    @Serializable
     data class ErrorMsg(val txt: String?) : ChatMsg()
+    @Serializable
     data class ToolCallMsg(val txt: String?) : ChatMsg()
+    @Serializable
     data class ResultMsg(val txt: String) : ChatMsg()
 }
 

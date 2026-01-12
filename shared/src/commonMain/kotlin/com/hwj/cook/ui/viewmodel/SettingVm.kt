@@ -3,12 +3,15 @@ package com.hwj.cook.ui.viewmodel
 import androidx.compose.runtime.mutableStateListOf
 import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.DATA_MODEL_DEF
 import com.hwj.cook.global.DATA_MODEL_LIST
 import com.hwj.cook.global.ToastUtils
+import com.hwj.cook.global.getCacheObj
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.removeCacheKey
+import com.hwj.cook.global.saveObj
 import com.hwj.cook.global.saveString
 import com.hwj.cook.models.ModelInfoCell
 import kotlinx.coroutines.Dispatchers
@@ -147,6 +150,9 @@ class SettingVm : ViewModel() {
                 ) {
                     cell.default = true
                     saveString(DATA_APP_TOKEN, cell.apiKey)
+                    saveObj(DATA_MODEL_DEF, cell)
+                    val model = getCacheObj<ModelInfoCell>(DATA_MODEL_DEF)
+                    printD("def??$model")
                 }
             }
         }

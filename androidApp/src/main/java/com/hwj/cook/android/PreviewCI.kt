@@ -43,7 +43,7 @@ private fun AgentDemoScreenPreview() {
             isLoading = false,
             isChatEnded = false,null,
             onInputTxtChanged = {},
-            onSendClicked = {},
+            onSendClicked = {}, onStopChat = {},
             onRestartClicked = {},
             onNavigateBack = {}
         )
@@ -67,7 +67,7 @@ private fun AgentDemoScreenEndedPreview() {
             isLoading = false,
             isChatEnded = true,null,
             onInputTxtChanged = {},
-            onSendClicked = {},
+            onSendClicked = {}, onStopChat = {},
             onRestartClicked = {},
             onNavigateBack = {}
         )
@@ -85,5 +85,5 @@ private fun SettingScreenPreview(){
 @Preview
 @Composable
 private fun InputPreview(){
-    InputArea("xxx",{},{},true,false, null,FocusRequester.Default)
+    InputArea("xxx",{},{},{},true,false, null,FocusRequester.Default)
 }

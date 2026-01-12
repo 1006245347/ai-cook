@@ -1,6 +1,7 @@
 package com.hwj.cook.models
 
 import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.global.defSystemTip
 
 /**
  * @author by jason-何伟杰，2025/9/18
@@ -20,7 +21,7 @@ data class BookConfigState(
 
 data class AgentUiState(
     val title: String? = "Agent",
-    val messages: List<ChatMsg> = listOf(ChatMsg.SystemMsg("Hi, I'm an agent that can help you")),
+    val messages: List<ChatMsg> = listOf(ChatMsg.SystemMsg(defSystemTip)),
     val inputTxt: String = "",
     val isInputEnabled: Boolean = true,
     val isLoading: Boolean = false,

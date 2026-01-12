@@ -19,11 +19,16 @@ import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.buildEditLLM
 import com.hwj.cook.agent.createMemoryProvider
 import com.hwj.cook.agent.tools.RecipeTools
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.DATA_MODEL_DEF
+import com.hwj.cook.global.getCacheObj
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
+import com.hwj.cook.models.ModelInfoCell
 
 /**
  * @author by jason-何伟杰，2025/10/10
@@ -46,6 +51,10 @@ class AICookAgentProvider : AgentProvider<String, String> {
         val apiKey = getCacheString(DATA_APP_TOKEN)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
+
+        //获取当前默认的大模型
+        val modelInfo= getCacheObj<ModelInfoCell>(DATA_MODEL_DEF)
+        printD("defModel>$modelInfo")
 
         val toolRegistry = ToolRegistry {
             tool(RecipeTools.SearchRecipeTool)
@@ -129,18 +138,18 @@ class AICookAgentProvider : AgentProvider<String, String> {
             prompt = prompt("cook") {
                 system(
                     """
-                    You are a smart recipe assistant.
+                    I'm a professional chef skilled in various cooking techniques. If the user's inquiry isn't related to cooking, I'll still provide a brief response. All replies will be clear and concise.
                     Your goal is to recommend recipes from the local knowledge base.
                     - When the user asks for something to eat, use tools to search recipes.
                     - Filter based on user's dislikes or dietary needs.
                     - Finally recommend one or more recipes.
                     """.trimIndent()
                 )
-            }, model = OpenAIModels.Chat.GPT4o,
+            }, model = buildEditLLM(modelInfo!!.modelName),
             maxAgentIterations = 10
         )
 
-        val agent = AIAgent.Companion.invoke(
+        val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             strategy = strategy, agentConfig = agentConfig, toolRegistry = toolRegistry
         ) {
@@ -151,11 +160,11 @@ class AICookAgentProvider : AgentProvider<String, String> {
             }
             handleEvents {
                 onToolCallStarting { ctx ->
-                    onToolCallEvent("Tool ${ctx.toolName}, args ${ctx.toolArgs}")
+                    onToolCallEvent("start>Tool ${ctx.toolName}, args ${ctx.toolArgs}")
                 }
 
-                onAgentExecutionFailed { ctx ->
-                    onErrorEvent("${ctx.throwable.message}")
+                onAgentExecutionFailed { ctx -> //这个会返回给外部
+                    onErrorEvent("failed1>${ctx.throwable.message}")
                 }
 
                 onAgentCompleted { ctx ->

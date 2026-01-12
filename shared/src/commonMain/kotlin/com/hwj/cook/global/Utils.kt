@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.tlaster.precompose.viewmodel.ViewModel
@@ -38,7 +39,6 @@ import kotlin.time.ExperimentalTime
 @Composable
 fun Dp.dpToPx() = with(LocalDensity.current) { this@dpToPx.toPx() }
 
-
 //获取时间戳
 fun getMills(): Long {
     return Clock.System.now().toEpochMilliseconds()
@@ -48,17 +48,18 @@ fun getNowTime(): LocalDateTime {
     return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 }
 
-
-fun Int.toEpochMilliseconds(): Long {
-    return this * 60 * 1000L
+//自定义格式化
+fun LocalDateTime.formatDefault(): String{
+    fun Int.pad2() = this.toString().padStart(2, '0')
+    //pad2是补0
+    return "${year}-${month.number.pad2()}-${day.pad2()} " +
+            "${hour.pad2()}:${minute.pad2()}:${second.pad2()}"
 }
-
 
 fun today(): LocalDateTime {
     return Clock.System.now()
         .toLocalDateTime(TimeZone.currentSystemDefault())
 }
-
 
 internal const val openLog = true
 const val logTAG = "COC"

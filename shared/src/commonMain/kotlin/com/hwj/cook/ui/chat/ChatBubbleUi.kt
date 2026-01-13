@@ -238,7 +238,6 @@ fun InputArea(
             .navigationBarsPadding().imePadding()
     ) {
         Row {
-            // Text input field
             TextField(
                 value = text,
                 onValueChange = onTextChanged,

@@ -159,7 +159,7 @@ private fun MessageList(modifier: Modifier, messages: List<ChatMsg>) {
         LazyColumn(
             contentPadding =
                 WindowInsets.statusBars.add(WindowInsets(top = 90.dp)).asPaddingValues(),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(), reverseLayout = true, //反转显示
             state = rememberLazyListState(), verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             items(messages) { msg ->

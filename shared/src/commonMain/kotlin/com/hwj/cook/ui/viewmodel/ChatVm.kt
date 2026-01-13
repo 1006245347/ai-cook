@@ -288,7 +288,6 @@ class ChatVm(
     }
 
     suspend fun runAnswer(userInput: String) { //问答流式
-        printD("runAnswer>$userInput")
         _stopReceivingObs.value = false
         try {
             //先根据sessionId找消息队列，如果空则要新建对话  findSessionMsg!!bug
@@ -296,7 +295,6 @@ class ChatVm(
                 workInSub {
                     addSession(userInput)
                 }
-
             }
         } catch (e: Exception) {
             printD(e.message)
@@ -311,12 +309,11 @@ class ChatVm(
             state = ChatState.Thinking
         }
 
-        //搞倒序缓存才行，要改
+        //搞倒序缓存才行，新的在顶，旧的在低，显示时再全反转
         val list = mutableListOf<ChatMsg>()
-        _uiState.value.messages
         list.addAll(_uiState.value.messages)
-        list.add(0, userMsg)
-        list.add(1, newMsg)
+        list.add(0, newMsg)
+        list.add(1, userMsg)
 
         _uiState.update {
             it.copy(
@@ -334,11 +331,15 @@ class ChatVm(
     private fun callLLMAnswer(userMsg: ChatMsg.UserMsg, resultMsg: ChatMsg.ResultMsg) {
         curChatJob = viewModelScope.launch {
             var responseFromAgent = ""
-            val tmpList = _uiState.value.messages.reversed().dropLastWhile { it is ChatMsg.ResultMsg }
+            val tmpList = if (_uiState.value.messages.first() is ChatMsg.ResultMsg) {
+                _uiState.value.messages.drop(1)
+            } else {
+                _uiState.value.messages
+            }
             printList(tmpList)
             chatStreaming(
                 prompt = createPrompt(
-                    tmpList,
+                    tmpList.reversed(),
                     params = LLMParams(
                         temperature = 0.8,
                         //没用，这样的设定不认
@@ -417,7 +418,7 @@ class ChatVm(
     //问答的信息肯定在顶部，UI会令消息倒序显示
     fun updateLocalResponse(response: String) {
         val msgList = _uiState.value.messages.toMutableList()
-        msgList[1] = (msgList[1] as ChatMsg.ResultMsg).copy(txt = response)
+        msgList[0] = (msgList[0] as ChatMsg.ResultMsg).copy(txt = response)
         _uiState.update {
             it.copy(
                 messages = msgList,

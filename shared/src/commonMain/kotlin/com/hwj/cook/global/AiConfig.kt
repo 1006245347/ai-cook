@@ -15,11 +15,10 @@ const val answerUseEw = ",\nplease answer in English."
 const val answerUseZw = ",\n请用中文回答。"
 const val loadingTip = "加载中..."
 
-const val defSystemTip ="Hi, I'm an agent that can help you"
+const val defSystemTip ="Hi, I'm an assistant that can help you,please answer in chinese."
 
 //标识
 const val CODE_IS_DARK = "CODE_IS_DARK" //是否黑暗模式
-const val CODE_LANGUAGE_ZH = "CODE_LANGUAGE_ZH"//语言是否是中文
 
 
 const val DATA_USER_NAME = "DATA_USER_NAME"

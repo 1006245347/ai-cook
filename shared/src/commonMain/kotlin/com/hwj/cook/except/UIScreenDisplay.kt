@@ -2,35 +2,49 @@ package com.hwj.cook.except
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.hwj.cook.agent.ChatMsg
 import kotlinx.coroutines.flow.Flow
 
 //处理desktop端鼠标指向图标文字提示
 @Composable
-expect fun ToolTipCase(modifier: Modifier?=null,tip: String, content: @Composable () -> Unit)
+expect fun ToolTipCase(modifier: Modifier? = null, tip: String, content: @Composable () -> Unit)
 
 
 //缓存截图的目录
-expect fun getShotCacheDir():String?
+expect fun getShotCacheDir(): String?
 
 //链接跳转浏览器
 @Composable
-expect fun switchUrlByBrowser(url:String)
+expect fun switchUrlByBrowser(url: String)
 
 @Composable
 expect fun BringMainWindowFront()
 
 //是否在主线程
-expect fun isMainThread():Boolean
+expect fun isMainThread(): Boolean
 
 //desktop截图
 @Composable
 expect fun ScreenShotPlatform(onSave: (String?) -> Unit)
 
-interface NetworkObserver{
-    fun observe():Flow<Status>
+interface NetworkObserver {
+    fun observe(): Flow<Status>
 
-    enum class Status{
+    enum class Status {
         Connected,
         Disconnected
     }
+}
+
+
+@Composable
+expect fun BotMessageCard(msg: String)
+
+//聊天界面消息富文本控件
+@Composable
+expect fun BotMsgMenu(message: String)
+
+expect class ClipboardHelper {
+    fun copyToClipboard(text:String)
+    fun readFromClipboard():String?
 }

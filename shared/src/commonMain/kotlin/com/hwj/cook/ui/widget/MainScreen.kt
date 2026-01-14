@@ -155,7 +155,7 @@ fun MainScreen(navigator: Navigator) {
         Surface(color = MaterialTheme.colorScheme.background) {
             AppScaffold( //脚手架
                 navigator, drawerState = drawerState,
-                onConversationClicked = { chatId ->
+                onConversationClicked = { chatId -> //加载历史会话
                     subScope.launch {
                         if (sessionId != chatId) {
                             chatVm.stopReceivingResults()
@@ -163,10 +163,11 @@ fun MainScreen(navigator: Navigator) {
                         drawerState.close()
                     }
                 },
-                onNewConversationClicked = {
+                onNewConversationClicked = { //抽屉里新增会话、首页顶部也可以新增
                     subScope.launch {
                         chatVm.stopReceivingResults()
                         drawerState.close()
+                        chatVm.createSession()
                     }
                 },
                 onThemeClicked = {

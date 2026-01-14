@@ -19,6 +19,7 @@ import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printE
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -68,7 +69,7 @@ suspend fun chatStreaming(
         .onCompletion { cause: Throwable? -> onCompletion(cause) }
         .catch { e: Throwable ->
             catch(e)
-            printD(e.message)
+            printE(e.message)
         }
         .collect { chunk: StreamFrame ->
             streaming(chunk)

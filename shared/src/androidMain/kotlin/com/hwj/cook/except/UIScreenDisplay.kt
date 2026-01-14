@@ -1,6 +1,8 @@
 package com.hwj.cook.except
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -10,12 +12,16 @@ import android.util.Patterns
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.global.LoadingThinking
+import com.hwj.cook.global.thinkingTip
+import com.hwj.cook.ui.widget.BotCommonCard
+import com.hwj.cook.ui.widget.BotCommonMenu
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @Composable
 actual fun ToolTipCase(modifier: Modifier?, tip: String, content: @Composable () -> Unit) {
@@ -72,4 +78,39 @@ actual fun switchUrlByBrowser(url: String) {
         LocalContext.current.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
     }
 }
+
+@Composable
+actual fun BotMessageCard(msg: String) {
+    if ( msg == thinkingTip) {
+        LoadingThinking(msg)
+    } else {
+        BotCommonCard(msg)
+    }
+}
+
+
+@Composable
+actual fun BotMsgMenu(message: String){
+    BotCommonMenu(message)
+}
+
+actual class ClipboardHelper(private val context: Context) {
+
+    actual fun copyToClipboard(text: String) {
+        val chunkSize = 2 * 1020 * 1024 //2mb
+        val safeTxt = if (text.length > chunkSize) {
+            text.substring(0, chunkSize)
+        } else text
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("copy", safeTxt)
+        clipboard.setPrimaryClip(clip)
+    }
+
+    actual fun readFromClipboard(): String? {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = clipboard.primaryClip
+        return clip?.getItemAt(0)?.text.toString()
+    }
+}
+
 

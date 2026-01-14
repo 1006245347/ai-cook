@@ -2,6 +2,11 @@ package com.hwj.cook.except
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.global.LoadingThinking
+import com.hwj.cook.global.thinkingTip
+import com.hwj.cook.ui.widget.BotCommonCard
+import com.hwj.cook.ui.widget.BotCommonMenu
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -9,9 +14,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import platform.Foundation.NSThread
 import platform.Foundation.NSURL
+import platform.Network.nw_path_get_status
+import platform.Network.nw_path_monitor_cancel
+import platform.Network.nw_path_monitor_create
+import platform.Network.nw_path_monitor_set_queue
+import platform.Network.nw_path_monitor_set_update_handler
+import platform.Network.nw_path_monitor_start
+import platform.Network.nw_path_status_satisfied
 import platform.UIKit.UIApplication
-import platform.Network.*
-import platform.darwin.*
+import platform.darwin.DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL
+import platform.darwin.dispatch_queue_create
+import platform.UIKit.UIPasteboard
 
 @Composable
 actual fun ToolTipCase(modifier: Modifier?, tip: String, content: @Composable () -> Unit) {
@@ -29,6 +42,7 @@ class IOSNetworkObserver : NetworkObserver {
         label = "org.yangdai.kori.networkMonitor",
         attr = DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL
     )
+
     override fun observe(): Flow<NetworkObserver.Status> {
         return callbackFlow {
             nw_path_monitor_set_update_handler(monitor) { path ->
@@ -54,7 +68,7 @@ actual fun ScreenShotPlatform(onSave: (String?) -> Unit) {
 }
 
 @Composable
-actual fun BringMainWindowFront(){
+actual fun BringMainWindowFront() {
 }
 
 actual fun getShotCacheDir(): String? {
@@ -69,4 +83,30 @@ actual fun getShotCacheDir(): String? {
 actual fun switchUrlByBrowser(url: String) {
     val nsUrl = NSURL(string = url)
     UIApplication.sharedApplication.openURL(nsUrl)
+}
+
+@Composable
+actual fun BotMessageCard(msg: String) {
+    if (msg == thinkingTip) {
+        LoadingThinking(msg)
+    } else {
+        BotCommonCard(msg)
+    }
+}
+
+@Composable
+actual fun BotMsgMenu(message: String) {
+    BotCommonMenu(message)
+}
+
+
+actual class ClipboardHelper {
+    actual fun copyToClipboard(text: String) {
+        UIPasteboard.generalPasteboard.string = text
+    }
+
+    actual fun readFromClipboard(): String? {
+        return UIPasteboard.generalPasteboard.string()
+    }
+
 }

@@ -80,21 +80,17 @@ fun AppBar(
     val subScope = rememberCoroutineScope()
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     val agentModelState by chatVm.agentModelState.collectAsState()
-//    var isAskModelState by remember { mutableStateOf(agentModelState == null) }
     var lastAgentState by remember { mutableStateOf<String>("") }
     //弹窗选择 智能体列表
     LaunchedEffect(Unit) {
         subScope.launch {
-            lastAgentState = chatVm.getCacheAgent(agentModelState == null)
-            printD("last-$lastAgentState")
+            lastAgentState = chatVm.getCacheAgent()
         }
     }
 
     CenterAlignedTopAppBar(
         title = {
             val paddingSizeModifier = Modifier
-                .padding(start = 16.dp, top = 10.dp, bottom = 10.dp)
-                .size(160.dp)
             Box {
                 SlidingToggle(
                     paddingSizeModifier,
@@ -110,7 +106,7 @@ fun AppBar(
                             } else {
                                 chatVm.changeChatModel(null)
                             }
-                            lastAgentState = chatVm.getCacheAgent(agentModelState == null)
+                            lastAgentState = chatVm.getCacheAgent()
                         }
                     })
             }
@@ -141,7 +137,11 @@ fun AppBar(
         actions = {
             if (pagerState.currentPage != pagerState.pageCount - 1)
                 ToolTipCase(tip = "新建会话", content = {
-                    IconButton(onClick = { onNewChat() }) {
+                    IconButton(onClick = {
+//                        onNewChat()
+                        //测试
+                        chatVm.test()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.MapsUgc,
                             contentDescription = "新建会话", tint = PrimaryColor,
@@ -180,15 +180,15 @@ fun SlidingToggle(
 ) {
     val mainVm = koinViewModel(MainVm::class)
     val isDark = mainVm.darkState.collectAsState().value
-    val thumbOffset by animateDpAsState(targetValue = if (selectedAgent) 80.dp else 0.dp)
-    val cBottom = if (isDark) Color(0xFF22262C) else Color(0xFFE7EAEF) //全部底色 22262C  FF22282F
-    val cTop = if (isDark) cOrangeFFB8664() else cWhite() //滑块颜色
+    val thumbOffset by animateDpAsState(targetValue = if (selectedAgent) 81.dp else 1.dp)
+    val cBottom = if (isDark) cHalfGrey80717171() else Color(0xFFE7EAEF) //全部底色 22262C  FF22282F
+    val cTop = if (isDark) cBlackTxt() else cWhite() //滑块颜色
     val cTxt = if (isDark) cWhite() else cBlackTxt()
 
     Box(
         modifier = modifier
-            .width(160.dp)
-            .height(40.dp)
+            .width(162.dp)
+            .height(42.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(cBottom)
             .combinedClickable(
@@ -203,10 +203,10 @@ fun SlidingToggle(
                 }
             )
     ) {
-        // 滑块
+        // 滑块周边留1dp
         Box(
             modifier = Modifier
-                .offset(x = thumbOffset)
+                .offset(x = thumbOffset, y = 1.dp)
                 .width(80.dp)
                 .height(40.dp)
                 .clip(RoundedCornerShape(10.dp))

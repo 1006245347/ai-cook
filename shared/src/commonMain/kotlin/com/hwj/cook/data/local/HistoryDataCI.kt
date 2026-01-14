@@ -8,6 +8,8 @@ import com.hwj.cook.global.DATA_SESSION_TAG
 import com.hwj.cook.global.DATA_USER_ID
 import com.hwj.cook.global.getCacheLong
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
+import com.hwj.cook.global.printList
 import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.saveString
 import kotlinx.coroutines.channels.awaitClose
@@ -71,7 +73,7 @@ suspend fun getMsgList(sessionId: String): MutableList<ChatMsg>? {
 }
 
 suspend fun saveMessage(message: ChatMsg) {
-    val cacheList = getMsgList(message.id)
+    val cacheList = getMsgList(message.sessionId)
     if (cacheList.isNullOrEmpty()) {
         val newList = mutableListOf<ChatMsg>()
         newList.add(message)
@@ -79,9 +81,10 @@ suspend fun saveMessage(message: ChatMsg) {
     } else {
         cacheList.add(message)
         saveString(buildMsgTag(message.sessionId), JsonApi.encodeToString(cacheList).also {
-//            println(it)
+//            printD(it,des="cache>")
         })
     }
+
 }
 
 suspend fun buildMsgTag(sessionId: String): String {

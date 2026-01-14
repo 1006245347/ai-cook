@@ -24,11 +24,14 @@ import com.hwj.cook.data.local.fetchMsgList
 import com.hwj.cook.data.local.fetchMsgListFlow
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
+import com.hwj.cook.except.ClipboardHelper
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
+import com.hwj.cook.global.clearCache
 import com.hwj.cook.global.defSystemTip
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printE
 import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.removeCacheKey
@@ -61,7 +64,7 @@ import kotlin.uuid.Uuid
  * des:智能体聊天
  */
 class ChatVm(
-    private val globalRepository: GlobalRepository, private val sessionRepository: SessionRepository
+    private val globalRepository: GlobalRepository, private val sessionRepository: SessionRepository,private val clipboardHelper: ClipboardHelper
 ) : ViewModel() {
     private var agentProvider: AgentProvider<String, *>? = null
     private var agentInstance: AIAgent<String, *>? = null
@@ -89,7 +92,7 @@ class ChatVm(
         MutableStateFlow(mutableListOf())
     val sessionState: StateFlow<MutableList<ChatSession>> = _sessionObs.asStateFlow()
 
-    //停止接收回答
+    //停止接收回答 ,和_uiObs.isLoading有重复作用
     private val _stopReceivingObs = MutableStateFlow(false)
     val stopReceivingState = _stopReceivingObs.asStateFlow()
 
@@ -120,8 +123,8 @@ class ChatVm(
 
             _uiState.update {
                 it.copy(
-                    title = if (isAgentAsk()) "Ask" else agentProvider?.title,
-                    messages = listOf(ChatMsg.SystemMsg(if (isAgentAsk()) defSystemTip else agentProvider?.description))
+                    title = if (isLLMAsk()) "Ask" else agentProvider?.title,
+                    messages = listOf(ChatMsg.SystemMsg(if (isLLMAsk()) defSystemTip else agentProvider?.description))
                 )
             }
         }
@@ -136,11 +139,9 @@ class ChatVm(
         if (userInput.isEmpty()) return
 
         if (_agentModelObs.value.isNullOrEmpty()) {
-//            workInSub {
             viewModelScope.launch {
                 runAnswer(userInput)
             }
-//            }
         } else {
             if (_uiState.value.userResponseRequested) { //回复智能体的问题，用户再输入
                 _uiState.update {
@@ -252,7 +253,7 @@ class ChatVm(
     }
 
     suspend fun loadAskSession() {
-        _sessionObs.value = sessionRepository.fetchSession()
+        _sessionObs.value = sessionRepository.fetchSession() //这里反序处理了
     }
 
     suspend fun loadSessionById(sessionId: String) {
@@ -260,7 +261,13 @@ class ChatVm(
 
         val flow: Flow<List<ChatMsg>> = fetchMsgListFlow(_currentSessionId.value)
         flow.collectLatest { list ->//从缓存中捞会话消息数据，加载到意图中，意图热加载触发ui更新
-            _uiState.update { it.copy(messages = list) }
+            _uiState.update {
+                it.copy(
+                    messages = list, isLoading = false, isInputEnabled = true,
+                    isChatEnded = false
+                )
+            } //界面上用了反序
+            printList(list, "loadSession")
         }
 
         _isAutoScroll.value = true
@@ -271,7 +278,7 @@ class ChatVm(
     //构建新的会话并缓存，标题是输入
     suspend fun addSession(input: String) {
         try {
-            val session = ChatSession(title = input)
+            val session = ChatSession(title = input, id = _currentSessionId.value)
             sessionRepository.addSession(session) //本地缓存
             val sessionList = _sessionObs.value.toMutableList()
             sessionList.add(0, session)
@@ -285,6 +292,7 @@ class ChatVm(
     //新建会话
     fun createSession() {
         _currentSessionId.value = Uuid.random().toString()
+        _uiState.value = AgentUiState() //重置界面数据
     }
 
     suspend fun runAnswer(userInput: String) { //问答流式
@@ -318,7 +326,7 @@ class ChatVm(
         _uiState.update {
             it.copy(
                 messages = list,
-                inputTxt = "",
+//                inputTxt = "",回复了再清更好？
                 isInputEnabled = false,
                 isLoading = true
             )
@@ -336,10 +344,10 @@ class ChatVm(
             } else {
                 _uiState.value.messages
             }
-            printList(tmpList)
+//            printList(tmpList)
             chatStreaming(
                 prompt = createPrompt(
-                    tmpList.reversed(),
+                    tmpList.reversed(), //请求数据时要正序
                     params = LLMParams(
                         temperature = 0.8,
                         //没用，这样的设定不认
@@ -348,8 +356,10 @@ class ChatVm(
                 ), //qwen关闭深度思考
                 llModel = buildQwen3LLM(), onStart = {},
                 onCompletion = { cause ->
-                    stopReceiveMsg(userMsg, resultMsg.txt, cause)
+                    printE(cause, des = "onCompletion")//会不会StreamFrame.End重复添加
+//                    stopReceiveMsg(userMsg, resultMsg.txt, cause)
                 }, catch = {
+                    _stopReceivingObs.value = true
                     if (responseFromAgent == "") {
                         responseFromAgent = stopByErrTip
                         updateLocalResponse(responseFromAgent)
@@ -361,11 +371,12 @@ class ChatVm(
                         }
 
                         is StreamFrame.ToolCall -> {
-                            printLog("\n Tool call:${chunk.name} args=${chunk.content} ")
+                            printLog("Tool call:${chunk.name} args=${chunk.content} ")
                         }
 
                         is StreamFrame.End -> {
-                            printLog("\n[END] reason=${chunk.finishReason}")
+                            printLog("[END] reason=${chunk.finishReason}")
+                            stopReceiveMsg(userMsg, resultMsg.txt, null)
                         }
                     }
                     updateLocalResponse(responseFromAgent.trim())
@@ -379,7 +390,9 @@ class ChatVm(
                 when (msg) {
                     is ChatMsg.UserMsg -> user(msg.txt)
                     is ChatMsg.AgentMsg -> assistant(msg.txt)
-                    is ChatMsg.SystemMsg -> msg.txt?.let { system(it) }
+                    is ChatMsg.SystemMsg -> msg.txt?.let {
+                        system(it)
+                    } //界面一般不显示,这里是数据构造
                     is ChatMsg.ErrorMsg -> msg.txt?.let { assistant(it) }
                     is ChatMsg.ToolCallMsg -> msg.txt?.let { assistant(it) }
                     is ChatMsg.ResultMsg -> assistant(msg.txt)
@@ -401,16 +414,26 @@ class ChatVm(
                 updateLocalResponse(tmpAnswer)
             }
         }
-        addMsg(userMsg)
         val assistantMsg = ChatMsg.ResultMsg(tmpAnswer).apply {
             sessionId = userMsg.sessionId
         }
+        // us2 as2 ,us1 as1  user as ,
+        addMsg(userMsg)
         addMsg(assistantMsg)
+        _uiState.update { it.copy(isLoading = false, isInputEnabled = true, isChatEnded = false) }
     }
 
     //主动中断大模型api逻辑
     fun stopReceivingResults() {
         _stopReceivingObs.value = true
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                isInputEnabled = true,
+                isChatEnded = false,
+                userResponseRequested = false
+            )
+        }
         curChatJob?.cancel()
         curChatJob = null
     }
@@ -421,10 +444,10 @@ class ChatVm(
         msgList[0] = (msgList[0] as ChatMsg.ResultMsg).copy(txt = response)
         _uiState.update {
             it.copy(
-                messages = msgList,
+                messages = msgList, inputTxt = "",
                 isInputEnabled = true,
-                isLoading = false,
-                userResponseRequested = false
+                userResponseRequested = false,
+//                isLoading = false,
             )
         }
     }
@@ -444,14 +467,15 @@ class ChatVm(
         }
     }
 
-    fun isAgentAsk(): Boolean {
+    fun isLLMAsk(): Boolean {
         return _agentModelObs.value == null
     }
 
     //返回历史agent
-    suspend fun getCacheAgent(isAskModel: Boolean): String {
-        return if (isAskModel) { //是ask模式，那么找历史agent
-            getCacheString(DATA_AGENT_DEF, "cook")!!
+    suspend fun getCacheAgent(): String {
+        return if (isLLMAsk()) { //是ask模式，那么找历史agent
+            val def = getCacheString(DATA_AGENT_DEF)
+            getCacheString(DATA_AGENT_DEF, def ?: "cook")!!
         } else { //直接给当前agent
             getCacheString(DATA_AGENT_INDEX, "cook")!!
         }
@@ -476,6 +500,25 @@ class ChatVm(
                 sessions.remove(mSession)
                 _sessionObs.value = sessions
             }
+            if (sessionId == _currentSessionId.value) {
+                stopReceivingResults()
+                createSession()
+            }
+        }
+    }
+    fun copyToClipboard(text: String) {
+        try {
+            clipboardHelper.copyToClipboard(text)
+        } catch (e: Exception) {
+        e.printStackTrace()
+        }
+    }
+
+    fun generateMsgAgain(){}
+    fun test() {
+        viewModelScope.launch {
+            printList(_sessionObs.value, "all-session")
+//            clearCache()
         }
     }
 }

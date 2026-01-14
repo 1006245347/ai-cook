@@ -90,7 +90,7 @@ val modelModule = module { //viewModel一般用factory
     single { MainVm(get(), get()) }
     single { SettingVm() }
     single { CookVm() }
-    single { ChatVm(get(), get()) }
+    single { ChatVm(get(), get(),get()) }
     single { TechVm() }
 }
 

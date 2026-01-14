@@ -9,6 +9,7 @@ import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.getCacheObj
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.saveObj
@@ -143,8 +144,10 @@ class SettingVm : ViewModel() {
     //只允许一个默认大模型
     fun setDefModel(model: ModelInfoCell) {
         viewModelScope.launch {
+            printList(_modelsObs,"all-model")
             _modelsObs.forEach { cell ->
                 cell.default = false
+                printD("????${cell.modelName} ${model.modelName}  ${cell.modelName==model.modelName}  ${cell.alias} ${model.alias}  ${cell.alias==model.alias}")
                 if (cell.modelName == model.modelName &&
                     cell.alias == model.alias
                 ) {

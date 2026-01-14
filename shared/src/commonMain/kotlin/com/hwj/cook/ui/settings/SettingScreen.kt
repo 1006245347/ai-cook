@@ -182,8 +182,8 @@ fun SettingsScreenContent(
                 SingleCheckUI(
                     isDark, models, mutableStateOf(models.firstOrNull { it.default })
                 ) { model ->
-                    isShowDefView = false
                     onDefClicked(model)
+                    isShowDefView = false
                 }
             }
         }

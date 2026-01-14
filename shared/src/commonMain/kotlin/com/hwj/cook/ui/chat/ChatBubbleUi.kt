@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -36,9 +37,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.hwj.cook.except.BotMessageCard
+import com.hwj.cook.except.BotMsgMenu
 import com.hwj.cook.global.KeyEventEnter
 import com.hwj.cook.global.PrimaryColor
+import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.dp6
 import com.hwj.cook.models.ModelInfoCell
@@ -48,7 +54,7 @@ import com.hwj.cook.models.ModelInfoCell
  * des:对话页面的消息体UI
  */
 @Composable
-fun UserMessageBubble(text: String) {
+fun UserMessageBubble(isDark: Boolean, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
@@ -57,20 +63,23 @@ fun UserMessageBubble(text: String) {
             modifier = Modifier
                 .widthIn(max = 280.dp)
                 .clip(RoundedCornerShape(dp10()))
-                .background(MaterialTheme.colorScheme.primary)
+//                .background(MaterialTheme.colorScheme.primary)
                 .padding(dp6())
         ) {
-            Text(
-                text = text,
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            SelectionContainer {
+                Text(
+                    text = text,
+                    color = cAutoTxt(isDark), fontSize = 14.sp,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                    textAlign = TextAlign.Justify
+                )
+            }
         }
     }
 }
 
 @Composable
-fun AgentMessageBubble(text: String) {
+fun AgentMessageBubble(isDark: Boolean, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
@@ -92,7 +101,7 @@ fun AgentMessageBubble(text: String) {
 }
 
 @Composable
-fun SystemMessageItem(text: String) {
+fun SystemMessageItem(isDark: Boolean, text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,7 +117,7 @@ fun SystemMessageItem(text: String) {
 }
 
 @Composable
-fun ErrorMessageItem(text: String) {
+fun ErrorMessageItem(isDark: Boolean, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
@@ -140,7 +149,7 @@ fun ErrorMessageItem(text: String) {
 }
 
 @Composable
-fun ToolCallMessageItem(text: String) {
+fun ToolCallMessageItem(isDark: Boolean, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
@@ -172,14 +181,13 @@ fun ToolCallMessageItem(text: String) {
 }
 
 @Composable
-fun ResultMessageItem(text: String) {
+fun ResultMessageItem(isDark: Boolean, text: String, isLatest: Boolean,isLoading: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
         Column(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
+            modifier = Modifier.widthIn(max = 280.dp)
         ) {
             Text(
                 text = "Result",
@@ -191,20 +199,21 @@ fun ResultMessageItem(text: String) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(dp10()))
                     .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(dp6())
+                    .padding(
+                        start = 4.dp, end = 4.dp, top = 4.dp, bottom = if (isLatest) 10.dp else 4.dp
+                    )
             ) {
-                Text(
-                    text = text,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                BotMessageCard(text)
+            }
+            if (isLoading&&isLatest) {
+                BotMsgMenu(text)
             }
         }
     }
 }
 
 @Composable
-fun RestartButton(onRestartClicked: () -> Unit) {
+fun RestartButton(isDark: Boolean, onRestartClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,12 +234,13 @@ fun RestartButton(onRestartClicked: () -> Unit) {
 
 @Composable
 fun InputArea(
+    isDark: Boolean,
     text: String,
     onTextChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
-    onStopChat:()->Unit,
+    onStopChat: () -> Unit,
     isEnabled: Boolean,
-    isLoading: Boolean,agentModel: ModelInfoCell?,
+    isLoading: Boolean, agentModel: ModelInfoCell?,
     focusRequester: FocusRequester
 ) {
     Box(
@@ -263,13 +273,20 @@ fun InputArea(
                 shape = RoundedCornerShape(dp10())
             )
 
-            EnterSendButton(isLoading, isEnabled && text.isNotBlank(), onSendClicked, onStopChat)
+            EnterSendButton(
+                isDark,
+                isLoading,
+                isEnabled && text.isNotBlank(),
+                onSendClicked,
+                onStopChat
+            )
         }
     }
 }
 
 @Composable
 private fun EnterSendButton(
+    isDark: Boolean,
     isLoading: Boolean,
     enabled: Boolean,
     sendBlock: () -> Unit,
@@ -303,7 +320,8 @@ private fun EnterSendButton(
                 }
             }
         },
-        modifier = Modifier.animateContentSize().padding(start=4.dp,end = 6.dp).clip(CircleShape),
+        modifier = Modifier.animateContentSize().padding(start = 4.dp, end = 6.dp)
+            .clip(CircleShape),
         expanded = isLoading,
         containerColor = PrimaryColor
     )

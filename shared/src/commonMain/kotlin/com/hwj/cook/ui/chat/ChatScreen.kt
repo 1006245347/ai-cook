@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +37,7 @@ import com.hwj.cook.global.dp10
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.ChatVm
+import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
@@ -58,6 +60,8 @@ fun ChatScreen(navigator: Navigator) {
     val modelList = settingVm.modelsState.collectAsState().value
 
     val sessionId = chatVm.currentSessionState.collectAsState()
+    val mainVm = koinViewModel(MainVm::class)
+    val isDark = mainVm.darkState.collectAsState().value
     val koin = getKoin()
     LaunchedEffect(sessionId) {
         subScope.launch {
@@ -70,6 +74,7 @@ fun ChatScreen(navigator: Navigator) {
     Box(Modifier.fillMaxSize()) {
         ChatScreenContent(
             title = uiObs.title,
+            isDark = isDark,
             messages = uiObs.messages,
             inputTxt = uiObs.inputTxt,
             isInputEnabled = uiObs.isInputEnabled,
@@ -96,6 +101,7 @@ fun ChatScreen(navigator: Navigator) {
 @Composable
 fun ChatScreenContent(
     title: String?,
+    isDark: Boolean,
     messages: List<ChatMsg>,
     inputTxt: String,
     isInputEnabled: Boolean,
@@ -127,18 +133,18 @@ fun ChatScreenContent(
         verticalArrangement = if (isMiddle) Arrangement.Center else Arrangement.Top,
         horizontalAlignment = if (isMiddle) Alignment.CenterHorizontally else Alignment.Start
     ) {
-
         MessageList(
             Modifier.weight(1f).padding(horizontal = 10.dp),
-            messages
+            messages, isDark,isLoading
         )
         //列表滚动时控制菜单按钮是否显示
 
 
         if (isChatEnded) {
-            RestartButton(onRestartClicked)
+            RestartButton(isDark, onRestartClicked)
         } else {
             InputArea(
+                isDark = isDark,
                 text = inputTxt, onTextChanged = onInputTxtChanged,
                 onSendClicked = { //触发模型功能
                     onSendClicked()
@@ -152,7 +158,7 @@ fun ChatScreenContent(
 }
 
 @Composable
-private fun MessageList(modifier: Modifier, messages: List<ChatMsg>) {
+private fun MessageList(modifier: Modifier, messages: List<ChatMsg>, isDark: Boolean,isLoading: Boolean) {
     Box(
         modifier = modifier
     ) {
@@ -162,14 +168,16 @@ private fun MessageList(modifier: Modifier, messages: List<ChatMsg>) {
             modifier = Modifier.fillMaxSize(), reverseLayout = true, //反转显示
             state = rememberLazyListState(), verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            items(messages) { msg ->
+            itemsIndexed(messages) { index,msg ->
                 when (msg) {
-                    is ChatMsg.UserMsg -> UserMessageBubble(msg.txt)
-                    is ChatMsg.AgentMsg -> AgentMessageBubble(msg.txt)
-                    is ChatMsg.SystemMsg -> msg.txt?.let { SystemMessageItem(it) }
-                    is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(it) }
-                    is ChatMsg.ToolCallMsg -> msg.txt?.let { ToolCallMessageItem(it) }
-                    is ChatMsg.ResultMsg -> ResultMessageItem(msg.txt)
+                    is ChatMsg.UserMsg -> UserMessageBubble(isDark,msg.txt)
+                    is ChatMsg.AgentMsg -> AgentMessageBubble(isDark,msg.txt)
+                    is ChatMsg.SystemMsg -> msg.txt?.let {
+//                        SystemMessageItem(isDark,it)
+                    }
+                    is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(isDark,it) }
+                    is ChatMsg.ToolCallMsg -> msg.txt?.let { ToolCallMessageItem(isDark,it) }
+                    is ChatMsg.ResultMsg -> ResultMessageItem(isDark,msg.txt,index==0,isLoading)
                 }
             }
 

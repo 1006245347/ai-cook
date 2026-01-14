@@ -65,9 +65,13 @@ actual fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.() -> Uni
         }
         install(HttpTimeout) {
             timeout?.let {
-//                requestTimeoutMillis = it
-                connectTimeoutMillis = timeout
-                socketTimeoutMillis = 5000
+//                requestTimeoutMillis = 60000  //从发出请求到结束，总共最多等多久
+//                connectTimeoutMillis = 10000 //连服务器连不上，多久放弃
+//                socketTimeoutMillis = 5000 //已经连上了，但多久没收到数据就放弃
+
+                requestTimeoutMillis = 60000 * 5  //从发出请求到结束，总共最多等多久
+                connectTimeoutMillis = 10000 //连服务器连不上，多久放弃
+                socketTimeoutMillis = timeout //30秒没token
             }
         }
         install(ContentNegotiation) {

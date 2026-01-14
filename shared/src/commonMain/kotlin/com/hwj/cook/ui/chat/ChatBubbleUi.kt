@@ -181,7 +181,7 @@ fun ToolCallMessageItem(isDark: Boolean, text: String) {
 }
 
 @Composable
-fun ResultMessageItem(isDark: Boolean, text: String, isLatest: Boolean,isLoading: Boolean) {
+fun ResultMessageItem(isDark: Boolean, text: String, isLatest: Boolean, isLoading: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
@@ -205,7 +205,7 @@ fun ResultMessageItem(isDark: Boolean, text: String, isLatest: Boolean,isLoading
             ) {
                 BotMessageCard(text)
             }
-            if (isLoading&&isLatest) {
+            if (!isLoading && isLatest) {
                 BotMsgMenu(text)
             }
         }

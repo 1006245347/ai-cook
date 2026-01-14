@@ -79,9 +79,9 @@ suspend fun saveMessage(message: ChatMsg) {
         newList.add(message)
         saveString(buildMsgTag(message.sessionId), JsonApi.encodeToString(newList))
     } else {
-        cacheList.add(message)
+        cacheList.add(0, message)
         saveString(buildMsgTag(message.sessionId), JsonApi.encodeToString(cacheList).also {
-//            printD(it,des="cache>")
+            printD(it, des = "saveMessage>")
         })
     }
 
@@ -115,4 +115,15 @@ suspend fun fetchMsgList(sessionId: String): List<ChatMsg> {
 suspend fun addMsg(chatMsg: ChatMsg): ChatMsg {
     saveMessage(chatMsg)
     return chatMsg
+}
+
+//有时候还没来得及保存数据，消息为空但是id相同
+fun isNewSession(sessionId: String, sessionList: List<ChatSession>): Boolean {
+    var isNew = true
+    sessionList.forEach {
+        if (it.id == sessionId) {
+            isNew = false
+        }
+    }
+    return isNew
 }

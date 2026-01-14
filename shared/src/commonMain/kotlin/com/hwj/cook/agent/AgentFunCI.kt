@@ -66,10 +66,13 @@ suspend fun chatStreaming(
     val flow =
         remoteAiExecutor.executeStreaming(prompt = prompt, llModel)
     flow.onStart { onStart() }
-        .onCompletion { cause: Throwable? -> onCompletion(cause) }
+        .onCompletion { cause: Throwable? ->
+            onCompletion(cause)
+            printD("chat-complete? $cause")
+        }
         .catch { e: Throwable ->
             catch(e)
-            printE(e.message)
+            printE(e.message, "streaming-err")
         }
         .collect { chunk: StreamFrame ->
             streaming(chunk)

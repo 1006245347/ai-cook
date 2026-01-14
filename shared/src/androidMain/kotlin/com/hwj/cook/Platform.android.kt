@@ -81,7 +81,7 @@ class AndroidPlatform : Platform {
 
 actual fun getPlatform(): Platform = AndroidPlatform()
 
-actual fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.()-> Unit): HttpClient {
+actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Unit): HttpClient {
     return HttpClient {
         defaultRequest {
             url.takeFrom(URLBuilder().takeFrom(baseHostUrl))
@@ -89,10 +89,14 @@ actual fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.()-> Unit
         }
 
         install(HttpTimeout) {
-            timeout?.let {
-//                requestTimeoutMillis = timeout
-                connectTimeoutMillis = timeout
-                socketTimeoutMillis = 5000
+            timeout?.let { //sse 跟普通接口不同
+//                requestTimeoutMillis = 60000  //从发出请求到结束，总共最多等多久
+//                connectTimeoutMillis = 10000 //连服务器连不上，多久放弃
+//                socketTimeoutMillis = 5000 //已经连上了，但多久没收到数据就放弃
+
+                requestTimeoutMillis = 60000 * 5  //从发出请求到结束，总共最多等多久
+                connectTimeoutMillis = 10000 //连服务器连不上，多久放弃
+                socketTimeoutMillis = timeout //30秒没token
             }
         }
         install(SSE) {
@@ -252,7 +256,11 @@ actual fun listResourceFiles(path: String): BookNode? {
                 }
             )
         } else {
-            BookNode(name = f.name, isDirectory = false, realPath = f.absolutePath) //不对，存的父文件路径?  对的
+            BookNode(
+                name = f.name,
+                isDirectory = false,
+                realPath = f.absolutePath
+            ) //不对，存的父文件路径?  对的
         }
     }
     try {
@@ -300,15 +308,16 @@ actual fun getDeviceInfo(): DeviceInfoCell {
 }
 
 
-actual  interface  KmpToolSet : PlatformToolSet
-actual typealias  PlatformToolSet = ToolSet
+actual interface KmpToolSet : PlatformToolSet
+actual typealias PlatformToolSet = ToolSet
+
 //jvm可用的tool
-actual fun platformAgentTools():ToolRegistry{
+actual fun platformAgentTools(): ToolRegistry {
     return ToolRegistry {
         SwitchTools(SuggestCookSwitch()).asTools()
     }
 }
 
-actual fun plusAgentList(): List<AgentInfoCell>{
+actual fun plusAgentList(): List<AgentInfoCell> {
     return listOf()
 }

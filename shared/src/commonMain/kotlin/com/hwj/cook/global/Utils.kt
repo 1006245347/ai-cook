@@ -101,7 +101,7 @@ fun printE(throws: Throwable?, des: String? = null, tag: String = logTAG) {
     throws?.printStackTrace()
     throws?.let {
         globalScope.launch {
-            Logger.e(tag) { throws.message ?: "err>$des" }
+            Logger.e(tag) { throws.message+">$des"  }
         }
     }
 }

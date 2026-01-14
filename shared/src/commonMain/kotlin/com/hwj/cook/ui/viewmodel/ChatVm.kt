@@ -22,12 +22,12 @@ import com.hwj.cook.agent.provider.AgentProvider
 import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgList
 import com.hwj.cook.data.local.fetchMsgListFlow
+import com.hwj.cook.data.local.isNewSession
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.except.ClipboardHelper
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
-import com.hwj.cook.global.clearCache
 import com.hwj.cook.global.defSystemTip
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
@@ -64,14 +64,16 @@ import kotlin.uuid.Uuid
  * des:智能体聊天
  */
 class ChatVm(
-    private val globalRepository: GlobalRepository, private val sessionRepository: SessionRepository,private val clipboardHelper: ClipboardHelper
+    private val globalRepository: GlobalRepository,
+    private val sessionRepository: SessionRepository,
+    private val clipboardHelper: ClipboardHelper
 ) : ViewModel() {
     private var agentProvider: AgentProvider<String, *>? = null
     private var agentInstance: AIAgent<String, *>? = null
     private val _uiState = MutableStateFlow(
         AgentUiState(
             title = agentProvider?.title,
-            //当前会话的消息列表数据
+            //当前会话的消息列表数据,是反序的
             messages = listOf(ChatMsg.SystemMsg(agentProvider?.description))
         )
     )
@@ -267,7 +269,7 @@ class ChatVm(
                     isChatEnded = false
                 )
             } //界面上用了反序
-            printList(list, "loadSession")
+            printList(list, "loadSession>$sessionId")
         }
 
         _isAutoScroll.value = true
@@ -278,15 +280,17 @@ class ChatVm(
     //构建新的会话并缓存，标题是输入
     suspend fun addSession(input: String) {
         try {
-            val session = ChatSession(title = input, id = _currentSessionId.value)
+            val session = ChatSession(
+                title = if (input.length > 20) input.take(20) else input,
+                id = _currentSessionId.value
+            )
             sessionRepository.addSession(session) //本地缓存
             val sessionList = _sessionObs.value.toMutableList()
             sessionList.add(0, session)
             _sessionObs.value = sessionList
         } catch (e: Exception) {
-            printD(e.message)
+            printD(e.message, "addSession")
         }
-
     }
 
     //新建会话
@@ -298,8 +302,10 @@ class ChatVm(
     suspend fun runAnswer(userInput: String) { //问答流式
         _stopReceivingObs.value = false
         try {
-            //先根据sessionId找消息队列，如果空则要新建对话  findSessionMsg!!bug
-            if (findSessionMsg(_currentSessionId.value).isEmpty()) {
+            //先根据sessionId找消息队列，如果空则要新建对话
+            if (findSessionMsg(_currentSessionId.value).isEmpty() &&
+                isNewSession(_currentSessionId.value, _sessionObs.value)
+            ) {
                 workInSub {
                     addSession(userInput)
                 }
@@ -312,7 +318,7 @@ class ChatVm(
             sessionId = _currentSessionId.value
             state = ChatState.Idle
         }
-        val newMsg = ChatMsg.ResultMsg(thinkingTip).apply {
+        val resultMsg = ChatMsg.ResultMsg(thinkingTip).apply {
             sessionId = _currentSessionId.value //提示思考中，但是不要给接口用
             state = ChatState.Thinking
         }
@@ -320,7 +326,7 @@ class ChatVm(
         //搞倒序缓存才行，新的在顶，旧的在低，显示时再全反转
         val list = mutableListOf<ChatMsg>()
         list.addAll(_uiState.value.messages)
-        list.add(0, newMsg)
+        list.add(0, resultMsg)
         list.add(1, userMsg)
 
         _uiState.update {
@@ -332,7 +338,7 @@ class ChatVm(
             )
         }
         //抽出来是为了后面做重新生成
-        callLLMAnswer(userMsg, newMsg)
+        callLLMAnswer(userMsg, resultMsg)
     }
 
     //还差apiKey没搞
@@ -355,15 +361,17 @@ class ChatVm(
                     )
                 ), //qwen关闭深度思考
                 llModel = buildQwen3LLM(), onStart = {},
-                onCompletion = { cause ->
+                onCompletion = { cause -> //手动停止进这,自动结束也进但是cause=null
                     printE(cause, des = "onCompletion")//会不会StreamFrame.End重复添加
-//                    stopReceiveMsg(userMsg, resultMsg.txt, cause)
-                }, catch = {
+                    stopReceiveMsg(userMsg, responseFromAgent, cause)
+                }, catch = { e ->//
+                    printD("catch??")
                     _stopReceivingObs.value = true
                     if (responseFromAgent == "") {
                         responseFromAgent = stopByErrTip
                         updateLocalResponse(responseFromAgent)
                     }
+                    stopReceiveMsg(userMsg, responseFromAgent, e)
                 }, streaming = { chunk: StreamFrame ->
                     when (chunk) {
                         is StreamFrame.Append -> {
@@ -376,8 +384,9 @@ class ChatVm(
 
                         is StreamFrame.End -> {
                             printLog("[END] reason=${chunk.finishReason}")
-                            stopReceiveMsg(userMsg, resultMsg.txt, null)
+//                            stopReceiveMsg(userMsg, responseFromAgent, null)
                         }
+
                     }
                     updateLocalResponse(responseFromAgent.trim())
                 })
@@ -417,7 +426,8 @@ class ChatVm(
         val assistantMsg = ChatMsg.ResultMsg(tmpAnswer).apply {
             sessionId = userMsg.sessionId
         }
-        // us2 as2 ,us1 as1  user as ,
+
+        // us2 as2 ,us1 as1  user as ,这里的顺序有问题 存的
         addMsg(userMsg)
         addMsg(assistantMsg)
         _uiState.update { it.copy(isLoading = false, isInputEnabled = true, isChatEnded = false) }
@@ -434,20 +444,19 @@ class ChatVm(
                 userResponseRequested = false
             )
         }
-        curChatJob?.cancel()
+        curChatJob?.cancel() //直接停止了client
         curChatJob = null
     }
 
     //问答的信息肯定在顶部，UI会令消息倒序显示
     fun updateLocalResponse(response: String) {
-        val msgList = _uiState.value.messages.toMutableList()
+        val msgList = _uiState.value.messages.toMutableList() //这里的数据是倒序的结果
         msgList[0] = (msgList[0] as ChatMsg.ResultMsg).copy(txt = response)
         _uiState.update {
             it.copy(
                 messages = msgList, inputTxt = "",
                 isInputEnabled = true,
                 userResponseRequested = false,
-//                isLoading = false,
             )
         }
     }
@@ -506,15 +515,16 @@ class ChatVm(
             }
         }
     }
+
     fun copyToClipboard(text: String) {
         try {
             clipboardHelper.copyToClipboard(text)
         } catch (e: Exception) {
-        e.printStackTrace()
+            e.printStackTrace()
         }
     }
 
-    fun generateMsgAgain(){}
+    fun generateMsgAgain() {}
     fun test() {
         viewModelScope.launch {
             printList(_sessionObs.value, "all-session")

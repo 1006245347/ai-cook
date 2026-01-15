@@ -84,7 +84,6 @@ suspend fun saveMessage(message: ChatMsg) {
             printD(it, des = "saveMessage>")
         })
     }
-
 }
 
 suspend fun buildMsgTag(sessionId: String): String {

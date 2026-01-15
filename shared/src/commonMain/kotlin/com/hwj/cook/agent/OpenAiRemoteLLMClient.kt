@@ -1,5 +1,6 @@
 package com.hwj.cook.agent
 
+import ai.koog.prompt.executor.clients.ConnectionTimeoutConfig
 import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
 import ai.koog.prompt.executor.clients.openai.OpenAILLMClient
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
@@ -19,7 +20,12 @@ open class OpenAiRemoteLLMClient(
     apiKey: String, settings: OpenAIClientSettings = OpenAIClientSettings(
         baseUrl = baseHostUrl,
         chatCompletionsPath = "chat/completions",
-        embeddingsPath = "embeddings"
+        embeddingsPath = "embeddings",
+        timeoutConfig = ConnectionTimeoutConfig(
+            requestTimeoutMillis = 60000 * 5,
+            connectTimeoutMillis = 10000,
+            socketTimeoutMillis = 15000
+        )
     ), baseClient: HttpClient = HttpClient { }.config {
         install(Logging) {
             level = LogLevel.ALL
@@ -42,7 +48,11 @@ fun createAiExecutor(apiKey: String): SingleLLMPromptExecutor {
             apiKey = apiKey, settings = OpenAIClientSettings(
                 baseUrl = baseHostUrl,
                 chatCompletionsPath = "chat/completions",
-                embeddingsPath = "embeddings"
+                embeddingsPath = "embeddings", timeoutConfig = ConnectionTimeoutConfig(
+                    requestTimeoutMillis = 60000 * 5,
+                    connectTimeoutMillis = 10000,
+                    socketTimeoutMillis = 15000
+                )
             ), baseClient = HttpClient().config {
                 install(Logging) {
                     level = LogLevel.ALL

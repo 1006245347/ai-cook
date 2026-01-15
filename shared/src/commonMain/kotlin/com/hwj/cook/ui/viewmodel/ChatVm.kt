@@ -338,11 +338,10 @@ class ChatVm(
             )
         }
         //抽出来是为了后面做重新生成
-        callLLMAnswer(userMsg, resultMsg)
+        callLLMAnswer(userMsg)
     }
 
-    //还差apiKey没搞
-    private fun callLLMAnswer(userMsg: ChatMsg.UserMsg, resultMsg: ChatMsg.ResultMsg) {
+    private fun callLLMAnswer(userMsg: ChatMsg.UserMsg) {
         curChatJob = viewModelScope.launch {
             var responseFromAgent = ""
             val tmpList = if (_uiState.value.messages.first() is ChatMsg.ResultMsg) {
@@ -350,7 +349,6 @@ class ChatVm(
             } else {
                 _uiState.value.messages
             }
-//            printList(tmpList)
             chatStreaming(
                 prompt = createPrompt(
                     tmpList.reversed(), //请求数据时要正序
@@ -361,17 +359,17 @@ class ChatVm(
                     )
                 ), //qwen关闭深度思考
                 llModel = buildQwen3LLM(), onStart = {},
-                onCompletion = { cause -> //手动停止进这,自动结束也进但是cause=null
-                    printE(cause, des = "onCompletion")//会不会StreamFrame.End重复添加
-                    stopReceiveMsg(userMsg, responseFromAgent, cause)
-                }, catch = { e ->//
-                    printD("catch??")
+                onCompletion = { cause -> //手动停止进这; 自动结束也进但是cause=null; 连不上网进这；
+                    printE(cause, des = "onCompletion1")//会不会StreamFrame.End重复添加
+                    workInSub { //不切换线程貌似不执行,应该是同一个job
+                        stopReceiveMsg(userMsg, responseFromAgent, cause)
+                    }
+                }, catch = { e ->// 断网
                     _stopReceivingObs.value = true
                     if (responseFromAgent == "") {
                         responseFromAgent = stopByErrTip
                         updateLocalResponse(responseFromAgent)
                     }
-                    stopReceiveMsg(userMsg, responseFromAgent, e)
                 }, streaming = { chunk: StreamFrame ->
                     when (chunk) {
                         is StreamFrame.Append -> {
@@ -382,11 +380,9 @@ class ChatVm(
                             printLog("Tool call:${chunk.name} args=${chunk.content} ")
                         }
 
-                        is StreamFrame.End -> {
+                        is StreamFrame.End -> { //正常结束也会进这
                             printLog("[END] reason=${chunk.finishReason}")
-//                            stopReceiveMsg(userMsg, responseFromAgent, null)
                         }
-
                     }
                     updateLocalResponse(responseFromAgent.trim())
                 })
@@ -415,6 +411,7 @@ class ChatVm(
         response: String,
         cause: Throwable?
     ) {
+
         var tmpAnswer = response
         if (cause is CancellationException) {
             _stopReceivingObs.value = true
@@ -444,6 +441,7 @@ class ChatVm(
                 userResponseRequested = false
             )
         }
+        //这样停止，把保存动作也停了？ 改用executor
         curChatJob?.cancel() //直接停止了client
         curChatJob = null
     }

@@ -63,12 +63,11 @@ suspend fun chatStreaming(
     val apiKey = getCacheString(DATA_APP_TOKEN)
     require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
     val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
-    val flow =
-        remoteAiExecutor.executeStreaming(prompt = prompt, llModel)
+    val flow = remoteAiExecutor.executeStreaming(prompt = prompt, llModel)
     flow.onStart { onStart() }
         .onCompletion { cause: Throwable? ->
             onCompletion(cause)
-            printD("chat-complete? $cause")
+            printD("chat-complete2 cause=$cause")
         }
         .catch { e: Throwable ->
             catch(e)

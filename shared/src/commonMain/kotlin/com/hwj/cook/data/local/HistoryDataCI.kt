@@ -109,7 +109,6 @@ suspend fun fetchMsgList(sessionId: String): List<ChatMsg> {
     }
 }
 
-
 //保存单条消息
 suspend fun addMsg(chatMsg: ChatMsg): ChatMsg {
     saveMessage(chatMsg)

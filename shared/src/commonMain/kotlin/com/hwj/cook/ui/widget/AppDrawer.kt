@@ -62,6 +62,8 @@ import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.isDarkPanel
 import com.hwj.cook.global.isLightPanel
+import com.hwj.cook.global.onlyDesktop
+import com.hwj.cook.global.onlyMobile
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToImageAppIcon
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -128,18 +130,36 @@ fun AppDrawerIn(
 }
 
 @Composable
-private fun DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = {}) {
+private fun ColumnScope.DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = {}) {
     val paddingSizeModifier = Modifier
         .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
         .size(34.dp)
+
+
+    @Composable
+    fun _Txt() = Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+        Text(
+            "AI Cook",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = PrimaryColor
+        )
+        Text(
+            "Powered by KMP",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Normal,
+            color = PrimaryColor,
+        )
+    }
+
     Row(verticalAlignment = CenterVertically, horizontalArrangement = SpaceBetween) {
         Row(
-            modifier = Modifier
-                .padding(13.dp)
+            modifier = Modifier.width(100.dp)
                 .weight(1f), verticalAlignment = CenterVertically
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalPlatformContext.current).data(urlToImageAppIcon)
+                model = ImageRequest.Builder(LocalPlatformContext.current)
+                    .data(urlToImageAppIcon)
                     .crossfade(true).build(),
                 contentDescription = "Header",
                 modifier = paddingSizeModifier.then(Modifier.clip(RoundedCornerShape(6.dp))),
@@ -147,19 +167,8 @@ private fun DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = 
 //                error = painterResource(Res.drawable.ic_big_logo),
             )
 
-            Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                Text(
-                    "AI Cook",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryColor
-                )
-                Text(
-                    "Powered by KMP",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = PrimaryColor,
-                )
+            if (onlyMobile()) {
+                _Txt()
             }
         }
 
@@ -189,6 +198,9 @@ private fun DrawerHeader(onThemeClicked: () -> Unit, drawerAction: () -> Unit = 
             )
         }
 
+    }
+    if (onlyDesktop()) {
+        _Txt()
     }
 }
 

@@ -150,7 +150,7 @@ fun SettingsScreenContent(
             ) {
                 mcpKey?.let {
                     item {
-                        Text(text = "mcp key:$mcpKey")
+                        Text(text = "mcp-key:$mcpKey", color = cAutoTxt(isDark))
                     }
                 }
 

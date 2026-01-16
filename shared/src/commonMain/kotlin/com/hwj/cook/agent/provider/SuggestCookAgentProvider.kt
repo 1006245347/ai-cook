@@ -45,14 +45,13 @@ class SuggestCookAgentProvider(
         val toolRegistry = ToolRegistry {}.plus(platformAgentTools())
 
         val agent = openAiAgent(toolRegistry, remoteAiExecutor) {
-            handleEvents {
+            handleEvents {   //可流式的关键
                 onToolCallStarting { context ->
 //                    println("\n🔧 Using ${context.tool.name} with ${context.toolArgs}... ")
                     onToolCallEvent("\n🔧 Using ${context.toolName} with ${context.toolArgs}... ")
                 }
                 onLLMStreamingFrameReceived { context ->
-                    val chunk = context.streamFrame
-                    when (chunk) {
+                    when (val chunk = context.streamFrame) {
                         is StreamFrame.Append -> {
                             onLLMStreamFrameEvent(chunk.text)
                         }
@@ -78,6 +77,7 @@ class SuggestCookAgentProvider(
                 onLLMStreamingCompleted {
 //                    println("")
                 }
+                //还有好多回调callback可用
             }
         }
 

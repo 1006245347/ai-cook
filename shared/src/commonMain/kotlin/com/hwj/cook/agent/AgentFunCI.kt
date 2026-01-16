@@ -67,7 +67,6 @@ suspend fun chatStreaming(
     flow.onStart { onStart() }
         .onCompletion { cause: Throwable? ->
             onCompletion(cause)
-            printD("chat-complete2 cause=$cause")
         }
         .catch { e: Throwable ->
             catch(e)
@@ -120,13 +119,13 @@ fun buildQwen3LLM_8B(): LLModel {
     )
 }
 
-fun buildQwen3LLM(): LLModel {
+fun buildQwen3LLM(id: String="Qwen/Qwen3-VL-8B-Instruct"): LLModel {
     //预设的模型
-//    OllamaModels.Alibaba.QWQ_32B
+//    OllamaModels.Alibaba.QWQ_32B   Qwen/Qwen2.5-7B-Instruct
 
     //自定义的模型定义
     return LLModel(
-        provider = LLMProvider.Alibaba, "Qwen/Qwen3-VL-8B-Instruct", capabilities = listOf(
+        provider = LLMProvider.Alibaba, id, capabilities = listOf(
 //            LLMCapability.Tools,
 //            LLMCapability.Temperature,
 //            LLMCapability.Schema.JSON.Basic

@@ -97,6 +97,7 @@ fun AppBar(
                     options = "Ask" to "Agent ${agentModelState ?: lastAgentState}",
                     selectedAgent = agentModelState != null,
                     onChangeAgent = {  //长按 弹窗
+                        printD("ChangeAgent??$barBounds")
                         onAgentPop(barBounds)
                     },
                     onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态

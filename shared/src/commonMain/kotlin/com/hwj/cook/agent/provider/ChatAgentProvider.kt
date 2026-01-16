@@ -1,22 +1,15 @@
 package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
-import ai.koog.agents.core.agent.AIAgentService
 import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.agent.isFinished
 import ai.koog.agents.core.agent.isRunning
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.prompt.dsl.prompt
-import ai.koog.prompt.executor.clients.deepseek.DeepSeekLLMClient
-import ai.koog.prompt.executor.clients.openai.OpenAILLMClient
-import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
-import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
-import ai.koog.prompt.executor.llms.all.DefaultMultiLLMPromptExecutor
 import ai.koog.prompt.params.LLMParams
-import com.hwj.cook.agent.OpenAiRemoteLLMClient
-import com.hwj.cook.agent.buildQwen3EmeLLM
+import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.agent.createAiExecutor
 import com.hwj.cook.agent.tools.McpToolCI
 import com.hwj.cook.global.DATA_APP_TOKEN
@@ -46,29 +39,32 @@ class ChatAgentProvider(
         val mcpKey = getCacheString(DATA_MCP_KEY)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
 
+        //智能体默认非流式回复？？？
 //        val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
         val remoteAiExecutor = createAiExecutor(apiKey)
 
 //        DeepSeekLLMClient
 //        OpenAILLMClient
 
-        MultiLLMPromptExecutor () //混合客户端
+//        MultiLLMPromptExecutor () //混合客户端
 //        DefaultMultiLLMPromptExecutor()
         val toolRegistry = ToolRegistry {
             tool(ExitTool)
-        }.plus(McpToolCI.searchSSE(mcpKey!!))
-            .plus(McpToolCI.webParserSSE(mcpKey))
+        }
+            .plus(McpToolCI.searchSSE(mcpKey!!))
+//            .plus(McpToolCI.webParserSSE(mcpKey))
         agentInstance = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             toolRegistry = toolRegistry,
+//            strategy = ,
             agentConfig = AIAgentConfig(
                 prompt = prompt(
                     id = "chat",
-                    params = LLMParams(temperature = 0.7, numberOfChoices = 1, maxTokens = 150)
+                    params = LLMParams(temperature = 0.8, numberOfChoices = 1, maxTokens = 150)
                 ) {
                     system("I'm an assistant who provides simple and clear answers to users.")
                 },
-                model = buildQwen3EmeLLM(),
+                model = buildQwen3LLM("Qwen/Qwen2.5-7B-Instruct"),
                 maxAgentIterations = 10
             ),
         )

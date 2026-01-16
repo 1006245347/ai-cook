@@ -155,9 +155,13 @@ class ChatVm(
                     )
                 }
             } else {
+                //不应该这样存数据了，koog可以管理
                 _uiState.update {
+                    val ll = it.messages.toMutableList().apply {
+                        add(0, ChatMsg.UserMsg(userInput))
+                    }
                     it.copy(
-                        messages = it.messages + ChatMsg.UserMsg(userInput),
+                        messages = ll,
                         inputTxt = "", isInputEnabled = false, isLoading = true
                     )
                 }
@@ -185,8 +189,12 @@ class ChatVm(
                 }
             }, onAssistantMessage = { msg ->
                 _uiState.update {
+                    val ll = it.messages.toMutableList().apply {
+                        add(0, ChatMsg.AgentMsg(msg))
+                    }
+                    printList(ll,"end>")
                     it.copy(
-                        messages = it.messages + ChatMsg.AgentMsg(msg),
+                        messages = ll,
                         isInputEnabled = true, isLoading = false, userResponseRequested = true
                     )
                 }
@@ -208,13 +216,17 @@ class ChatVm(
             }, onLLMStreamFrameEvent = { frame ->//流式
                 answerFromGPT += frame
                 _uiState.update {
+                    val ll=it.messages.toMutableList().apply {
+                        add(0,ChatMsg.ResultMsg(answerFromGPT))
+                    }
                     it.copy(
-                        messages = it.messages + ChatMsg.ResultMsg(answerFromGPT),
+                        messages = ll,
                         isInputEnabled = false, isLoading = false, isChatEnded = true
                     )
                 }
             })
 
+            //这里是非流式返回
             agentInstance?.use { _agent ->
                 val result = _agent.run(userInput)
                 var outS = ""
@@ -229,8 +241,11 @@ class ChatVm(
                 }
 
                 _uiState.update {
+                    val ll=it.messages.toMutableList().apply {
+                        add(0,ChatMsg.ResultMsg(outS))
+                    }
                     it.copy(
-                        messages = it.messages + ChatMsg.ResultMsg(outS),// + ChatMsg.SystemMsg("The agent has stopped."),
+                        messages =ll ,// + ChatMsg.SystemMsg("The agent has stopped."),
                         isInputEnabled = false,
                         isLoading = false,
                         isChatEnded = true
@@ -411,7 +426,6 @@ class ChatVm(
         response: String,
         cause: Throwable?
     ) {
-
         var tmpAnswer = response
         if (cause is CancellationException) {
             _stopReceivingObs.value = true
@@ -441,8 +455,7 @@ class ChatVm(
                 userResponseRequested = false
             )
         }
-        //这样停止，把保存动作也停了？ 改用executor
-        curChatJob?.cancel() //直接停止了client
+        curChatJob?.cancel()
         curChatJob = null
     }
 

@@ -31,12 +31,14 @@ import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.data.local.PermissionPlatform
+import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.MainApplication
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.baseHostUrl
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.purePermission
@@ -54,13 +56,16 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readString
 import io.github.vinceglb.filekit.utils.toPath
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.plugin
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.headers
 import io.ktor.http.takeFrom
@@ -110,9 +115,9 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
             })
         }
         install(Logging) {
-//            level = LogLevel.NONE
-//            level = LogLevel.BODY
-            level = LogLevel.INFO
+            level = LogLevel.ALL
+//            level = LogLevel.Body
+//            level = LogLevel.HEADERS
 //            level = LogLevel.NONE //接口日志屏蔽
             logger = object : io.ktor.client.plugins.logging.Logger {
                 override fun log(message: String) {
@@ -122,6 +127,11 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
         }
         //允许分块处理
         expectSuccess = true
+    }.also{ client->
+        client.plugin(HttpSend).intercept { request->
+            request.headers.append(HttpHeaders.Authorization,"Bearer ${getCacheString(DATA_MCP_KEY)}")
+            execute(request)
+        }
     }
 }
 

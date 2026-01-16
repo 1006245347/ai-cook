@@ -13,17 +13,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hwj.cook.global.CODE_IS_DARK
 import com.hwj.cook.global.DATA_FIRST_WELCOME
 import com.hwj.cook.global.NavigateRoute
 import com.hwj.cook.global.NavigationScene
+import com.hwj.cook.global.cAutoBg
+import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.getCacheBoolean
-import com.hwj.cook.global.getCacheString
-import com.hwj.cook.global.globalScope
-import com.hwj.cook.global.saveBoolean
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.PreComposeApp
@@ -60,27 +59,29 @@ fun FirstScreen(navigator: Navigator) {
 
 @Composable
 fun WelcomeScreen(navigator: Navigator) {
-    val scope = rememberCoroutineScope()
+    val subScope = rememberCoroutineScope()
+    val isDark = remember { mutableStateOf(false) }
     LaunchedEffect(true) {
-        scope.launch {
-            saveBoolean(DATA_FIRST_WELCOME, true) //true每次都显示
-            delay(1500)
+        subScope.launch {
+            isDark.value = getCacheBoolean(CODE_IS_DARK, false)
+//            saveBoolean(DATA_FIRST_WELCOME, true) //true每次都显示
+            delay(1000)
             navigator.navigate(
                 NavigationScene.Main.path, NavOptions(
                     popUpTo = PopUpTo.First()
                 )
             )
+
         }
     }
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
 
+    Column(modifier = Modifier.fillMaxSize().background(cAutoBg())) {
         Text(
             text = "AI Cook", fontWeight = FontWeight.Bold, fontSize = 26.sp,
-            color = Color.Black, modifier = Modifier.absolutePadding(top = 50.dp)
+            color = cAutoTxt(isDark.value), modifier = Modifier.absolutePadding(top = 50.dp)
                 .align(Alignment.CenterHorizontally)
         )
     }
-
 }
 
 /**

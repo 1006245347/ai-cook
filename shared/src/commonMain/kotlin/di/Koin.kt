@@ -3,7 +3,6 @@ package di
 import ai.koog.prompt.executor.clients.LLMClient
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.llm.LLModel
-import ai.koog.prompt.message.Message
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.agent.provider.AgentProvider
@@ -11,7 +10,6 @@ import com.hwj.cook.agent.provider.CalculatorAgentProvider
 import com.hwj.cook.agent.provider.ChatAgentProvider
 import com.hwj.cook.agent.provider.McpSearchAgentProvider
 import com.hwj.cook.agent.provider.MemoryAgentProvider
-import com.hwj.cook.agent.provider.ResponseStreamList
 import com.hwj.cook.agent.provider.SuggestCookAgentProvider
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.data.local.SettingsFactory

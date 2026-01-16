@@ -57,8 +57,10 @@ import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.cHalfGrey80717171
 import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.cWhite
+import com.hwj.cook.global.defAgentLabel
 import com.hwj.cook.global.getCacheInt
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.onlyMobile
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.urlToAvatarGPT
 import com.hwj.cook.ui.viewmodel.ChatVm
@@ -70,6 +72,7 @@ import moe.tlaster.precompose.koin.koinViewModel
 @Composable
 fun AppBar(
     pagerState: PagerState,
+    isOpenDrawer: Boolean,
     onClickMenu: () -> Unit,
     onNewChat: () -> Unit,
     onAgentPop: (Rect?) -> Unit,
@@ -103,7 +106,12 @@ fun AppBar(
                     onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态
                         subScope.launch {
                             if (selected) { //切到agent模式，那么就是ask切过来的，找ask上次缓存的模式
-                                chatVm.changeChatModel(getCacheString(DATA_AGENT_DEF, "cook"))
+                                chatVm.changeChatModel(
+                                    getCacheString(
+                                        DATA_AGENT_DEF,
+                                        defAgentLabel
+                                    )
+                                )
                             } else {
                                 chatVm.changeChatModel(null)
                             }
@@ -113,21 +121,23 @@ fun AppBar(
             }
         },
         navigationIcon = {
-            ToolTipCase(tip = "边栏", content = {
-                IconButton(
-                    onClick = {
-                        mainVm.collapsedDrawer()
-                        onClickMenu()
-                    },
-                ) {
-                    Icon(
-                        Icons.Filled.Menu,
-                        "边栏",
-                        modifier = Modifier.size(26.dp),
-                        tint = PrimaryColor,
-                    )
-                }
-            })
+            if (!isOpenDrawer) {
+                ToolTipCase(tip = "边栏", content = {
+                    IconButton(
+                        onClick = {
+                            mainVm.collapsedDrawer()
+                            onClickMenu()
+                        },
+                    ) {
+                        Icon(
+                            Icons.Filled.Menu,
+                            "边栏",
+                            modifier = Modifier.size(26.dp),
+                            tint = PrimaryColor,
+                        )
+                    }
+                })
+            }
         },
 
         colors = TopAppBarDefaults.topAppBarColors(
@@ -151,15 +161,17 @@ fun AppBar(
                     }
                 })
 
-            ToolTipCase(tip = "导航", content = {
-                IconButton(onClick = { onShowNav(barBounds) }) { //要把参数传出去
-                    Icon(
-                        imageVector = Icons.Default.Navigation,
-                        contentDescription = "导航", tint = PrimaryColor,
-                        modifier = Modifier.padding(4.dp)
-                    )
-                }
-            })
+            if (onlyMobile()) {
+                ToolTipCase(tip = "导航", content = {
+                    IconButton(onClick = { onShowNav(barBounds) }) { //要把参数传出去
+                        Icon(
+                            imageVector = Icons.Default.Navigation,
+                            contentDescription = "导航", tint = PrimaryColor,
+                            modifier = Modifier.padding(4.dp)
+                        )
+                    }
+                })
+            }
         }, modifier = Modifier.onGloballyPositioned { layout ->
             val pos = layout.localToWindow(Offset.Zero)
             barBounds = Rect(

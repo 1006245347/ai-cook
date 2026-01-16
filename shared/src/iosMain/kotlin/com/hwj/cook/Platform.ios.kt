@@ -34,6 +34,7 @@ import io.ktor.http.HeadersBuilder
 import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.memScoped
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSBundle
@@ -41,6 +42,7 @@ import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSFileType
 import platform.Foundation.NSFileTypeDirectory
+import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
@@ -48,6 +50,9 @@ import platform.Foundation.NSUserDomainMask
 import platform.Foundation.lastPathComponent
 import platform.Foundation.stringWithContentsOfFile
 import platform.UIKit.UIDevice
+import platform.darwin.ByteVar
+import platform.darwin.sysctlbyname
+import platform.posix.size_tVar
 
 class IOSPlatform : Platform {
     override val name: String =
@@ -58,7 +63,7 @@ class IOSPlatform : Platform {
 
 actual fun getPlatform(): Platform = IOSPlatform()
 
-actual fun createKtorHttpClient(timeout: Long?,builder: HeadersBuilder.() -> Unit): HttpClient {
+actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Unit): HttpClient {
     return HttpClient(Darwin) {
         defaultRequest {
             headers(builder)
@@ -111,7 +116,7 @@ actual fun createPermission(
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 ) {
-    val p = when (permission) {
+    val p = when (permissions[0] as PermissionPlatform ) {
         PermissionPlatform.CAMERA -> Permission.CAMERA
         PermissionPlatform.GALLERY -> Permission.GALLERY
         PermissionPlatform.STORAGE -> Permission.STORAGE
@@ -197,40 +202,28 @@ actual fun createFileMemoryProvider(scopeId: String): AgentMemoryProvider {
 
 actual fun getDeviceInfo(): DeviceInfoCell {
 
-    private fun getCpuArchitecture(): String? {
-        memScoped {
-            val size = alloc<size_tVar>()
-            sysctlbyname("hw.machine", null, size.ptr, null, 0)
-            val buffer = allocArray<ByteVar>(size.value.toInt())
-            sysctlbyname("hw.machine", buffer, size.ptr, null, 0)
-            return buffer.toKString()
-        }
-    }
-    val device = UIDevice.currentDevice
-    val processInfo = NSProcessInfo.processInfo
-
-    val cpuCores = processInfo.processorCount.toInt()
-    val cpuArch = getCpuArchitecture()
-    val totalMemoryMB = processInfo.physicalMemory / (1024 * 1024)
-
     return DeviceInfoCell(
-        cpuCores = cpuCores,
-        cpuArch = cpuArch,
-        totalMemoryMB = totalMemoryMB,
+        cpuCores = 1,//cpuCores,
+        cpuArch = "1",//cpuArch,
+        totalMemoryMB = 1, //totalMemoryMB,
         brand = "Apple",
-        model = device.model,
-        osVersion = "${device.systemName} ${device.systemVersion}",
+        model = "1", //device.model,
+        osVersion = "1", //"${device.systemName} ${device.systemVersion}",
         platform = "iOS"
     )
 }
 
 actual interface PlatformToolSet
-actual interface KmpToolSet: PlatformToolSet
+actual interface KmpToolSet : PlatformToolSet
 
-actual fun platformAgentTools():ToolRegistry{
-    return ToolRegistry()
+actual fun platformAgentTools(): ToolRegistry {
+    return ToolRegistry { }
 }
 
-actual fun plusAgentList(): List<AgentInfoCell>{
+actual fun plusAgentList(): List<AgentInfoCell> {
     return listOf()
+}
+
+actual suspend fun runLiteWork(call: () -> Unit) {
+    call()
 }

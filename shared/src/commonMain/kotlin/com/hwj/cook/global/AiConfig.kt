@@ -16,6 +16,7 @@ const val answerUseZw = ",\n请用中文回答。"
 const val loadingTip = "加载中..."
 
 const val defSystemTip ="Hi, I'm an assistant that can help you,please answer in chinese."
+const val defAgentLabel="chat" //cook/chat/search/memory/suggest
 
 //标识
 const val CODE_IS_DARK = "CODE_IS_DARK" //是否黑暗模式

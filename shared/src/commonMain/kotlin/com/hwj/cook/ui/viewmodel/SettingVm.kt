@@ -39,6 +39,7 @@ class SettingVm : ViewModel() {
                 }
             }
             autoAddModel()
+            printList(_modelsObs,"now-models")
         }
     }
 

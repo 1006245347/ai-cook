@@ -11,10 +11,12 @@ import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
 import ai.koog.prompt.params.LLMParams
 import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.agent.createAiExecutor
+import com.hwj.cook.agent.tools.ASearchTool
 import com.hwj.cook.agent.tools.McpToolCI
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
 
 /**
  * @author by jason-何伟杰，2025/10/11
@@ -49,10 +51,13 @@ class ChatAgentProvider(
 //        MultiLLMPromptExecutor () //混合客户端
 //        DefaultMultiLLMPromptExecutor()
         val toolRegistry = ToolRegistry {
-            tool(ExitTool)
+//            tool(ExitTool)
+            tool(ASearchTool)
         }
-            .plus(McpToolCI.searchSSE(mcpKey!!))
+
+//            .plus(McpToolCI.searchSSE(mcpKey!!))
 //            .plus(McpToolCI.webParserSSE(mcpKey))
+        toolRegistry.tools.forEach { printD(it.name + "：" + it.descriptor, "Atool>") }
         agentInstance = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             toolRegistry = toolRegistry,

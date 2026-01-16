@@ -28,6 +28,7 @@ import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.except.ClipboardHelper
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
+import com.hwj.cook.global.defAgentLabel
 import com.hwj.cook.global.defSystemTip
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
@@ -41,6 +42,7 @@ import com.hwj.cook.global.stopByErrTip
 import com.hwj.cook.global.thinkingTip
 import com.hwj.cook.global.workInSub
 import com.hwj.cook.models.AgentUiState
+import com.hwj.cook.runLiteWork
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -106,10 +108,11 @@ class ChatVm(
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
     val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
     suspend fun createAgent(koin: Koin, name: String?) {
-        saveString(DATA_AGENT_INDEX, name ?: "cook")
-        _agentModelObs.value = name ?: "cook"
+        saveString(DATA_AGENT_INDEX, name ?: defAgentLabel)
+        _agentModelObs.value = name ?: defAgentLabel
         agentProvider = if (name == null) {
-            AICookAgentProvider()
+//            AICookAgentProvider()
+            koin.get<AgentProvider<String, String>>(named(defAgentLabel))
         } else {
             koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
         }
@@ -192,7 +195,7 @@ class ChatVm(
                     val ll = it.messages.toMutableList().apply {
                         add(0, ChatMsg.AgentMsg(msg))
                     }
-                    printList(ll,"end>")
+                    printList(ll, "end>")
                     it.copy(
                         messages = ll,
                         isInputEnabled = true, isLoading = false, userResponseRequested = true
@@ -216,8 +219,8 @@ class ChatVm(
             }, onLLMStreamFrameEvent = { frame ->//流式
                 answerFromGPT += frame
                 _uiState.update {
-                    val ll=it.messages.toMutableList().apply {
-                        add(0,ChatMsg.ResultMsg(answerFromGPT))
+                    val ll = it.messages.toMutableList().apply {
+                        add(0, ChatMsg.ResultMsg(answerFromGPT))
                     }
                     it.copy(
                         messages = ll,
@@ -241,11 +244,11 @@ class ChatVm(
                 }
 
                 _uiState.update {
-                    val ll=it.messages.toMutableList().apply {
-                        add(0,ChatMsg.ResultMsg(outS))
+                    val ll = it.messages.toMutableList().apply {
+                        add(0, ChatMsg.ResultMsg(outS))
                     }
                     it.copy(
-                        messages =ll ,// + ChatMsg.SystemMsg("The agent has stopped."),
+                        messages = ll,// + ChatMsg.SystemMsg("The agent has stopped."),
                         isInputEnabled = false,
                         isLoading = false,
                         isChatEnded = true
@@ -495,9 +498,9 @@ class ChatVm(
     suspend fun getCacheAgent(): String {
         return if (isLLMAsk()) { //是ask模式，那么找历史agent
             val def = getCacheString(DATA_AGENT_DEF)
-            getCacheString(DATA_AGENT_DEF, def ?: "cook")!!
+            getCacheString(DATA_AGENT_DEF, def ?: defAgentLabel)!!
         } else { //直接给当前agent
-            getCacheString(DATA_AGENT_INDEX, "cook")!!
+            getCacheString(DATA_AGENT_INDEX, defAgentLabel)!!
         }
     }
 
@@ -536,10 +539,12 @@ class ChatVm(
     }
 
     fun generateMsgAgain() {}
+
     fun test() {
         viewModelScope.launch {
-            printList(_sessionObs.value, "all-session")
+//            printList(_sessionObs.value, "all-session")
 //            clearCache()
+            runLiteWork {  }
         }
     }
 }

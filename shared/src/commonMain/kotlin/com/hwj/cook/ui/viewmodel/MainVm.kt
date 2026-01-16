@@ -33,9 +33,6 @@ class MainVm(private val globalRepo: GlobalRepository, networkObserver: NetworkO
     private val _darkObs = MutableStateFlow(false)
     val darkState = _darkObs.asStateFlow()
 
-//    //首页是否折叠抽屉
-//    private val _isCollapsedObs = MutableStateFlow(false)
-//    val isCollapsedState = _isCollapsedObs.asStateFlow()
 
     suspend fun checkNetStatus() {
         _isNetObs.value = globalRepo.isConnectNet()

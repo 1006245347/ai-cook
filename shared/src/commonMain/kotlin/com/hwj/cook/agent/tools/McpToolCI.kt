@@ -29,6 +29,7 @@ object McpToolCI {
 //            append(HttpHeaders.Authorization, "Bearer $mcpKey")
         })
 
+        //不应该用它，他是持续接收数据，不是推送事件
 //        val endPoint = "https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/sse"
         val transport: SseClientTransport = client.mcpSseTransport(urlString = null) {
             headers { append(HttpHeaders.Authorization, "Bearer $mcpKey") }
@@ -45,10 +46,13 @@ object McpToolCI {
 //                "https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/sse",
 //                baseClient = client
 //            )
-        val toolRegistry = McpToolRegistryProvider.fromTransport(transport, name = "search-web")
+        val toolRegistry = McpToolRegistryProvider.fromTransport(transport, name = "bailian_web_search")
+
+
+//        McpToolRegistryProvider.fromClient()
 
         toolRegistry.tools.forEach {
-            printD(it.name + "：" + it.descriptor, "IIIIIIII>")
+            printD(it.name + "：" + it.descriptor, "tool>")
         }
         return toolRegistry
     }

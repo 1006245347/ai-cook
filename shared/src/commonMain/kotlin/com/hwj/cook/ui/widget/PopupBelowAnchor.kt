@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.global.cHalfGrey80717172
 import com.hwj.cook.global.cTransparent
+import com.hwj.cook.global.printD
 
 /**
  * @author by jason-何伟杰，2025/11/14
@@ -25,7 +26,6 @@ import com.hwj.cook.global.cTransparent
  */
 @Composable
 fun PopupBelowAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable () -> Unit) {
-
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
         detectTapGestures { onDismiss() }
     }) {
@@ -47,7 +47,6 @@ fun PopupBelowAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable (
 
 @Composable
 fun PopupTopAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable () -> Unit) {
-
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
         detectTapGestures { onDismiss() }
     }) {
@@ -57,12 +56,14 @@ fun PopupTopAnchor(anchor: Rect, onDismiss: () -> Unit, content: @Composable () 
         Box(
             modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
                 popWidth = layoutCoordinates.size.width.toFloat()
-            }.absoluteOffset(
-                x = with(density) {
-                    (anchor.left + anchor.width / 2f - popWidth / 2f).toDp()
-                },
-                y = with(density) { anchor.bottom.toDp() }
-            ).background(cHalfGrey80717172())
+            }
+                .absoluteOffset(
+                    x = with(density) {
+                        (anchor.left + anchor.width / 2f - popWidth / 2f).toDp()
+                    },
+                    y = with(density) { anchor.bottom.toDp() }
+                )
+                .background(cHalfGrey80717172())
         ) { content() }
     }
 }

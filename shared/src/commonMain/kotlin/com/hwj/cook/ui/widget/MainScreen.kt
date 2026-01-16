@@ -71,6 +71,7 @@ import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.getCacheBoolean
 import com.hwj.cook.global.onlyDesktop
 import com.hwj.cook.global.onlyMobile
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.saveBoolean
 import com.hwj.cook.models.AppConfigState
@@ -180,7 +181,6 @@ fun MainScreen(navigator: Navigator) {
                     }
                 }) { //Tab区域显示 , Drawer+Tab
                 Box(Modifier.fillMaxSize()) {
-
                     if (onlyDesktop()) {
                         Row(Modifier.fillMaxSize()) {
                             if (drawerState.isClosed) {
@@ -192,6 +192,7 @@ fun MainScreen(navigator: Navigator) {
                                 }
                             }
                             TabNavRoot(navigator, drawerState, pagerState, onAgentPop = { rect ->
+                                printD("a=$agentModelState $rect")
                                 if (agentModelState != null) {
                                     showAgentDialog = true
                                     if (rect != null) barBounds = rect
@@ -201,7 +202,8 @@ fun MainScreen(navigator: Navigator) {
                     } else {
                         Column {
                             Box(Modifier.padding(0.dp).weight(1f)) {
-                                TabNavRoot(navigator, drawerState, pagerState,
+                                TabNavRoot(
+                                    navigator, drawerState, pagerState,
                                     onAgentPop = { rect ->
                                         if (agentModelState != null) {
                                             showAgentDialog = true
@@ -222,29 +224,29 @@ fun MainScreen(navigator: Navigator) {
 //                                }
 //                            }
                         }
-
-                        if (showNavDialog && barBounds != null) {
-                            PopupBelowAnchor(barBounds!!, onDismiss = { showNavDialog = false }) {
-                                PopTabBar(tabList, curRoute) { tab ->
-                                    curRoute = tab.route
-                                    showNavDialog = false
-                                    subScope.launch { pagerState.scrollToPage(tab.index) }
-                                }
-                            }
-                        }
-
-                        if (showAgentDialog && barBounds != null) {
-                            PopupTopAnchor(barBounds!!, onDismiss = { showAgentDialog = false }) {
-                                PopAgentView { agentName ->//智能体列表  切换
-                                    subScope.launch {
-                                        showAgentDialog = false
-                                        chatVm.createAgent(koin, agentName)
-                                    }
-                                }
+                    }
+                    if (showNavDialog && barBounds != null) { //手机才显示，desktop不有侧边栏够了
+                        PopupBelowAnchor(barBounds!!, onDismiss = { showNavDialog = false }) {
+                            PopTabBar(tabList, curRoute) { tab ->
+                                curRoute = tab.route
+                                showNavDialog = false
+                                subScope.launch { pagerState.scrollToPage(tab.index) }
                             }
                         }
                     }
 
+
+                    printD("?? $showAgentDialog ${barBounds != null}")
+                    if (showAgentDialog && barBounds != null) {
+                        PopupTopAnchor(barBounds!!, onDismiss = { showAgentDialog = false }) {
+                            PopAgentView { agentName ->//智能体列表  切换
+                                subScope.launch {
+                                    showAgentDialog = false
+                                    chatVm.createAgent(koin, agentName)
+                                }
+                            }
+                        }
+                    }
                     //toast?
                     ToastHost(  //为了全局显示toast
                         modifier = Modifier
@@ -288,7 +290,7 @@ private fun TabNavRoot(
     val cachedPages = remember { mutableMapOf<Int, @Composable () -> Unit>() }
 
     Column(Modifier.fillMaxSize()) {
-        AppBar(pagerState, onClickMenu = {
+        AppBar(pagerState, isOpenDrawer = drawerState.isOpen, onClickMenu = {
             subScope.launch {
                 drawerState.open()
             }

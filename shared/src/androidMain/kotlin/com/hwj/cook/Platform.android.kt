@@ -331,3 +331,4 @@ actual fun platformAgentTools(): ToolRegistry {
 actual fun plusAgentList(): List<AgentInfoCell> {
     return listOf()
 }
+actual  suspend fun runLiteWork(call:()-> Unit) {}

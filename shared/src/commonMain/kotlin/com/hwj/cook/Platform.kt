@@ -55,4 +55,4 @@ expect fun platformAgentTools(): ToolRegistry
 //各个平台特属的智能体 累加
 expect fun plusAgentList(): List<AgentInfoCell>
 
-
+expect  suspend fun runLiteWork(call:()-> Unit)

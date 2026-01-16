@@ -23,6 +23,8 @@ import com.hwj.cook.ui.viewmodel.CookVm
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
 import com.hwj.cook.ui.viewmodel.TechVm
+import io.ktor.http.HttpHeaders
+import io.ktor.http.headers
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -49,7 +51,8 @@ fun initKoin(): Koin {
 //依赖注入目的是为了对象创建解耦，对象不在new具体的类，而是根据模版依赖生成
 //factory每次都会创建新实例，而single是单例
 val mainModule = module {
-    single { createKtorHttpClient(15000,{}) }
+    factory { createKtorHttpClient(15000,{
+    }) }
 
     single {
         val factory: SettingsFactory = get()

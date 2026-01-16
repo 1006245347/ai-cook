@@ -11,26 +11,34 @@ import ai.koog.agents.memory.storage.EncryptedStorage
 import ai.koog.rag.base.files.JVMFileSystemProvider
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import com.hwj.cook.agent.McpClientUtils
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.tools.SwitchTools
+import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.baseHostUrl
+import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.SuggestCookSwitch
 import com.sun.management.OperatingSystemMXBean
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.plugin
+import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.request.bearerAuth
 import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.headers
 import io.ktor.http.takeFrom
@@ -97,6 +105,11 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
                 socketTimeoutMillis = timeout //30秒没token
             }
         }
+        install(SSE) {
+//            showCommentEvents()
+//            showRetryEvents()
+        }
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -108,12 +121,23 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
         install(Logging) {
 //                level = LogLevel.ALL
 //            level = LogLevel.INFO //接口日志屏蔽
-            level = LogLevel.BODY
+            level = LogLevel.ALL
             logger = object : Logger {
                 override fun log(message: String) {
+//                    printD(message)
                     println(message)
                 }
             }
+        }
+
+        expectSuccess = true
+    }.also { client ->
+        client.plugin(HttpSend).intercept { request ->
+            request.headers.append(
+                HttpHeaders.Authorization,
+                "Bearer ${getCacheString(DATA_MCP_KEY)}"
+            )
+            execute(request)
         }
     }
 }
@@ -219,4 +243,11 @@ actual fun platformAgentTools(): ToolRegistry {
 actual fun plusAgentList(): List<AgentInfoCell> {
     val list = mutableListOf<AgentInfoCell>()
     return list
+}
+
+actual  suspend fun runLiteWork(call:()-> Unit){
+//    McpClientUtils.searchMcpClientSSE("today is ?",getCacheString(DATA_MCP_KEY)!!)
+//    McpClientUtils.tryClient()
+    McpClientUtils.testMcp()
+    call()
 }

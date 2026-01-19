@@ -4,9 +4,27 @@ import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.annotations.LLMDescription
 import com.hwj.cook.KmpToolSet
 import com.hwj.cook.agent.JsonApi
+import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.getDeviceInfo
+import com.hwj.cook.global.DATA_MCP_KEY
+import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.SuggestCookSwitch
+import io.ktor.client.plugins.sse.sse
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.URLProtocol
+import io.ktor.http.contentType
+import io.ktor.http.encodedPath
+import io.ktor.http.headers
+import io.ktor.utils.io.readUTF8Line
 import kotlinx.serialization.Serializable
 
 /**
@@ -70,3 +88,105 @@ class SuggestSwitchTools(val switch: SuggestCookSwitch) : KmpToolSet {
 
     }
 }
+
+suspend fun testMcp11() {
+    val key = getCacheString(DATA_MCP_KEY)
+    val client = createKtorHttpClient(15000, {})
+    val result = StringBuilder()
+    val response = client.post {
+        headers {
+//            append(HttpHeaders.Authorization, "Bearer $key")
+            append(HttpHeaders.Accept, "text/event-stream")
+            append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+
+        }
+        contentType(ContentType.Application.Json)
+        url {
+            protocol = URLProtocol.HTTPS
+            host = "dashscope.aliyuncs.com"
+            encodedPath = "/api/v1/mcps/WebSearch/sse"
+        }
+
+
+        setBody(JsonApi.encodeToString(C1("今天珠海天气？", 1)))
+
+    }
+
+
+
+    result.append(response.bodyAsText())
+
+    printD("web_tool>${result}")
+}
+
+suspend fun testMcp2() {
+    val key = getCacheString(DATA_MCP_KEY)
+    val client = createKtorHttpClient(15000, {})
+
+    val result = StringBuilder()
+    var messagePath: String? = null
+    //ktor 的 sse是get
+    client.sse("https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/sse", request = {
+        headers { append(HttpHeaders.Authorization, "Bearer $key") }
+        url {
+            protocol = URLProtocol.HTTPS
+            host = "dashscope.aliyuncs.com"
+            encodedPath = "/api/v1/mcps/WebSearch/sse"
+
+//                parameters.append("query", args.query)
+//                parameters.append("count", args.count.toString())
+        }
+        contentType(ContentType.Application.Json)
+        setBody(C1("今天珠海天气？", 1))
+    }) {
+        incoming.collect { event ->
+            println("Id: ${event.id}")
+            println("Event: ${event.event}")
+            println("Data: ${event.data}")
+//            result.append(event.data)
+            messagePath = event.data
+        }
+    }
+    //msgPath>  /api/v1/mcps/WebSearch/message?sessionId=e94ac0ab41ee4a43bfc2c70302bc9291
+//    val channel = client.get("https://dashscope.aliyuncs.com$messagePath") {
+//        headers {
+//            append(HttpHeaders.Authorization, "Bearer $key")
+//            append(HttpHeaders.Accept, ContentType.Text.EventStream.toString())
+//        }
+//    }.bodyAsChannel()
+//    while (!channel.isClosedForRead) {
+//        val line = channel.readUTF8Line()
+//        printD("Line>$line")
+//        result.append(line)
+//    }
+
+    val response = client.get("https://dashscope.aliyuncs.com$messagePath") {
+        headers {
+            append(HttpHeaders.Authorization, "Bearer $key")
+//                    append(HttpHeaders.Accept, ContentType.Text.EventStream.toString())
+            append(HttpHeaders.Accept,"*/*")
+        }
+    }.bodyAsText()
+
+    result.append(response)
+
+//    client.sse("https://dashscope.aliyuncs.com$messagePath", request = {
+//        headers {
+//            append(HttpHeaders.Authorization, "Bearer $key")
+//            append(HttpHeaders.Accept, ContentType.Text.EventStream.toString())
+//        }
+//    }) {
+//        incoming.collect { event ->
+////            printD("Id: ${event.id}")
+//            printD("Event: ${event.event}")
+//            printD("Data: ${event.data}")
+//            result.append(event.data)
+//        }
+//    }
+
+    printD("ss>$result")
+
+}
+
+@Serializable
+data class C1(val query: String, val count: Int)

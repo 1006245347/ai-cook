@@ -1,20 +1,27 @@
 package com.hwj.cook.agent.tools
 
 import ai.koog.agents.core.tools.ToolRegistry
+import ai.koog.agents.mcp.DefaultMcpToolDescriptorParser
+import ai.koog.agents.mcp.McpTool
 import ai.koog.agents.mcp.McpToolRegistryProvider
 import com.hwj.cook.createKtorHttpClient
+import com.hwj.cook.global.DATA_MCP_KEY
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.plugin
+import io.ktor.client.request.request
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
 import io.ktor.http.headers
+import io.ktor.server.util.url
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.SseClientTransport
 import io.modelcontextprotocol.kotlin.sdk.client.mcpSseTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.Transport
+import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 
 object McpToolCI {
 
@@ -22,7 +29,8 @@ object McpToolCI {
     //不是所有环境有nodejs,最好引入modelcontextprotocol/kotlin-sdk ,还可以引入ktor-server/client
     //用百炼广场的mcp工具，mcp服务端在云服务器，我这实现客户端就行，不走本地mcp就不用nodejs
     //sse这种方式全平台可用，stdio带process只能jvm
-    suspend fun searchSSE(mcpKey: String): ToolRegistry {
+    suspend fun searchSSE(): ToolRegistry {
+        val mcpKey = getCacheString(DATA_MCP_KEY)
         //token 在executor再给？ ,不对，百炼一个token,chat又一个
 //        header("Authorization", "Bearer $apiKey")
         val client: HttpClient = createKtorHttpClient(15000, builder = {
@@ -34,9 +42,9 @@ object McpToolCI {
         val transport: SseClientTransport = client.mcpSseTransport(urlString = null) {
             headers { append(HttpHeaders.Authorization, "Bearer $mcpKey") }
             url {
-                protocol= URLProtocol.HTTPS
+                protocol = URLProtocol.HTTPS
                 host = "dashscope.aliyuncs.com"
-                encodedPath="/api/v1/mcps/WebSearch/sse"
+                encodedPath = "/api/v1/mcps/WebSearch/sse"
 
             }
         }
@@ -46,15 +54,85 @@ object McpToolCI {
 //                "https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/sse",
 //                baseClient = client
 //            )
-        val toolRegistry = McpToolRegistryProvider.fromTransport(transport, name = "bailian_web_search")
+        val toolRegistry =
+            McpToolRegistryProvider.fromTransport(transport, name = "bailian_web_search")
 
 
-//        McpToolRegistryProvider.fromClient()
 
         toolRegistry.tools.forEach {
             printD(it.name + "：" + it.descriptor, "tool>")
         }
         return toolRegistry
+    }
+
+    suspend fun searchSSE2(): ToolRegistry {
+        val mcpKey = getCacheString(DATA_MCP_KEY)
+        val client: HttpClient = createKtorHttpClient(15000, builder = {
+//            append(HttpHeaders.Authorization, "Bearer $mcpKey")
+        })
+        val transport: SseClientTransport = client.mcpSseTransport(urlString = null) {
+            headers { append(HttpHeaders.Authorization, "Bearer $mcpKey") }
+            url {
+                protocol = URLProtocol.HTTPS
+                host = "dashscope.aliyuncs.com"
+                encodedPath = "/api/v1/mcps/WebSearch/sse"
+            }
+        }
+        val toolRegistry =
+            McpToolRegistryProvider.fromTransport(transport, name = "bailian_web_search")
+        toolRegistry.tools.forEach {
+            printD(it.name + "：" + it.descriptor, "tool>")
+        }
+        return toolRegistry
+    }
+
+    //还是不行啊
+    suspend fun searchSSE3(): ToolRegistry {
+        val mcpKey = getCacheString(DATA_MCP_KEY)
+        //1.构建mcpClient,可以用默认的
+        val client = createKtorHttpClient(15000, builder = {
+            //放这里没用
+        })
+        //2.mcp工具的sse接口
+        val transport: SseClientTransport = SseClientTransport(
+            client = client,
+            urlString = null
+        ) {
+            headers { append(HttpHeaders.Authorization, "Bearer $mcpKey") }
+            url {
+                protocol = URLProtocol.HTTPS
+                host = "dashscope.aliyuncs.com"
+                encodedPath = "/api/v1/mcps/WebSearch/sse"
+            }
+
+        }
+
+//        val toolRegistry =
+//            McpToolRegistryProvider.fromTransport(transport, name = "Search from internet")
+//        toolRegistry.tools.forEach {
+//            printD(it.name + "：" + it.descriptor, "tool>")
+//        }
+
+        val mcpClient = Client(clientInfo = Implementation(name = "hwj", version = "0.1.0"))
+
+        printD("t>${transport}")
+        // Connect to the MCP server
+        mcpClient.connect(transport)
+        val sdkTools = mcpClient.listTools().tools
+
+
+        return ToolRegistry {
+            sdkTools.forEach { sdkTool ->
+                printD("s?$sdkTool")
+                try {
+                    val toolDescriptor = DefaultMcpToolDescriptorParser.parse(sdkTool)
+                    tool(McpTool(mcpClient, toolDescriptor))
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
     }
 
     suspend fun webParserSSE(mcpKey: String): ToolRegistry {

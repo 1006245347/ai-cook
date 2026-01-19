@@ -37,6 +37,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.plugin
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.request
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
@@ -117,7 +118,7 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
 
             })
         }
-//        install(SSE)
+
         install(Logging) {
 //                level = LogLevel.ALL
 //            level = LogLevel.INFO //接口日志屏蔽

@@ -19,6 +19,8 @@ import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.provider.AgentManager
 import com.hwj.cook.agent.provider.AgentProvider
+import com.hwj.cook.agent.tools.testMcp11
+import com.hwj.cook.agent.tools.testMcp2
 import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgList
 import com.hwj.cook.data.local.fetchMsgListFlow
@@ -545,6 +547,7 @@ class ChatVm(
 //            printList(_sessionObs.value, "all-session")
 //            clearCache()
             runLiteWork {  }
+//            testMcp2()
         }
     }
 }

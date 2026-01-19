@@ -23,7 +23,7 @@ open class OpenAiRemoteLLMClient(
         embeddingsPath = "embeddings",
         timeoutConfig = ConnectionTimeoutConfig(
             requestTimeoutMillis = 60000 * 5,
-            connectTimeoutMillis = 10000,
+            connectTimeoutMillis = 20000,
             socketTimeoutMillis = 15000
         )
     ), baseClient: HttpClient = HttpClient { }.config {
@@ -50,7 +50,7 @@ fun createAiExecutor(apiKey: String): SingleLLMPromptExecutor {
                 chatCompletionsPath = "chat/completions",
                 embeddingsPath = "embeddings", timeoutConfig = ConnectionTimeoutConfig(
                     requestTimeoutMillis = 60000 * 5,
-                    connectTimeoutMillis = 10000,
+                    connectTimeoutMillis = 20000,
                     socketTimeoutMillis = 15000
                 )
             ), baseClient = HttpClient().config {

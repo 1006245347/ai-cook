@@ -52,10 +52,11 @@ class ChatAgentProvider(
 //        DefaultMultiLLMPromptExecutor()
         val toolRegistry = ToolRegistry {
 //            tool(ExitTool)
-            tool(ASearchTool)
+//            tool(ASearchTool) //endpoint是给后端接的。。我用不了
         }
 
-//            .plus(McpToolCI.searchSSE(mcpKey!!))
+//            .plus(McpToolCI.searchSSE2())
+//            .plus(McpToolCI.searchSSE3())
 //            .plus(McpToolCI.webParserSSE(mcpKey))
         toolRegistry.tools.forEach { printD(it.name + "：" + it.descriptor, "Atool>") }
         agentInstance = AIAgent.invoke(
@@ -65,12 +66,17 @@ class ChatAgentProvider(
             agentConfig = AIAgentConfig(
                 prompt = prompt(
                     id = "chat",
-                    params = LLMParams(temperature = 0.8, numberOfChoices = 1, maxTokens = 150)
+                    params = LLMParams(temperature = 0.8, numberOfChoices = 1, maxTokens = 1500)
                 ) {
-                    system("I'm an assistant who provides simple and clear answers to users.")
+//                    system("I'm an assistant who provides simple and clear answers to users.")
+                    system ("""
+You are an assistant that must use tools to answer any question 
+that requires real-time or factual information such as dates, news, or web content.
+If a tool is available, you should call it instead of answering directly.
+""")
                 },
                 model = buildQwen3LLM("Qwen/Qwen2.5-7B-Instruct"),
-                maxAgentIterations = 10
+                maxAgentIterations = 50 //太少反而会导致无法结束智能体
             ),
         )
 

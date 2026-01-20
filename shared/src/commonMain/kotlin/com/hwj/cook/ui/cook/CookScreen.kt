@@ -30,6 +30,7 @@ import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.loadingTip
 import com.hwj.cook.global.onlyDesktop
+import com.hwj.cook.global.printD
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.ui.viewmodel.CookVm
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -110,6 +111,7 @@ fun BookNodeView(
                             val argPath = node.realPath.encodeURLQueryComponent(encodeFull = true)
 //                            printLog("encode>$argPath")//encodeFull把 /都编码了不然导航会报错
                             if (onlyDesktop()) {
+                                printD("jump>${NavigationScene.BookRead.path}/$argPath")
                                 navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
                             } else {
                                 navigator.navigate(NavigationScene.BookRead.path + "/$argPath")

@@ -25,16 +25,16 @@ import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 
 class McpSearchAgentProvider(
-    override var title: String="search from internet",
-    override val description: String="A agent that support search from internet with mcp tool."
-) : AgentProvider <String, String> {
+    override var title: String = "search from internet",
+    override val description: String = "A agent that support search from internet with mcp tool."
+) : AgentProvider<String, String> {
 
     private var agentInstance: AIAgent<String, String>? = null
 
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
-        onLLMStreamFrameEvent:suspend (String)-> Unit,
+        onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String> {
@@ -118,11 +118,12 @@ class McpSearchAgentProvider(
             )
         }
 
+        val userMemoryAgentProvider = createMemoryProvider()
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor, strategy = strategy, agentConfig = agentConfig
         ) {
             install(AgentMemory.Feature) {
-                this.memoryProvider = createMemoryProvider()
+                this.memoryProvider = userMemoryAgentProvider
                 this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
             }
         }

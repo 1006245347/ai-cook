@@ -16,6 +16,7 @@ import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
+import com.hwj.cook.global.DATA_USER_ID
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
@@ -32,8 +33,8 @@ import kotlinx.coroutines.flow.onStart
 /**
  * des:记忆功能是跟存储文件绑定，跟agent无关，这里搞个统一的记忆文件
  */
-fun createMemoryProvider(): AgentMemoryProvider {
-    val scopeIdFromUserId = "888"
+suspend fun createMemoryProvider(): AgentMemoryProvider {
+    val scopeIdFromUserId = getCacheString(DATA_USER_ID, "888")!!
     return createFileMemoryProvider(scopeIdFromUserId)
 }
 
@@ -119,7 +120,7 @@ fun buildQwen3LLM_8B(): LLModel {
     )
 }
 
-fun buildQwen3LLM(id: String="Qwen/Qwen3-VL-8B-Instruct"): LLModel {
+fun buildQwen3LLM(id: String = "Qwen/Qwen3-VL-8B-Instruct"): LLModel {
     //预设的模型
 //    OllamaModels.Alibaba.QWQ_32B   Qwen/Qwen2.5-7B-Instruct
 

@@ -18,11 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.CODE_IS_DARK
 import com.hwj.cook.global.DATA_FIRST_WELCOME
+import com.hwj.cook.global.DATA_USER_ID
 import com.hwj.cook.global.NavigateRoute
 import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.getCacheBoolean
+import com.hwj.cook.global.saveString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.PreComposeApp
@@ -65,6 +67,7 @@ fun WelcomeScreen(navigator: Navigator) {
         subScope.launch {
             isDark.value = getCacheBoolean(CODE_IS_DARK, false)
 //            saveBoolean(DATA_FIRST_WELCOME, true) //true每次都显示
+            saveString(DATA_USER_ID, "888") //没有设计登录体系，换个userId缓存目录得变
             delay(1000)
             navigator.navigate(
                 NavigationScene.Main.path, NavOptions(

@@ -149,13 +149,14 @@ class AICookAgentProvider : AgentProvider<String, String> {
             maxAgentIterations = 10
         )
 
+        val userMemoryAgentProvider=createMemoryProvider()
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             strategy = strategy, agentConfig = agentConfig, toolRegistry = toolRegistry
         ) {
 
             install(AgentMemory) {
-                this.memoryProvider = createMemoryProvider()
+                this.memoryProvider =userMemoryAgentProvider
                 this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
             }
             handleEvents {

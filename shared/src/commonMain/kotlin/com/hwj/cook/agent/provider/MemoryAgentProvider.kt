@@ -32,6 +32,7 @@ class MemoryAgentProvider(
         val apiKey = getCacheString(DATA_APP_TOKEN)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
+        val userMemoryAgentProvider = createMemoryProvider()
 
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
@@ -39,7 +40,7 @@ class MemoryAgentProvider(
             agentConfig = memoryAgentConfig
         ) {
             install(AgentMemory.Feature) {
-                this.memoryProvider = createMemoryProvider()
+                this.memoryProvider = userMemoryAgentProvider
                 this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
             }
         }

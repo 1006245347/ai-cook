@@ -41,7 +41,7 @@ import kotlinx.serialization.Serializable
 object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>(
     argsSerializer = Args.serializer(),
     resultSerializer = Result.serializer(),
-    name = "DiagnosticTool", description = "获取设备信息的工具"
+    name = "DeviceTool", description = "获取设备信息的工具"
 ) {
     override suspend fun execute(args: Args): Result {
         val devInfo = printDeviceInfo()
@@ -68,20 +68,23 @@ object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>(
 object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>(
     argsSerializer = Args.serializer(),
     resultSerializer = Result.serializer(),
-    name = "信息工具", description = "获取用户姓名的工具"
+    name = "信息工具", description = "获取用户信息工具"
 ) {
     override suspend fun execute(args: Args): Result {
         return Result(args.name)
     }
 
     @Serializable
-    data class Args(@property:LLMDescription("user 's name") val name: String)
+    data class Args(@property:LLMDescription("user 's information") val name: String)
 
     @Serializable
     data class Result(val name: String)
 }
 
-//使用TooSet设计一个开关，agent去操作开关
+//need more time ,dep real rag.
+object LocalRagTool{}
+
+//??使用TooSet设计一个开关，agent去操作开关。不能直接用ToolSet只在jvm
 class SuggestSwitchTools(val switch: SuggestCookSwitch) : KmpToolSet {
 
     fun change() {

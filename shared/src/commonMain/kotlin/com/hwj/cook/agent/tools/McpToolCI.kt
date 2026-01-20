@@ -135,6 +135,37 @@ object McpToolCI {
 
     }
 
+
+    suspend fun searchSSE4(): ToolRegistry {
+        //https://mcp.juhe.cn/sse?token=Mal5BLaVILTZstfqv2Mmmpm8Tk2hAUlD0w4YeeiHArk8uj
+        val mcpKey = getCacheString(DATA_MCP_KEY)
+        //1.构建mcpClient,可以用默认的
+        val client = createKtorHttpClient(15000, builder = {
+            //放这里没用
+        })
+        //2.mcp工具的sse接口
+        val transport: SseClientTransport = SseClientTransport(
+            client = client,
+            urlString = null
+        ) {
+//            headers { append(HttpHeaders.Authorization, "Bearer $mcpKey") }
+            url {
+                protocol = URLProtocol.HTTPS
+                host = "mcp.juhe.cn"
+                encodedPath = "/sse"
+                parameters.append("token", "Mal5BLaVILTZstfqv2Mmmpm8Tk2hAUlD0w4YeeiHArk8uj")
+            }
+
+        }
+
+        val toolRegistry =
+            McpToolRegistryProvider.fromTransport(transport, name = "juhe_web_search")
+        toolRegistry.tools.forEach {
+            printD(it.name + "：" + it.descriptor, "tool>")
+        }
+        return toolRegistry
+    }
+
     suspend fun webParserSSE(mcpKey: String): ToolRegistry {
         //1.构建mcpClient,可以用默认的
 

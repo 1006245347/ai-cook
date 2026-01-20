@@ -5,13 +5,10 @@ import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.agent.isFinished
 import ai.koog.agents.core.agent.isRunning
 import ai.koog.agents.core.tools.ToolRegistry
-import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.prompt.dsl.prompt
-import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
 import ai.koog.prompt.params.LLMParams
 import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.agent.createAiExecutor
-import com.hwj.cook.agent.tools.ASearchTool
 import com.hwj.cook.agent.tools.McpToolCI
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MCP_KEY
@@ -54,9 +51,9 @@ class ChatAgentProvider(
 //            tool(ExitTool)
 //            tool(ASearchTool) //endpoint是给后端接的。。我用不了
         }
-
 //            .plus(McpToolCI.searchSSE2())
 //            .plus(McpToolCI.searchSSE3())
+//            .plus(McpToolCI.searchSSE4()) //暂时没法实现多平台的mcp，先放放
 //            .plus(McpToolCI.webParserSSE(mcpKey))
         toolRegistry.tools.forEach { printD(it.name + "：" + it.descriptor, "Atool>") }
         agentInstance = AIAgent.invoke(
@@ -68,12 +65,12 @@ class ChatAgentProvider(
                     id = "chat",
                     params = LLMParams(temperature = 0.8, numberOfChoices = 1, maxTokens = 1500)
                 ) {
-//                    system("I'm an assistant who provides simple and clear answers to users.")
-                    system ("""
-You are an assistant that must use tools to answer any question 
-that requires real-time or factual information such as dates, news, or web content.
-If a tool is available, you should call it instead of answering directly.
-""")
+                    system("I'm an assistant who provides simple and clear answers to users.")
+//                    system ("""
+//You are an assistant that must use tools to answer any question
+//that requires real-time or factual information such as dates, news, or web content.
+//If a tool is available, you should call it instead of answering directly.
+//""")
                 },
                 model = buildQwen3LLM("Qwen/Qwen2.5-7B-Instruct"),
                 maxAgentIterations = 50 //太少反而会导致无法结束智能体

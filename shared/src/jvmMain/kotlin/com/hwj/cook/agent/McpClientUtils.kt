@@ -18,6 +18,9 @@ import ai.koog.agents.mcp.McpToolRegistryProvider
 import ai.koog.agents.mcp.defaultStdioTransport
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import com.hwj.cook.agent.tools.SuggestSwitchTools
+import com.hwj.cook.agent.tools.SwitchTools
+import com.hwj.cook.agent.tools.UserExTools
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MCP_KEY
@@ -273,6 +276,7 @@ object McpClientUtils {
                         onAssistantMessage { true }
             )
         }
+
 
         val agent = AIAgent(
             promptExecutor = executor, llmModel = OpenAIModels.Chat.GPT4o,

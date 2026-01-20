@@ -546,8 +546,9 @@ class ChatVm(
         viewModelScope.launch {
 //            printList(_sessionObs.value, "all-session")
 //            clearCache()
-            runLiteWork {  }
+//            runLiteWork {  }
 //            testMcp2()
+
         }
     }
 }

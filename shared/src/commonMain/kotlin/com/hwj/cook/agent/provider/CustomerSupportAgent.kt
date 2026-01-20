@@ -11,54 +11,6 @@ import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.model.PromptExecutor
 import kotlinx.serialization.Serializable
 
-//自定义记忆主题：
-object MemorySubjects {
-
-    /**
-     * Information specific to the user
-     * Examples: Conversation preferences, issue history, contact information
-     */
-    @Serializable
-    data object User : MemorySubject() {
-        override val name: String = "user"
-        override val promptDescription: String =
-            "User information (conversation preferences, issue history, contact details, etc.)"
-        override val priorityLevel: Int = 1
-    }
-
-    /**
-     * Information specific to the machine or device
-     * Examples: Device type, error codes, diagnostic results
-     */
-    @Serializable
-    data object Machine : MemorySubject() {
-        override val name: String = "machine"
-        override val promptDescription: String =
-            "Machine or device information (device type, error codes, diagnostic results, etc.)"
-        override val priorityLevel: Int = 2
-    }
-
-    /**
-     * Information specific to the organization
-     * Examples: Corporate customer details, product information, solutions
-     */
-    @Serializable
-    data object Organization : MemorySubject() {
-        override val name: String = "organization"
-        override val promptDescription: String =
-            "Organization information (corporate customer details, product information, solutions, etc.)"
-        override val priorityLevel: Int = 3
-    }
-
-    @Serializable
-    data object Project : MemorySubject() {
-        override val name: String = "project"
-        override val promptDescription: String =
-            "project information (project details, product information, solutions, etc.)"
-        override val priorityLevel: Int = 3
-    }
-}
-
 fun createMemoryAgent(
     memoryProvider: AgentMemoryProvider,
     promptExecutor: PromptExecutor,

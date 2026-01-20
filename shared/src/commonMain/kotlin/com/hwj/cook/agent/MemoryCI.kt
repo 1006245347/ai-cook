@@ -117,10 +117,10 @@ private val memoryTools = listOf(UserInfoTool, DiagnosticTool)
 //智能体的参数
 val memoryAgentConfig = AIAgentConfig(prompt = prompt(id = "prompt") {
     system("Hi,I'm a personal assistant.")
-}, model = buildQwen3LLM(), maxAgentIterations = 50)
+}, model = buildQwen3LLM("Qwen/Qwen2.5-7B-Instruct"), maxAgentIterations = 50)
 
 fun memoryStrategy() =
-    strategy<String, String>(name = "memory", toolSelectionStrategy = ToolSelectionStrategy.NONE) {
+    strategy<String, String>(name = "memory", toolSelectionStrategy = ToolSelectionStrategy.ALL) {
 
         val loadMemory by subgraph<String, String>(tools = emptyList()) {
             val nodeLoadUserPreferences by nodeLoadFromMemory<String>(
@@ -154,7 +154,7 @@ fun memoryStrategy() =
         val supportSession by subgraphWithTask<String, String>(tools = memoryTools) { userInput ->
             markdown {
                 h2(
-                    "You are a customer support agent that helps users resolve issues and tracks information for future reference"
+                    "You are a customer support agent that helps users resolve issues and tracks information for future reference."
                 )
                 text("You should:")
                 br()
@@ -162,12 +162,12 @@ fun memoryStrategy() =
                     item {
                         text(
                             "Understand the user's preferences and communication style. " +
-                                    "Do not ask this explicitly, but use this information (if available) from your own knowledge or memory"
+                                    "Do not ask this explicitly, but use this information (if available) from your own knowledge or memory."
                         )
                     }
-                    item { text("Review the user's issue history to provide context") }
-                    item { text("Use device information ") }
-                    item { text("Leverage organization-wide solutions when applicable") }
+                    item { text("Review the user's issue history to provide context.") }
+                    item { text("Use device information .") }
+                    item { text("Leverage organization-wide solutions when applicable.") }
                     item { text("Solve the user's issue and provide a solution if possible") }
                 }
 

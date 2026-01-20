@@ -41,7 +41,7 @@ import kotlinx.serialization.Serializable
 object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>(
     argsSerializer = Args.serializer(),
     resultSerializer = Result.serializer(),
-    name = "DeviceTool", description = "获取设备信息的工具"
+    name = "DeviceTool", description = "get user device information"
 ) {
     override suspend fun execute(args: Args): Result {
         val devInfo = printDeviceInfo()
@@ -68,7 +68,7 @@ object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>(
 object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>(
     argsSerializer = Args.serializer(),
     resultSerializer = Result.serializer(),
-    name = "信息工具", description = "获取用户信息工具"
+    name = "UserInfoTool", description = "get user information"
 ) {
     override suspend fun execute(args: Args): Result {
         return Result(args.name)

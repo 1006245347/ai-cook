@@ -44,7 +44,7 @@ class AICookAgentProvider : AgentProvider<String, String> {
 
     override suspend fun provideAgent(
         onToolCallEvent: suspend (String) -> Unit,
-        onLLMStreamFrameEvent:suspend (String)-> Unit,
+        onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<String, String> {
@@ -53,7 +53,7 @@ class AICookAgentProvider : AgentProvider<String, String> {
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
         //获取当前默认的大模型
-        val modelInfo= getCacheObj<ModelInfoCell>(DATA_MODEL_DEF)
+        val modelInfo = getCacheObj<ModelInfoCell>(DATA_MODEL_DEF)
         printD("defModel>$modelInfo")
 
         val toolRegistry = ToolRegistry {
@@ -149,14 +149,14 @@ class AICookAgentProvider : AgentProvider<String, String> {
             maxAgentIterations = 10
         )
 
-        val userMemoryAgentProvider=createMemoryProvider()
+        val userMemoryAgentProvider = createMemoryProvider()
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             strategy = strategy, agentConfig = agentConfig, toolRegistry = toolRegistry
         ) {
 
             install(AgentMemory) {
-                this.memoryProvider =userMemoryAgentProvider
+                this.memoryProvider = userMemoryAgentProvider
                 this.productName = DATA_APPLICATION_NAME //设置产品名，为了范围对应
             }
             handleEvents {

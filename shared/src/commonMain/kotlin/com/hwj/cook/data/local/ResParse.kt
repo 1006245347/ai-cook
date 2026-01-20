@@ -16,9 +16,9 @@ import com.hwj.cook.models.BookNode
  */
 object ResParse {
 
-    //先把应用内资源文件解压到设备指定目录，再构建树结构的菜谱目录
+    //先把应用内资源文件解压loadZipRes到设备指定目录，再构建树结构的菜谱目录
     suspend fun loadRecipe(): BookNode? {
-//        removeCacheKey(DATA_BOOK_ROOT) //test
+//        removeCacheKey(DATA_BOOK_ROOT) // 清空压缩包
         var rootNode: BookNode? = null
         val tmpRoot = getCacheString(DATA_BOOK_ROOT).also { printLog("tmpRoot>$it") }
 
@@ -26,7 +26,7 @@ object ResParse {
             listResourceFiles(tmpRoot).also { bookNode ->
                 rootNode = bookNode
             }
-        } else {
+        } else { //
             loadZipRes().also { rootPath ->
                 rootPath?.let {
                     listResourceFiles(rootPath)?.also { bookNode ->

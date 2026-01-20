@@ -3,6 +3,7 @@ package com.hwj.cook.ui.viewmodel
 import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveString
 import com.hwj.cook.models.MemoryUiState
@@ -26,7 +27,7 @@ class TechVm : ViewModel() {
 
     private var agentProvider: MemoryAgentProvider? = null
 
-    fun updateInputText(txt: String) {
+    fun updateInputText(txt: String) { //更新了输入了呀
         _uiState.update { it.copy(inputTxt = txt) }
     }
 
@@ -40,6 +41,7 @@ class TechVm : ViewModel() {
 
     fun sendFact2Memory() {
         val userInput = _uiState.value.inputTxt.trim()
+        printD("sendFact2Memory? $userInput")
         if (userInput.isEmpty()) return
 
         _uiState.update { it.copy(inputTxt = "", isInputEnded = false, isLoading = true) }
@@ -51,6 +53,7 @@ class TechVm : ViewModel() {
 
     private suspend fun runAgent(userInput: String) {
         try {
+            printD("run?$agentProvider")
             val agent = agentProvider?.provideAgent({}, onErrorEvent = { errorMsg ->
                 _uiState.update { it.copy(isInputEnded = true, isLoading = false) }
             }, onLLMStreamFrameEvent = {}, onAssistantMessage = { "" })

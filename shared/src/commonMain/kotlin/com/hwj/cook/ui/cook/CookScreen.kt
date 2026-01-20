@@ -111,7 +111,6 @@ fun BookNodeView(
                             val argPath = node.realPath.encodeURLQueryComponent(encodeFull = true)
 //                            printLog("encode>$argPath")//encodeFull把 /都编码了不然导航会报错
                             if (onlyDesktop()) {
-                                printD("jump>${NavigationScene.BookRead.path}/$argPath")
                                 navigator.navigate(NavigationScene.BookRead.path + "/$argPath")
                             } else {
                                 navigator.navigate(NavigationScene.BookRead.path + "/$argPath")

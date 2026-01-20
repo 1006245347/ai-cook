@@ -192,7 +192,6 @@ fun MainScreen(navigator: Navigator) {
                                 }
                             }
                             TabNavRoot(navigator, drawerState, pagerState, onAgentPop = { rect ->
-                                printD("a=$agentModelState $rect")
                                 if (agentModelState != null) {
                                     showAgentDialog = true
                                     if (rect != null) barBounds = rect
@@ -290,20 +289,22 @@ private fun TabNavRoot(
     val cachedPages = remember { mutableMapOf<Int, @Composable () -> Unit>() }
 
     Column(Modifier.fillMaxSize()) {
-        AppBar(pagerState, isOpenDrawer = drawerState.isOpen, onClickMenu = {
-            subScope.launch {
-                drawerState.open()
-            }
-        }, onNewChat = {
-            subScope.launch {
-                if (pagerState.currentPage != 0)
-                    pagerState.scrollToPage(0)
-                //中止、保存、清空当前会话 、新建
-                chatVm.stopReceivingResults()
-                drawerState.close()
-                chatVm.createSession()
-            }
-        }, onAgentPop = onAgentPop, onShowNav = onShowNav)
+        if (pagerState.currentPage == 0)
+            AppBar(pagerState, isOpenDrawer = drawerState.isOpen, onClickMenu = {
+                subScope.launch {
+                    drawerState.open()
+                }
+            }, onNewChat = {
+                subScope.launch {
+                    if (pagerState.currentPage != 0)
+                        pagerState.scrollToPage(0)
+                    //中止、保存、清空当前会话 、新建
+                    chatVm.stopReceivingResults()
+                    drawerState.close()
+                    chatVm.createSession()
+                }
+            }, onAgentPop = onAgentPop, onShowNav = onShowNav)
+        //内容页
         HorizontalPager(userScrollEnabled = false, state = pagerState) { page: Int ->
             if (page !in loadedPages) {
                 loadedPages.add(page)

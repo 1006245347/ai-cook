@@ -3,13 +3,10 @@ package com.hwj.cook.ui.tech
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,16 +38,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.cAutoTxt
-import com.hwj.cook.global.cLowOrange
 import com.hwj.cook.global.dp10
-import com.hwj.cook.global.dp6
-import com.hwj.cook.global.printLog
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.TechVm
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
-import kotlin.coroutines.coroutineContext
 
 /**
  * @author by jason-何伟杰，2025/10/13
@@ -70,7 +63,6 @@ fun TechScreen(navigator: Navigator) {
         }
     }
 
-    printLog("techScreen??")
     TechScreenContent(
         isDark,
         inputTxt = uiObs.inputTxt,
@@ -99,13 +91,10 @@ fun TechScreenContent(
     val focusRequester = remember { FocusRequester() }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Edit content for agent memory",
-                fontSize = 20.sp,
-                color = cAutoTxt(isDark)
+                text = "Edit content for agent memory", fontSize = 20.sp, color = cAutoTxt(isDark)
             )
 
             OutlinedTextField(
@@ -125,34 +114,25 @@ fun TechScreenContent(
 
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier =
-                        Modifier.size(50.dp)
-                            .align(Alignment.CenterHorizontally),
+                    modifier = Modifier.size(50.dp).align(Alignment.CenterHorizontally),
                     color = Color.Yellow.copy(alpha = 0.7f),
                     strokeWidth = 8.dp,
                 )
             } else {
                 IconButton(
                     onClick = onSendClicked,//响应按钮事件
-                    enabled = isInputEnded && inputTxt.isNotBlank(),
-                    modifier = Modifier
-                        .padding(top = 10.dp)
-                        .size(30.dp)
-                        .clip(CircleShape)
+//                    enabled = isInputEnded && inputTxt.isNotBlank(),
+                    modifier = Modifier.padding(top = 10.dp).size(30.dp).clip(CircleShape)
                         .background(
-                            if (isInputEnabled && inputTxt.isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant
+                            if (isInputEnabled && inputTxt.isNotBlank()) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceVariant
                         )
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Send",
-                        tint = if (isInputEnabled && inputTxt.isNotBlank())
-                            MaterialTheme.colorScheme.onPrimary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isInputEnabled && inputTxt.isNotBlank()) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -160,7 +140,8 @@ fun TechScreenContent(
             memoryOfUser?.let {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
-                    state = listState, verticalArrangement = Arrangement.spacedBy(4.dp)
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     item {
                         Text(text = it, fontSize = 11.sp, color = cAutoTxt(isDark))

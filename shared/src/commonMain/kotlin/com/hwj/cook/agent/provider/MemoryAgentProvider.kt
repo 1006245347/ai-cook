@@ -42,7 +42,7 @@ class MemoryAgentProvider(
             promptExecutor = remoteAiExecutor,
             strategy = memoryStrategy(),
             agentConfig = memoryAgentConfig,
-            toolRegistry = ToolRegistry{
+            toolRegistry = ToolRegistry{ //工具需要注册
                 tool(UserInfoTool)
                 tool(DiagnosticTool)
             }

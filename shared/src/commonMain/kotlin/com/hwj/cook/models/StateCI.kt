@@ -34,7 +34,7 @@ data class AgentUiState(
 
 data class MemoryUiState(
     val inputTxt: String = "", val isInputEnabled: Boolean = true,
-    val isLoading: Boolean = false, val isInputEnded: Boolean = false,
+    val isLoading: Boolean = false,
     val memoryOfUser: String?=null
 )
 

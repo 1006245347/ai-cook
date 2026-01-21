@@ -32,7 +32,6 @@ class TechVm : ViewModel() {
     }
 
     suspend fun loadInputCache() {
-        printLog("loadInputCache??")
         //把输入的内容存下来，大模型的记忆不对外显示
         getCacheString(DATA_MEMORY_INPUT, "")?.let {
             updateInputText(it)
@@ -41,10 +40,9 @@ class TechVm : ViewModel() {
 
     fun sendFact2Memory() {
         val userInput = _uiState.value.inputTxt.trim()
-        printD("sendFact2Memory? $userInput")
         if (userInput.isEmpty()) return
 
-        _uiState.update { it.copy(inputTxt = "", isInputEnded = false, isLoading = true) }
+        _uiState.update { it.copy(inputTxt = "", isLoading = true) }
 
         viewModelScope.launch(Dispatchers.Default) {
             runAgent(userInput)
@@ -53,16 +51,14 @@ class TechVm : ViewModel() {
 
     private suspend fun runAgent(userInput: String) {
         try {
-            printD("run?$agentProvider")
             val agent = agentProvider?.provideAgent({}, onErrorEvent = { errorMsg ->
-                _uiState.update { it.copy(isInputEnded = true, isLoading = false) }
+                _uiState.update { it.copy(isLoading = false) }
             }, onLLMStreamFrameEvent = {}, onAssistantMessage = { "" })
             val result = agent?.run(userInput)
             _uiState.update {
                 it.copy(
-                    isInputEnabled = false,
+                    isInputEnabled = true,
                     isLoading = false,
-                    isInputEnded = true,
                     memoryOfUser = result
                 )
             }
@@ -70,7 +66,7 @@ class TechVm : ViewModel() {
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.update {
-                it.copy(isInputEnded = true, isLoading = false)
+                it.copy(isLoading = false, isInputEnabled = true)
             }
         }
     }

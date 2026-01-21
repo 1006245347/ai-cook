@@ -68,7 +68,6 @@ fun TechScreen(navigator: Navigator) {
         inputTxt = uiObs.inputTxt,
         isInputEnabled = uiObs.isInputEnabled,
         isLoading = uiObs.isLoading,
-        isInputEnded = uiObs.isInputEnded,
         memoryOfUser = uiObs.memoryOfUser,
         onInputTxtChanged = techVm::updateInputText,
         onSendClicked = techVm::sendFact2Memory
@@ -81,7 +80,6 @@ fun TechScreenContent(
     inputTxt: String,
     isInputEnabled: Boolean,
     isLoading: Boolean,
-    isInputEnded: Boolean,
     memoryOfUser: String?,
     onInputTxtChanged: (String) -> Unit,
     onSendClicked: () -> Unit
@@ -121,7 +119,7 @@ fun TechScreenContent(
             } else {
                 IconButton(
                     onClick = onSendClicked,//响应按钮事件
-//                    enabled = isInputEnded && inputTxt.isNotBlank(),
+                    enabled = inputTxt.isNotBlank(),
                     modifier = Modifier.padding(top = 10.dp).size(30.dp).clip(CircleShape)
                         .background(
                             if (isInputEnabled && inputTxt.isNotBlank()) MaterialTheme.colorScheme.primary

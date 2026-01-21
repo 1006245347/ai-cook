@@ -49,7 +49,7 @@ object DiagnosticTool : Tool<DiagnosticTool.Args, DiagnosticTool.Result>(
     }
 
     @Serializable
-    data class Args(@property:LLMDescription("设备信息") val device: String)
+    data class Args(@property:LLMDescription("device information") val device: String)
 
     @Serializable
     data class Result(val devInfo: String)
@@ -82,7 +82,7 @@ object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>(
 }
 
 //need more time ,dep real rag.
-object LocalRagTool{}
+object LocalRagTool {}
 
 //??使用TooSet设计一个开关，agent去操作开关。不能直接用ToolSet只在jvm
 class SuggestSwitchTools(val switch: SuggestCookSwitch) : KmpToolSet {
@@ -167,7 +167,7 @@ suspend fun testMcp2() {
         headers {
             append(HttpHeaders.Authorization, "Bearer $key")
 //                    append(HttpHeaders.Accept, ContentType.Text.EventStream.toString())
-            append(HttpHeaders.Accept,"*/*")
+            append(HttpHeaders.Accept, "*/*")
         }
     }.bodyAsText()
 

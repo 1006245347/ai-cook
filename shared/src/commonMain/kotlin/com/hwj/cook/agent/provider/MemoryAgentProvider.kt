@@ -9,6 +9,7 @@ import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.buildQwenLLMClient
 import com.hwj.cook.agent.createMemoryProvider
 import com.hwj.cook.agent.memoryAgentConfig
 import com.hwj.cook.agent.memoryStrategy
@@ -17,6 +18,8 @@ import com.hwj.cook.agent.tools.UserInfoTool
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * @author by jason-何伟杰，2025/10/13
@@ -35,8 +38,9 @@ class MemoryAgentProvider(
     ): AIAgent<String, String> {
         val apiKey = getCacheString(DATA_APP_TOKEN)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
-        val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
+        val remoteAiExecutor = SingleLLMPromptExecutor(buildQwenLLMClient(apiKey))
         val userMemoryAgentProvider = createMemoryProvider()
+
 
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,

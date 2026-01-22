@@ -34,8 +34,8 @@ import kotlinx.coroutines.flow.onStart
  * des:记忆功能是跟存储文件绑定，跟agent无关，这里搞个统一的记忆文件
  */
 suspend fun createMemoryProvider(): AgentMemoryProvider {
-    val scopeIdFromUserId = getCacheString(DATA_USER_ID, "888")!!
-    return createFileMemoryProvider(scopeIdFromUserId)
+    val scopeIdFromUserId = getCacheString(DATA_USER_ID, "888")
+    return createFileMemoryProvider(scopeIdFromUserId!!)
 }
 
 //保存的事实是哪类主题subject,属于哪个范围scope,这里的记忆将被所有智能体、功能模块调用，与用户id相关
@@ -135,7 +135,7 @@ fun buildQwen3LLM(id: String = "Qwen/Qwen3-VL-8B-Instruct"): LLModel {
             LLMCapability.Schema.JSON.Standard,
             LLMCapability.Speculation,
             LLMCapability.Tools,
-            LLMCapability.ToolChoice,
+            LLMCapability.ToolChoice,//是会导致请求400？
             LLMCapability.Vision.Image,
             LLMCapability.Document,
             LLMCapability.Completion,
@@ -153,6 +153,23 @@ fun buildQwen3EmeLLM(): LLModel {
             LLMCapability.Embed
         ), contextLength = 32_768
     )
+}
+
+fun buildZaiLLM(): LLModel{
+    return LLModel(provider = LLMProvider.Anthropic,id="zai-org/GLM-4.6V",capabilities = listOf(
+        LLMCapability.Temperature,
+        LLMCapability.Schema.JSON.Basic,
+        LLMCapability.Schema.JSON.Standard,
+        LLMCapability.Speculation,
+        LLMCapability.Tools,
+        LLMCapability.ToolChoice,
+        LLMCapability.Vision.Image,
+        LLMCapability.Document,
+        LLMCapability.Completion,
+        LLMCapability.MultipleChoices,
+        LLMCapability.OpenAIEndpoint.Completions,
+        LLMCapability.OpenAIEndpoint.Responses,
+    ), contextLength = 131_072)
 }
 
 //处理向量化

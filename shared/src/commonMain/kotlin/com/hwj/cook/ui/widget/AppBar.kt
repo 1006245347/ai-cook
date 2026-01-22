@@ -83,7 +83,7 @@ fun AppBar(
     val subScope = rememberCoroutineScope()
     var barBounds by remember { mutableStateOf<Rect?>(null) }
     val agentModelState by chatVm.agentModelState.collectAsState()
-    var lastAgentState by remember { mutableStateOf<String>("") }
+    var lastAgentState by remember { mutableStateOf("") }
     //弹窗选择 智能体列表
     LaunchedEffect(Unit) {
         subScope.launch {
@@ -100,7 +100,6 @@ fun AppBar(
                     options = "Ask" to "Agent ${agentModelState ?: lastAgentState}",
                     selectedAgent = agentModelState != null,
                     onChangeAgent = {  //长按 弹窗
-                        printD("ChangeAgent??$barBounds")
                         onAgentPop(barBounds)
                     },
                     onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态

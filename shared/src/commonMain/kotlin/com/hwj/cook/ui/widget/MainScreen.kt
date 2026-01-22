@@ -234,8 +234,6 @@ fun MainScreen(navigator: Navigator) {
                         }
                     }
 
-
-                    printD("?? $showAgentDialog ${barBounds != null}")
                     if (showAgentDialog && barBounds != null) {
                         PopupTopAnchor(barBounds!!, onDismiss = { showAgentDialog = false }) {
                             PopAgentView { agentName ->//智能体列表  切换
@@ -246,7 +244,6 @@ fun MainScreen(navigator: Navigator) {
                             }
                         }
                     }
-                    //toast?
                     ToastHost(  //为了全局显示toast
                         modifier = Modifier
                             .padding(horizontal = 20.dp, vertical = 12.dp)
@@ -317,45 +314,7 @@ private fun TabNavRoot(
     }
 }
 
-// 移动端底部Tab栏 ,选中样式   bar上再放编辑框很怪异，看其他是编辑框居中点击跳新页面，不太想要这
-@Composable
-private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
-    NavigationBar(tonalElevation = 0.dp, containerColor = cAutoBg()) {
-        tabs.forEach { tab ->
-            val selected = current == tab.route
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onSelect(tab) },
-                label = {
-                    val fontSize by animateFloatAsState(if (selected) 15f else 12f)
-                    val fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-                    Text(
-                        text = tab.label,
-                        fontSize = fontSize.sp,
-                        fontWeight = fontWeight,
-                        color = if (selected) cWhite() else Color.Gray
-                    )
-                },
-                icon = {
-                    val size by animateDpAsState(if (selected) 24.dp else 20.dp)
-                    Icon(
-                        imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
-                        contentDescription = tab.label,
-                        modifier = Modifier.size(size),
-                        tint = if (selected) cWhite() else Color.Gray
-                    )
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primary,
-                    selectedIconColor = cWhite(),
-                    selectedTextColor = cAutoTxt(true),
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
-                )
-            )
-        }
-    }
-}
+
 
 @Composable
 private fun PopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
@@ -459,7 +418,7 @@ private fun DesktopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabC
 }
 
 @Composable
-fun MainInit(state: AppConfigState) {
+private fun MainInit(state: AppConfigState) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (state.isLoading) {
@@ -467,6 +426,46 @@ fun MainInit(state: AppConfigState) {
             } else if (state.error != null) {
                 Text(state.error)
             }
+        }
+    }
+}
+
+// 移动端底部Tab栏 ,选中样式   bar上再放编辑框很怪异，看其他是编辑框居中点击跳新页面，不太想要这
+@Composable
+private fun MobileTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabCell) -> Unit) {
+    NavigationBar(tonalElevation = 0.dp, containerColor = cAutoBg()) {
+        tabs.forEach { tab ->
+            val selected = current == tab.route
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onSelect(tab) },
+                label = {
+                    val fontSize by animateFloatAsState(if (selected) 15f else 12f)
+                    val fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                    Text(
+                        text = tab.label,
+                        fontSize = fontSize.sp,
+                        fontWeight = fontWeight,
+                        color = if (selected) cWhite() else Color.Gray
+                    )
+                },
+                icon = {
+                    val size by animateDpAsState(if (selected) 24.dp else 20.dp)
+                    Icon(
+                        imageVector = if (tab.index == 0) Icons.Default.Pending else if (tab.index == 1) Icons.Default.Book else if (tab.index == 2) Icons.Default.Memory else Icons.Default.Settings,
+                        contentDescription = tab.label,
+                        modifier = Modifier.size(size),
+                        tint = if (selected) cWhite() else Color.Gray
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = cWhite(),
+                    selectedTextColor = cAutoTxt(true),
+                    unselectedIconColor = Color.Gray,
+                    unselectedTextColor = Color.Gray
+                )
+            )
         }
     }
 }

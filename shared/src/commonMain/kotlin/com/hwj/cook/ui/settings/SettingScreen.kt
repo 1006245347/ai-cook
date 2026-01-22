@@ -76,6 +76,7 @@ fun SettingScreen(navigator: Navigator) {
     val isDark = mainVm.darkState.collectAsState().value
     val lastModel = remember { mutableStateOf<String?>(null) }
     val subScope = rememberCoroutineScope()
+
     SettingsScreenContent(modelsState, isDark, onAddClicked = { index ->
         subScope.launch { //跳转返回时携带参数
             val callback =

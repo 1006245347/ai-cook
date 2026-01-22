@@ -109,6 +109,7 @@ class ChatVm(
     //所有智能体
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
     val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
+
     suspend fun createAgent(koin: Koin, name: String?) {
         saveString(DATA_AGENT_INDEX, name ?: defAgentLabel)
         _agentModelObs.value = name ?: defAgentLabel
@@ -309,6 +310,7 @@ class ChatVm(
             sessionList.add(0, session)
             _sessionObs.value = sessionList
         } catch (e: Exception) {
+            e.printStackTrace()
             printD(e.message, "addSession")
         }
     }

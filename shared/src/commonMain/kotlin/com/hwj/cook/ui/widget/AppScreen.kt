@@ -78,11 +78,11 @@ fun WelcomeScreen(navigator: Navigator) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(cAutoBg())) {
+    Box(modifier = Modifier.fillMaxSize().background(cAutoBg())) {
         Text(
-            text = "AI Cook", fontWeight = FontWeight.Bold, fontSize = 26.sp,
+            text = "AI Cook", fontWeight = FontWeight.Bold, fontSize = 27.sp,
             color = cAutoTxt(isDark.value), modifier = Modifier.absolutePadding(top = 50.dp)
-                .align(Alignment.CenterHorizontally)
+                .align(Alignment.Center)
         )
     }
 }

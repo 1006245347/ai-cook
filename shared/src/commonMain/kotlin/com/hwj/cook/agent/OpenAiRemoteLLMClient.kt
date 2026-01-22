@@ -1,9 +1,12 @@
 package com.hwj.cook.agent
 
 import ai.koog.prompt.executor.clients.ConnectionTimeoutConfig
+import ai.koog.prompt.executor.clients.dashscope.DashscopeClientSettings
+import ai.koog.prompt.executor.clients.dashscope.DashscopeLLMClient
 import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
 import ai.koog.prompt.executor.clients.openai.OpenAILLMClient
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.printLog
 import io.ktor.client.HttpClient
@@ -65,4 +68,20 @@ fun createAiExecutor(apiKey: String): SingleLLMPromptExecutor {
             })
     )
 }
+
+fun buildQwenLLMClient(apiKey: String): DashscopeLLMClient {
+    return DashscopeLLMClient(
+        apiKey = apiKey, settings = DashscopeClientSettings(
+            baseUrl = baseHostUrl,
+            chatCompletionsPath = "chat/completions",
+            timeoutConfig = ConnectionTimeoutConfig(
+                requestTimeoutMillis = 60000 * 5,
+                connectTimeoutMillis = 20000,
+                socketTimeoutMillis = 15000
+            )
+        ), baseClient = createKtorHttpClient(timeout = 15000, {})
+    )
+}
+
+
 

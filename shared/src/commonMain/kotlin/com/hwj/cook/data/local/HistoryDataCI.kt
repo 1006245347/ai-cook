@@ -54,7 +54,7 @@ suspend fun saveSessionList(list: MutableList<ChatSession>?) {
 }
 
 private suspend fun buildConversationTag(): String {
-    return DATA_SESSION_TAG + getCacheLong(DATA_USER_ID)
+    return DATA_SESSION_TAG + getCacheString(DATA_USER_ID)
 }
 
 suspend fun deleteMsgBySessionID(sessionId: String) {

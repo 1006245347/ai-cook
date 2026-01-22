@@ -19,7 +19,7 @@ import com.hwj.cook.ui.tech.TechScreenContent
 private fun TechScreenPreview(){
     ThemeChatLite {
         TechScreenContent(isDark = false,inputTxt = "ai", isInputEnabled = true, isLoading = false,
-            isInputEnded = false,null,{},{})
+          null,{},{})
     }
 }
 

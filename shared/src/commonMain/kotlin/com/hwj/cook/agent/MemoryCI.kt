@@ -13,6 +13,7 @@ import ai.koog.agents.memory.model.MemorySubject
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.markdown.markdown
 import ai.koog.prompt.message.Message
+import ai.koog.prompt.params.LLMParams
 import com.hwj.cook.agent.tools.DiagnosticTool
 import com.hwj.cook.agent.tools.UserInfoTool
 import kotlinx.serialization.Serializable
@@ -114,13 +115,19 @@ object MemorySubjects {
 
 //涉及到的工具，深度封装？
 private val memoryTools = listOf(UserInfoTool, DiagnosticTool)
+
 //智能体的参数
-val memoryAgentConfig = AIAgentConfig(prompt = prompt(id = "prompt") {
-    system("Hi,I'm a personal assistant.")
-}, model = buildQwen3LLM("Qwen/Qwen2.5-7B-Instruct"), maxAgentIterations = 50)
+val memoryAgentConfig = AIAgentConfig(
+    prompt = prompt(
+        id = "prompt",//toolChoice 大模型不认
+        params = LLMParams(temperature = 0.8, toolChoice = null)
+    ) {
+        system("Hi,I'm a personal assistant.")
+    }, model = buildQwen3LLM(), maxAgentIterations = 50
+)
 
 fun memoryStrategy() =
-    strategy<String, String>(name = "memory", toolSelectionStrategy = ToolSelectionStrategy.ALL) {
+    strategy<String, String>(name = "memory", toolSelectionStrategy = ToolSelectionStrategy.NONE) {
 
         val loadMemory by subgraph<String, String>(tools = emptyList()) {
             val nodeLoadUserPreferences by nodeLoadFromMemory<String>(

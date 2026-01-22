@@ -26,7 +26,7 @@ fun cHalfGrey80717171() = Color(0x80717171)
 fun cHalfGrey80717172() = Color(0x30717171)
 
 fun cDark99000000() = Color(0x99000000)
-fun cHalf80565353() =Color(0x80565353)
+fun cHalf80565353() = Color(0x80565353)
 
 //textColor
 fun cGreyB5B5B5() = Color(0xFFB5B5B5)
@@ -42,13 +42,21 @@ fun cBlueFFF7FAFE() = Color(0xFFF7FAFE)
 
 //去androidApp那里/res/values/colors.xml预览资源颜色
 fun cDeepLine() = Color(0xFF3B3C3D)
-fun cLightLine()= Color(0xA8AAAFFF)
+fun cLightLine() = Color(0xA8AAAFFF)
 
 @Composable
 fun cAutoBg() = MaterialTheme.colorScheme.background
 
 fun cAutoTxt(isDark: Boolean): Color {
     return if (isDark) isDarkTxt() else isLightTxt()
+}
+
+fun cSetBg(isDark: Boolean): Color {
+    return if (isDark) {
+        BackGroundColor2
+    } else {
+        BackGroundColor1
+    }
 }
 
 val Purple80 = Color(0xFFD0BCFF)//粉

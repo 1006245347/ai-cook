@@ -153,7 +153,7 @@ fun MainScreen(navigator: Navigator) {
     }
 //    CheckNetConnected()
     ThemeChatLite(isDark = darkTheme.value) {
-        Surface(color = MaterialTheme.colorScheme.background) {
+        Surface(color = cAutoBg()) {
             AppScaffold( //脚手架
                 navigator, drawerState = drawerState,
                 onConversationClicked = { chatId -> //加载历史会话
@@ -191,18 +191,23 @@ fun MainScreen(navigator: Navigator) {
                                     }
                                 }
                             }
-                            TabNavRoot(navigator, drawerState, pagerState, onAgentPop = { rect ->
-                                if (agentModelState != null) {
-                                    showAgentDialog = true
-                                    if (rect != null) barBounds = rect
-                                }
-                            })
+                            TabNavRoot(
+                                navigator,
+                                darkTheme.value,
+                                drawerState,
+                                pagerState,
+                                onAgentPop = { rect ->
+                                    if (agentModelState != null) {
+                                        showAgentDialog = true
+                                        if (rect != null) barBounds = rect
+                                    }
+                                })
                         }
                     } else {
                         Column {
                             Box(Modifier.padding(0.dp).weight(1f)) {
                                 TabNavRoot(
-                                    navigator, drawerState, pagerState,
+                                    navigator, darkTheme.value, drawerState, pagerState,
                                     onAgentPop = { rect ->
                                         if (agentModelState != null) {
                                             showAgentDialog = true
@@ -262,7 +267,7 @@ fun MainScreen(navigator: Navigator) {
 //懒加载  fragment
 @Composable
 private fun TabNavRoot(
-    navigator: Navigator,
+    navigator: Navigator, isDark: Boolean,
     drawerState: DrawerState,
     pagerState: PagerState,
     onAgentPop: (Rect?) -> Unit = {},
@@ -287,7 +292,7 @@ private fun TabNavRoot(
 
     Column(Modifier.fillMaxSize()) {
         if (pagerState.currentPage == 0)
-            AppBar(pagerState, isOpenDrawer = drawerState.isOpen, onClickMenu = {
+            AppBar(isDark, pagerState, isOpenDrawer = drawerState.isOpen, onClickMenu = {
                 subScope.launch {
                     drawerState.open()
                 }
@@ -313,7 +318,6 @@ private fun TabNavRoot(
         }
     }
 }
-
 
 
 @Composable
@@ -419,7 +423,7 @@ private fun DesktopTabBar(tabs: List<TabCell>, current: String?, onSelect: (TabC
 
 @Composable
 private fun MainInit(state: AppConfigState) {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Surface(modifier = Modifier.fillMaxSize(), color = cAutoBg()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (state.isLoading) {
                 Text("加载中...", color = MaterialTheme.colorScheme.secondary)

@@ -81,13 +81,13 @@ suspend fun saveMessage(message: ChatMsg) {
     } else {
         cacheList.add(0, message)
         saveString(buildMsgTag(message.sessionId), JsonApi.encodeToString(cacheList).also {
-            printD(it, des = "saveMessage>")
+//            printD(it, des = "saveMessage>")
         })
     }
 }
 
 suspend fun buildMsgTag(sessionId: String): String {
-    return DATA_MESSAGE_TAG + getCacheLong(DATA_USER_ID) + "_$sessionId"
+    return DATA_MESSAGE_TAG + getCacheString(DATA_USER_ID) + "_$sessionId"
 }
 
 fun fetchMsgListFlow(sessionId: String): Flow<List<ChatMsg>> = callbackFlow {

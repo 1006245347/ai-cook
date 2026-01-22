@@ -24,6 +24,7 @@ fun NavigateRoute(navigator: Navigator) {
             WelcomeScreen(navigator)
         }
         scene(NavigationScene.Main.path) {
+
             MainScreen(navigator)
         }
         scene(NavigationScene.BookRead.path + "/{bookId}") { backStackEntry ->

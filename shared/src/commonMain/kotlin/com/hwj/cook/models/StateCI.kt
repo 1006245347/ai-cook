@@ -38,6 +38,8 @@ data class MemoryUiState(
     val memoryOfUser: String?=null
 )
 
+data class FirstUiState( val isDarkBg: Boolean?=null)
+
 //AVI 意图区别，项目小，为了方便只分两大类UI、Data.
 sealed class AppIntent {
     //UI处理 明亮、黑暗主题切换

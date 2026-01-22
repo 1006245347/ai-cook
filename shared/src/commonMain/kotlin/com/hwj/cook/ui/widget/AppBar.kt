@@ -51,6 +51,8 @@ import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
 import com.hwj.cook.global.PrimaryColor
+import com.hwj.cook.global.ThemeChatLite
+import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cBlack333333
 import com.hwj.cook.global.cBlackTxt
 import com.hwj.cook.global.cBlue244260FF
@@ -71,6 +73,7 @@ import moe.tlaster.precompose.koin.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar(
+    isDark: Boolean ,
     pagerState: PagerState,
     isOpenDrawer: Boolean,
     onClickMenu: () -> Unit,
@@ -91,96 +94,98 @@ fun AppBar(
         }
     }
 
-    CenterAlignedTopAppBar(
-        title = {
-            val paddingSizeModifier = Modifier
-            Box {
-                SlidingToggle(
-                    paddingSizeModifier,
-                    options = "Ask" to "Agent ${agentModelState ?: lastAgentState}",
-                    selectedAgent = agentModelState != null,
-                    onChangeAgent = {  //长按 弹窗
-                        onAgentPop(barBounds)
-                    },
-                    onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态
-                        subScope.launch {
-                            if (selected) { //切到agent模式，那么就是ask切过来的，找ask上次缓存的模式
-                                chatVm.changeChatModel(
-                                    getCacheString(
-                                        DATA_AGENT_DEF,
-                                        defAgentLabel
+    ThemeChatLite(isDark = isDark) {
+        CenterAlignedTopAppBar(
+            title = {
+                val paddingSizeModifier = Modifier
+                Box {
+                    SlidingToggle(
+                        paddingSizeModifier,
+                        options = "Ask" to "Agent ${agentModelState ?: lastAgentState}",
+                        selectedAgent = agentModelState != null,
+                        onChangeAgent = {  //长按 弹窗
+                            onAgentPop(barBounds)
+                        },
+                        onSelectedChange = { selected ->  //单击切换 问答/agent   //这是结果状态
+                            subScope.launch {
+                                if (selected) { //切到agent模式，那么就是ask切过来的，找ask上次缓存的模式
+                                    chatVm.changeChatModel(
+                                        getCacheString(
+                                            DATA_AGENT_DEF,
+                                            defAgentLabel
+                                        )
                                     )
-                                )
-                            } else {
-                                chatVm.changeChatModel(null)
+                                } else {
+                                    chatVm.changeChatModel(null)
+                                }
+                                lastAgentState = chatVm.getCacheAgent()
                             }
-                            lastAgentState = chatVm.getCacheAgent()
+                        })
+                }
+            },
+            navigationIcon = {
+                if (!isOpenDrawer) {
+                    ToolTipCase(tip = "边栏", content = {
+                        IconButton(
+                            onClick = {
+                                mainVm.collapsedDrawer()
+                                onClickMenu()
+                            },
+                        ) {
+                            Icon(
+                                Icons.Filled.Menu,
+                                "边栏",
+                                modifier = Modifier.size(26.dp),
+                                tint = PrimaryColor,
+                            )
                         }
                     })
-            }
-        },
-        navigationIcon = {
-            if (!isOpenDrawer) {
-                ToolTipCase(tip = "边栏", content = {
-                    IconButton(
-                        onClick = {
-                            mainVm.collapsedDrawer()
-                            onClickMenu()
-                        },
-                    ) {
-                        Icon(
-                            Icons.Filled.Menu,
-                            "边栏",
-                            modifier = Modifier.size(26.dp),
-                            tint = PrimaryColor,
-                        )
-                    }
-                })
-            }
-        },
+                }
+            },
 
-        colors = TopAppBarDefaults.topAppBarColors(
-            //smallTopAppBarColors
-            containerColor = MaterialTheme.colorScheme.background,
-            titleContentColor = PrimaryColor,
-        ),
-        actions = {
-            if (pagerState.currentPage != pagerState.pageCount - 1)
-                ToolTipCase(tip = "新建会话", content = {
-                    IconButton(onClick = {
+            colors = TopAppBarDefaults.topAppBarColors(
+                //smallTopAppBarColors
+                containerColor = cAutoBg(),
+                titleContentColor = PrimaryColor,
+            ),
+            actions = {
+                if (pagerState.currentPage != pagerState.pageCount - 1)
+                    ToolTipCase(tip = "新建会话", content = {
+                        IconButton(onClick = {
 //                        onNewChat()
-                        //测试
-                        chatVm.test()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.MapsUgc,
-                            contentDescription = "新建会话", tint = PrimaryColor,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                    }
-                })
+                            //测试
+                            chatVm.test()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.MapsUgc,
+                                contentDescription = "新建会话", tint = PrimaryColor,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                        }
+                    })
 
-            if (onlyMobile()) {
-                ToolTipCase(tip = "导航", content = {
-                    IconButton(onClick = { onShowNav(barBounds) }) { //要把参数传出去
-                        Icon(
-                            imageVector = Icons.Default.Navigation,
-                            contentDescription = "导航", tint = PrimaryColor,
-                            modifier = Modifier.padding(4.dp)
-                        )
-                    }
-                })
+                if (onlyMobile()) {
+                    ToolTipCase(tip = "导航", content = {
+                        IconButton(onClick = { onShowNav(barBounds) }) { //要把参数传出去
+                            Icon(
+                                imageVector = Icons.Default.Navigation,
+                                contentDescription = "导航", tint = PrimaryColor,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        }
+                    })
+                }
+            }, modifier = Modifier.onGloballyPositioned { layout ->
+                val pos = layout.localToWindow(Offset.Zero)
+                barBounds = Rect(
+                    left = pos.x,
+                    top = pos.y,
+                    right = pos.x + layout.size.width,
+                    bottom = pos.y + layout.size.height
+                )
             }
-        }, modifier = Modifier.onGloballyPositioned { layout ->
-            val pos = layout.localToWindow(Offset.Zero)
-            barBounds = Rect(
-                left = pos.x,
-                top = pos.y,
-                right = pos.x + layout.size.width,
-                bottom = pos.y + layout.size.height
-            )
-        }
-    )
+        )
+    }
 }
 
 @Composable

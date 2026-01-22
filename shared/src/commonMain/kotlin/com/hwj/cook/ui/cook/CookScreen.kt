@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.NavigationScene
+import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.loadingTip
@@ -58,7 +59,7 @@ fun CookScreen(navigator: Navigator) {
             initialized = true
         }
     }
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Surface(Modifier.fillMaxSize(), color = cAutoBg()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopStart) {
             if (bookRootState.isLoading) {
                 Text(loadingTip, color = MaterialTheme.colorScheme.secondary)

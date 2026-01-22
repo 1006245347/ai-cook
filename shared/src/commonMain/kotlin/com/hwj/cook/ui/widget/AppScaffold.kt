@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.onlyMobile
 import com.hwj.cook.ui.viewmodel.MainVm
 import moe.tlaster.precompose.koin.koinViewModel
@@ -39,7 +40,7 @@ fun AppScaffold(
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
-                ModalDrawerSheet(drawerContentColor = MaterialTheme.colorScheme.background) {
+                ModalDrawerSheet(drawerContentColor = cAutoBg()) {
                     Box {
                         AppDrawer(
                             navigator,drawerState,
@@ -54,7 +55,7 @@ fun AppScaffold(
     } else { //桌面端抽屉和内容并存 ,默认展开抽屉
         PermanentNavigationDrawer(drawerContent = {
             PermanentDrawerSheet(
-                drawerContentColor = MaterialTheme.colorScheme.background,
+                drawerContentColor = cAutoBg(),
                 modifier = Modifier.width(if (drawerState.isClosed) 0.dp else 240.dp)
             ) {
                 Box {

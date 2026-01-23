@@ -59,7 +59,12 @@ expect fun platformAgentTools(): ToolRegistry
 //各个平台特属的智能体 累加
 expect fun plusAgentList(): List<AgentInfoCell>
 
+//用来测试
 expect  suspend fun runLiteWork(call:()-> Unit)
+
+//用来测试
+@Composable
+expect  fun demoUI(content: @Composable ()-> Unit)
 
 @Composable
 expect fun BoxScope.scrollBarIn( state: ScrollState)

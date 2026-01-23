@@ -21,8 +21,6 @@ class SwitchTools(val switch: SuggestCookSwitch) : ToolSet {
     @Tool
     @LLMDescription("Returns the state of the switch")
     fun switchState(): String {
-
-
         return "Switch is ${if (switch.isOn()) "on" else "off"}"
     }
 }

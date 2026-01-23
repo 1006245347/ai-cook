@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.McpClientUtils
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
+import com.hwj.cook.agent.provider.testConsoleAgent1
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.DarkColorScheme
@@ -40,6 +41,7 @@ import com.hwj.cook.global.printD
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.SuggestCookSwitch
+import com.hwj.cook.ui.StreamingChatScreen
 import com.sun.management.OperatingSystemMXBean
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpSend
@@ -264,8 +266,17 @@ actual fun plusAgentList(): List<AgentInfoCell> {
 actual suspend fun runLiteWork(call: () -> Unit) {
 //    McpClientUtils.searchMcpClientSSE("today is ?",getCacheString(DATA_MCP_KEY)!!)
 //    McpClientUtils.tryClient()
-    McpClientUtils.testMcp()
+//    McpClientUtils.testMcp()
+
+    //
+
     call()
+}
+
+@Composable
+actual fun demoUI(content: @Composable () -> Unit) {
+    StreamingChatScreen()
+    content()
 }
 
 //官方只有jvm才有滚动条，mobile没搞

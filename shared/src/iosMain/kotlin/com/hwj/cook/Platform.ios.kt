@@ -231,5 +231,10 @@ actual suspend fun runLiteWork(call: () -> Unit) {
 }
 
 @Composable
+actual  fun demoUI(content: @Composable ()-> Unit){
+    content()
+}
+
+@Composable
 actual fun BoxScope.scrollBarIn(state: ScrollState) {
 }

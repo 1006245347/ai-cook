@@ -548,8 +548,8 @@ class ChatVm(
     fun test() {
         viewModelScope.launch {
 //            printList(_sessionObs.value, "all-session")
-            clearCache()
-//            runLiteWork {  }
+//            clearCache()
+            runLiteWork {  }
 //            testMcp2()
 
         }

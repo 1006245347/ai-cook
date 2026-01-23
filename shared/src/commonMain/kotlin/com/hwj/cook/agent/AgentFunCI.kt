@@ -1,5 +1,8 @@
 package com.hwj.cook.agent
 
+import ai.koog.agents.core.agent.AIAgent
+import ai.koog.agents.core.agent.functionalStrategy
+import ai.koog.agents.core.dsl.extension.requestLLM
 import ai.koog.agents.memory.model.Fact
 import ai.koog.agents.memory.model.MemoryScope
 import ai.koog.agents.memory.model.MemorySubject
@@ -76,6 +79,26 @@ suspend fun chatStreaming(
         .collect { chunk: StreamFrame ->
             streaming(chunk)
         }
+}
+
+suspend fun agentChat() {
+    val apiKey = getCacheString(DATA_APP_TOKEN)!!
+    val executor = SingleLLMPromptExecutor(buildQwenLLMClient(apiKey))
+    executor.use { }
+    val chatAgent = AIAgent<String, Unit>(
+        systemPrompt = "You're a simple chat agent",
+        promptExecutor = executor,
+        strategy = functionalStrategy {
+            var userResponse = it
+            while (userResponse != "/bye") {
+                val responses = requestLLM(userResponse)
+                println(responses.content)
+                userResponse = readln()
+            }
+        },
+        llmModel = buildQwen3LLM()
+    )
+    chatAgent.run("")
 }
 
 fun buildEditLLM(id: String): LLModel {
@@ -155,21 +178,23 @@ fun buildQwen3EmeLLM(): LLModel {
     )
 }
 
-fun buildZaiLLM(): LLModel{
-    return LLModel(provider = LLMProvider.Anthropic,id="zai-org/GLM-4.6V",capabilities = listOf(
-        LLMCapability.Temperature,
-        LLMCapability.Schema.JSON.Basic,
-        LLMCapability.Schema.JSON.Standard,
-        LLMCapability.Speculation,
-        LLMCapability.Tools,
-        LLMCapability.ToolChoice,
-        LLMCapability.Vision.Image,
-        LLMCapability.Document,
-        LLMCapability.Completion,
-        LLMCapability.MultipleChoices,
-        LLMCapability.OpenAIEndpoint.Completions,
-        LLMCapability.OpenAIEndpoint.Responses,
-    ), contextLength = 131_072)
+fun buildZaiLLM(): LLModel {
+    return LLModel(
+        provider = LLMProvider.Anthropic, id = "zai-org/GLM-4.6V", capabilities = listOf(
+            LLMCapability.Temperature,
+            LLMCapability.Schema.JSON.Basic,
+            LLMCapability.Schema.JSON.Standard,
+            LLMCapability.Speculation,
+            LLMCapability.Tools,
+            LLMCapability.ToolChoice,
+            LLMCapability.Vision.Image,
+            LLMCapability.Document,
+            LLMCapability.Completion,
+            LLMCapability.MultipleChoices,
+            LLMCapability.OpenAIEndpoint.Completions,
+            LLMCapability.OpenAIEndpoint.Responses,
+        ), contextLength = 131_072
+    )
 }
 
 //处理向量化

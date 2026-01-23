@@ -135,7 +135,7 @@ fun ChatScreenContent(
     ) {
         MessageList(
             Modifier.weight(1f).padding(horizontal = 10.dp),
-            messages, isDark,isLoading
+            messages, isDark, isLoading
         )
         //列表滚动时控制菜单按钮是否显示
 
@@ -158,7 +158,12 @@ fun ChatScreenContent(
 }
 
 @Composable
-private fun MessageList(modifier: Modifier, messages: List<ChatMsg>, isDark: Boolean,isLoading: Boolean) {
+private fun MessageList(
+    modifier: Modifier,
+    messages: List<ChatMsg>,
+    isDark: Boolean,
+    isLoading: Boolean
+) {
     Box(
         modifier = modifier
     ) {
@@ -168,16 +173,22 @@ private fun MessageList(modifier: Modifier, messages: List<ChatMsg>, isDark: Boo
             modifier = Modifier.fillMaxSize(), reverseLayout = true, //反转显示
             state = rememberLazyListState(), verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            itemsIndexed(messages) { index,msg ->
+            itemsIndexed(messages) { index, msg ->
                 when (msg) {
-                    is ChatMsg.UserMsg -> UserMessageBubble(isDark,msg.txt)
-                    is ChatMsg.AgentMsg -> AgentMessageBubble(isDark,msg.txt)
+                    is ChatMsg.UserMsg -> UserMessageBubble(isDark, msg.txt)
+                    is ChatMsg.AgentMsg -> AgentMessageBubble(isDark, msg.txt)
                     is ChatMsg.SystemMsg -> msg.txt?.let {
 //                        SystemMessageItem(isDark,it)
                     }
-                    is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(isDark,it) }
-                    is ChatMsg.ToolCallMsg -> msg.txt?.let { ToolCallMessageItem(isDark,it) }
-                    is ChatMsg.ResultMsg -> ResultMessageItem(isDark,msg.txt,index==0,isLoading)
+
+                    is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(isDark, it) }
+                    is ChatMsg.ToolCallMsg -> msg.txt?.let { ToolCallMessageItem(isDark, it) }
+                    is ChatMsg.ResultMsg -> ResultMessageItem(
+                        isDark,
+                        msg.txt,
+                        index == 0,
+                        isLoading
+                    )
                 }
             }
 

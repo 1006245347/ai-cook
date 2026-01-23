@@ -76,8 +76,8 @@ fun buildQwenLLMClient(apiKey: String): DashscopeLLMClient {
             chatCompletionsPath = "chat/completions",
             timeoutConfig = ConnectionTimeoutConfig(
                 requestTimeoutMillis = 60000 * 5,
-                connectTimeoutMillis = 20000,
-                socketTimeoutMillis = 15000
+                connectTimeoutMillis = 200000,
+                socketTimeoutMillis = 150000
             )
         ), baseClient = createKtorHttpClient(timeout = 15000, {})
     )

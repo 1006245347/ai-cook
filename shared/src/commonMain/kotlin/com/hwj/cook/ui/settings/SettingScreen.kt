@@ -42,6 +42,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hwj.cook.demoUI
 import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.PrimaryColor
@@ -196,7 +197,8 @@ fun SettingsScreenContent(
             }
         }
         if (isShowMcpInput) {
-            InputKey(isDark) { isShowMcpInput = false }
+//            InputKey(isDark) { isShowMcpInput = false }
+            demoUI {}
         }
     }
 }

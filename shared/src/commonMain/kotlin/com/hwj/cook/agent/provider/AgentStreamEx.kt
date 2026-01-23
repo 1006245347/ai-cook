@@ -90,7 +90,7 @@ fun agentStreamConfig() = AIAgentConfig(
     maxAgentIterations = 10
 )
 
-fun streamingWithToolsStrategy() = strategy("streaming_loop") {
+fun streamingWithToolsStrategy1() = strategy("streaming_loop") {
     val executeMultipleTools by nodeExecuteMultipleTools(parallelTools = true)
     val nodeStreaming by nodeLLMRequestStreamingAndSendResults()
 

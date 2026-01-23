@@ -29,6 +29,7 @@ class SettingVm : ViewModel() {
     val modelsState = MutableStateFlow(_modelsObs).asStateFlow()
 
     fun initialize() {
+
         viewModelScope.launch {
             val cache = getCacheString(DATA_MODEL_LIST)
             cache?.let {
@@ -39,7 +40,6 @@ class SettingVm : ViewModel() {
                 }
             }
             autoAddModel()
-            printList(_modelsObs,"now-models")
         }
     }
 
@@ -143,21 +143,15 @@ class SettingVm : ViewModel() {
     }
 
     //只允许一个默认大模型
-    fun setDefModel(model: ModelInfoCell) {
-        viewModelScope.launch {
-            printList(_modelsObs,"all-model")
-            _modelsObs.forEach { cell ->
-                cell.default = false
-                printD("????${cell.modelName} ${model.modelName}  ${cell.modelName==model.modelName}  ${cell.alias} ${model.alias}  ${cell.alias==model.alias}")
-                if (cell.modelName == model.modelName &&
-                    cell.alias == model.alias
-                ) {
-                    cell.default = true
-                    saveString(DATA_APP_TOKEN, cell.apiKey)
-                    saveObj(DATA_MODEL_DEF, cell)
-                    val model = getCacheObj<ModelInfoCell>(DATA_MODEL_DEF)
-                    printD("def??$model")
-                }
+    suspend fun setDefModel(model: ModelInfoCell) {
+        _modelsObs.forEach { cell ->
+            cell.default = false
+            if (cell.modelName == model.modelName &&
+                cell.alias == model.alias
+            ) {
+                cell.default = true
+                saveString(DATA_APP_TOKEN, cell.apiKey)
+                saveObj(DATA_MODEL_DEF, cell)
             }
         }
     }

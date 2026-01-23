@@ -30,6 +30,7 @@ import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.except.ClipboardHelper
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
+import com.hwj.cook.global.clearCache
 import com.hwj.cook.global.defAgentLabel
 import com.hwj.cook.global.defSystemTip
 import com.hwj.cook.global.getCacheString
@@ -547,7 +548,7 @@ class ChatVm(
     fun test() {
         viewModelScope.launch {
 //            printList(_sessionObs.value, "all-session")
-//            clearCache()
+            clearCache()
 //            runLiteWork {  }
 //            testMcp2()
 

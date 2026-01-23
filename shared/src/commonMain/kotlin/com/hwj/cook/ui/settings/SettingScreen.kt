@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -86,6 +88,7 @@ fun SettingScreen(navigator: Navigator) {
             printD("lastModel>$callback")
         }
     }, onDefClicked = { model ->
+        printD("defClick>$model")
         model?.let { settingVm.setDefModel(model) }
     }, onNavScreen = { navigator.navigate(NavigationScene.SettingsDef.path) })
 }
@@ -95,7 +98,7 @@ fun SettingsScreenContent(
     models: List<ModelInfoCell>,
     isDark: Boolean,
     onAddClicked: (Int) -> Unit,
-    onDefClicked: (ModelInfoCell?) -> Unit,
+    onDefClicked: suspend (ModelInfoCell?) -> Unit,
     onNavScreen: () -> Unit
 ) {
     var isShowDefView by remember { mutableStateOf(false) }
@@ -109,10 +112,10 @@ fun SettingsScreenContent(
     }
     Box(modifier = Modifier.fillMaxSize()) {
         Card(
-            modifier = Modifier.padding(top = 20.dp).wrapContentWidth().align(Alignment.TopCenter),
+            modifier = Modifier.padding(5.dp).wrapContentWidth().align(Alignment.TopCenter),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Row() {
+            Row(Modifier.padding(top = 10.dp, bottom = 10.dp, start = 5.dp)) {
                 Text(
                     text = "新增大模型>",
                     fontSize = 15.sp,
@@ -140,7 +143,7 @@ fun SettingsScreenContent(
         }
 
         Card(
-            modifier = Modifier.padding(top = 40.dp).fillMaxWidth(),
+            modifier = Modifier.padding(top = 70.dp, start = 5.dp, end = 5.dp).fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(contentColor = cAutoBg())
         ) {
@@ -156,12 +159,14 @@ fun SettingsScreenContent(
                 }
 
                 itemsIndexed(models) { index, cell ->
+                    val defLabel = if (cell.default) " 默认" else ""
                     Column(
                         Modifier.clickable(onClick = { onAddClicked(index + 1) })
                             .padding(top = 10.dp)
                     ) {
+
                         Text(
-                            text = cell.alias ?: "model$index",
+                            text = (cell.alias ?: "model$index") + defLabel,
                             fontSize = 13.sp,
                             color = cAutoTxt(isDark)
                         )
@@ -182,9 +187,11 @@ fun SettingsScreenContent(
                 Spacer(Modifier.height(70.dp).background(cOrangeFFB8664()))
                 SingleCheckUI(
                     isDark, models, mutableStateOf(models.firstOrNull { it.default })
-                ) { model ->
-                    onDefClicked(model)
-                    isShowDefView = false
+                ) { model -> //单选设为默认
+                    subScope.launch {
+                        onDefClicked(model)
+                        isShowDefView = false
+                    }
                 }
             }
         }
@@ -243,7 +250,7 @@ fun SingleCheckUI(
             shape = RoundedCornerShape(8.dp),
             dropdownActionListener = object : DropdownActionListener() {
                 override fun <T> onItemSelect(item: T) {
-                    printD("click>$item")
+//                    printD("click>$item")
                     callback(item as ModelInfoCell?)
                 }
             }),

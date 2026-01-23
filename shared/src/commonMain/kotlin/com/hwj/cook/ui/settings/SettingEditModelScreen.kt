@@ -2,13 +2,16 @@ package com.hwj.cook.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -43,9 +47,12 @@ import com.hwj.cook.except.ToolTipCase
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.ThemeChatLite
 import com.hwj.cook.global.cAutoTxt
+import com.hwj.cook.global.cBasic
+import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.cTransparent
 import com.hwj.cook.global.printE
 import com.hwj.cook.models.ModelInfoCell
+import com.hwj.cook.scrollBarIn
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.Dispatchers
@@ -78,94 +85,101 @@ fun SettingEditModelScreen(navigator: Navigator, index: Int) {
     val chatUrl = remember { mutableStateOf(model?.chatCompletionPath ?: "") }
     val embedUrl = remember { mutableStateOf(model?.embeddingsPath ?: "") }
 
-    ThemeChatLite (){
-        Column(
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-        ) {
-            CenterAlignedTopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { //返回时上个页面被重载了
-                        navigator.goBack()
-                    }) {
-                        Icon(Icons.Filled.ArrowBackIosNew, "back", tint = PrimaryColor)
-                    }
-                }, title = {
-                    Text(text = if (isAdd) "新增大模型" else "更新大模型", color = cAutoTxt(isDark))
-                }, colors = TopAppBarDefaults.topAppBarColors(
-                    //smallTopAppBarColors
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = PrimaryColor,
-                ), actions = {
-                    if (!isAdd)
-                        ToolTipCase(tip = "删除", content = {
-                            IconButton(onClick = {
-                                modelName.value.let {
-                                    settingVm.deleteModel(it)
+    val scrollState = rememberScrollState()
+    ThemeChatLite(isDark = isDark) {
+        Box(Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                    .verticalScroll(scrollState).padding(5.dp),
+
+                ) {
+                CenterAlignedTopAppBar(
+                    navigationIcon = {
+                        IconButton(onClick = { //返回时上个页面被重载了
+                            navigator.goBack()
+                        }) {
+                            Icon(Icons.Filled.ArrowBackIosNew, "back", tint = PrimaryColor)
+                        }
+                    }, title = {
+                        Text(text = if (isAdd) "新增大模型" else "更新大模型", color = cBasic())
+                    }, colors = TopAppBarDefaults.topAppBarColors(
+                        //smallTopAppBarColors
+                        containerColor = MaterialTheme.colorScheme.background,
+                        titleContentColor = PrimaryColor,
+                    ), actions = {
+                        if (!isAdd)
+                            ToolTipCase(tip = "删除", content = {
+                                IconButton(onClick = {
+                                    modelName.value.let {
+                                        settingVm.deleteModel(it)
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "删除", tint = PrimaryColor,
+                                        modifier = Modifier.padding(end = 4.dp)
+                                    )
                                 }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "删除", tint = PrimaryColor,
-                                    modifier = Modifier.padding(end = 4.dp)
+                            })
+                    })
+
+                HorizontalDivider(thickness = 8.dp, color = cTransparent())
+                InputBox(alias, isDark, "模型别名如：deepseek-v3")
+                InputBox(apiKey, isDark, "ApiKey")
+                InputBox(modelName, isDark, "模型名如：deepseek-v3")
+                InputBox(baseUrl, isDark, "域名如：https://baitong-it.com")
+                InputBox(chatUrl, isDark, "模型对话接口：baitong/chat/completions")
+                InputBox(
+                    embedUrl, isDark,
+                    "模型向量化（可空）：https://baitong-it.gree.com/openapi/v2/embeddings"
+                )
+
+                IconButton(
+                    onClick = {
+                        subScope.launch(Dispatchers.Default) {
+                            var flag: Boolean
+                            if (isAdd) {
+                                flag = settingVm.addModel(
+                                    alias.value,
+                                    apiKey.value,
+                                    modelName.value,
+                                    baseUrl.value,
+                                    chatUrl.value,
+                                    embedUrl.value
+                                )
+                            } else {
+                                flag = settingVm.updateModel(
+                                    index - 1, alias.value,
+                                    apiKey.value,
+                                    modelName.value,
+                                    baseUrl.value,
+                                    chatUrl.value,
+                                    embedUrl.value
                                 )
                             }
-                        })
-                })
-
-            HorizontalDivider(thickness = 8.dp, color = cTransparent())
-            InputBox(alias, isDark, "模型别名如：deepseek-v3")
-            InputBox(apiKey, isDark, "ApiKey")
-            InputBox(modelName, isDark, "模型名如：deepseek-v3")
-            InputBox(baseUrl, isDark, "域名如：https://baitong-it.com")
-            InputBox(chatUrl, isDark, "模型对话接口：baitong/chat/completions")
-            InputBox(
-                embedUrl, isDark,
-                "模型向量化（可空）：https://baitong-it.gree.com/openapi/v2/embeddings"
-            )
-
-            IconButton(
-                onClick = {
-                    subScope.launch(Dispatchers.Default) {
-                        var flag: Boolean
-                        if (isAdd) {
-                            flag = settingVm.addModel(
-                                alias.value,
-                                apiKey.value,
-                                modelName.value,
-                                baseUrl.value,
-                                chatUrl.value,
-                                embedUrl.value
-                            )
-                        } else {
-                            flag = settingVm.updateModel(
-                                index - 1, alias.value,
-                                apiKey.value,
-                                modelName.value,
-                                baseUrl.value,
-                                chatUrl.value,
-                                embedUrl.value
-                            )
+                            if (flag)
+                                navigator.goBackWith(modelName.value)
+                            //返回同时更新上个列表
                         }
-                        if (flag)
-                            navigator.goBackWith(modelName.value)
-                        //返回同时更新上个列表
-                    }
-                },//响应按钮事件
-                modifier = Modifier
-                    .padding(top = 10.dp)
-                    .align(alignment = Alignment.CenterHorizontally)
-                    .size(30.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Save,
-                    contentDescription = "Save",
-                    tint = PrimaryColor
-                )
+                    },//响应按钮事件
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .align(alignment = Alignment.CenterHorizontally)
+                        .size(30.dp)
+                        .clip(CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = "Save",
+                        tint = PrimaryColor
+                    )
+                }
             }
+
+            scrollBarIn(state = scrollState)//滚动条
         }
     }
+
 }
 
 @Composable
@@ -179,17 +193,27 @@ private fun InputBox(inputState: MutableState<String>, isDark: Boolean, des: Str
                 printE("too long!")
             }
         },
-        modifier = Modifier.padding(start = 2.dp, top = 5.dp, end = 2.dp, bottom = 0.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(start = 2.dp, top = 20.dp, end = 2.dp, bottom = 0.dp)
+            .fillMaxWidth().heightIn(48.dp),
         shape = RoundedCornerShape(8.dp), maxLines = 3,
-        placeholder = {
+        label = { //用placeHolder也行
             Text(
                 des,
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = 13.sp,
+                fontSize = 11.sp,
                 modifier = Modifier.background(cTransparent()).height(50.dp)
             )
         },
-        textStyle = TextStyle(fontSize = 13.sp, color = cAutoTxt(isDark = isDark))
+        textStyle = TextStyle(fontSize = 13.sp, color = cAutoTxt(isDark = isDark)),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = cAutoTxt(isDark),
+            unfocusedTextColor = cAutoTxt(isDark),
+
+            focusedPlaceholderColor = cAutoTxt(isDark).copy(alpha = 0.4f),
+            unfocusedPlaceholderColor = cAutoTxt(isDark).copy(alpha = 0.4f),
+
+            focusedBorderColor = cBasic(),
+            unfocusedBorderColor = cDeepLine()
+        )
     )
 }

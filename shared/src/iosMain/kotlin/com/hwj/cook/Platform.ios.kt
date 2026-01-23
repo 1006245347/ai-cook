@@ -5,6 +5,8 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.SimpleStorage
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.global.askPermission
@@ -226,4 +228,8 @@ actual fun plusAgentList(): List<AgentInfoCell> {
 
 actual suspend fun runLiteWork(call: () -> Unit) {
     call()
+}
+
+@Composable
+actual fun BoxScope.scrollBarIn(state: ScrollState) {
 }

@@ -1,19 +1,26 @@
 package com.hwj.cook.global
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -22,6 +29,9 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cook.shared.generated.resources.Res
@@ -65,7 +75,7 @@ fun LoadingThinking(text: String) {
             archive = Res.readBytes("files/dotlottie/cloading.lottie")//37
         )
     }
-    Row (modifier = Modifier.height(40.dp)){
+    Row(modifier = Modifier.height(40.dp)) {
         Text(
             text, color = MaterialTheme.colorScheme.onTertiary, fontSize = 13.sp,
             modifier = Modifier.padding(start = 18.dp, end = 0.dp, top = 6.dp, bottom = 6.dp)
@@ -76,9 +86,64 @@ fun LoadingThinking(text: String) {
                 iterations = Compottie.IterateForever
             ),
             contentDescription = "thinking", modifier = Modifier.width(50.dp).fillMaxHeight()
-                .align(Alignment.CenterVertically).padding(end=2.dp)
+                .align(Alignment.CenterVertically).padding(end = 2.dp)
         )
     }
 }
 
+//通用滚动条 UniversalVerticalScrollbar(
+//        listState,
+//        Modifier.align(Alignment.CenterEnd)
+//    )
+@Composable
+fun ListScrollbar(
+    listState: LazyListState,
+    modifier: Modifier = Modifier,
+    minThumbHeight: Dp = 24.dp
+) {
+    val layoutInfo = listState.layoutInfo
+    val visibleItems = layoutInfo.visibleItemsInfo
 
+    if (visibleItems.isEmpty()) return
+
+    val density = LocalDensity.current
+
+    val averageItemSize = visibleItems.map { it.size }.average()
+    val totalItems = layoutInfo.totalItemsCount
+    val viewportHeight = layoutInfo.viewportEndOffset.toFloat()
+
+    val contentHeight = totalItems * averageItemSize
+
+    val scrollOffset =
+        listState.firstVisibleItemIndex * averageItemSize +
+                listState.firstVisibleItemScrollOffset
+
+    val progress =
+        (scrollOffset / (contentHeight - viewportHeight))
+            .coerceIn(0.0, 1.0)
+
+    val thumbHeightPx =
+        (viewportHeight / contentHeight * viewportHeight).toFloat()//double转了下
+            .coerceAtLeast(with(density) { minThumbHeight.toPx() })
+
+    val thumbOffsetPx =
+        progress * (viewportHeight - thumbHeightPx)
+
+    Box(
+        modifier
+            .fillMaxHeight()
+            .width(6.dp)
+            .background(Color.Transparent)
+    ) {
+        Box(
+            Modifier
+                .offset { IntOffset(0, thumbOffsetPx.toInt()) }
+                .height(with(density) { thumbHeightPx.toDp() })
+                .fillMaxWidth()
+                .background(
+                    Color.Gray.copy(alpha = 0.6f),
+                    RoundedCornerShape(3.dp)
+                )
+        )
+    }
+}

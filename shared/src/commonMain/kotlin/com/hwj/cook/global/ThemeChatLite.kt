@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ThemeChatLite(
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isSystemInDarkTheme(), //记得使用时赋值isDark
     content: @Composable () -> Unit
 ) {
     //兼容平台的主题色

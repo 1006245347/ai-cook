@@ -4,6 +4,10 @@ package com.hwj.cook
 import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.agent.provider.AgentInfoCell
@@ -56,3 +60,6 @@ expect fun platformAgentTools(): ToolRegistry
 expect fun plusAgentList(): List<AgentInfoCell>
 
 expect  suspend fun runLiteWork(call:()-> Unit)
+
+@Composable
+expect fun BoxScope.scrollBarIn( state: ScrollState)

@@ -9,8 +9,20 @@ import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
 import ai.koog.rag.base.files.JVMFileSystemProvider
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.McpClientUtils
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
@@ -20,6 +32,9 @@ import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.baseHostUrl
+import com.hwj.cook.global.cBasic
+import com.hwj.cook.global.cBlue244260FF
+import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.models.BookNode
@@ -246,9 +261,26 @@ actual fun plusAgentList(): List<AgentInfoCell> {
     return list
 }
 
-actual  suspend fun runLiteWork(call:()-> Unit){
+actual suspend fun runLiteWork(call: () -> Unit) {
 //    McpClientUtils.searchMcpClientSSE("today is ?",getCacheString(DATA_MCP_KEY)!!)
 //    McpClientUtils.tryClient()
     McpClientUtils.testMcp()
     call()
+}
+
+//官方只有jvm才有滚动条，mobile没搞
+@Composable
+actual fun BoxScope.scrollBarIn(state: ScrollState) {
+    val barStyle = ScrollbarStyle(
+        minimalHeight = 16.dp,
+        shape = RoundedCornerShape(3.dp),
+        thickness = 4.dp,
+        hoverDurationMillis = 300,
+        unhoverColor = cBasic(),
+        hoverColor = cBlue244260FF()
+    )
+    VerticalScrollbar(
+        adapter = rememberScrollbarAdapter(state), style = barStyle,
+        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight()
+    )
 }

@@ -16,7 +16,11 @@ import android.content.Context
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -127,9 +131,12 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
         }
         //允许分块处理
         expectSuccess = true
-    }.also{ client->
-        client.plugin(HttpSend).intercept { request->
-            request.headers.append(HttpHeaders.Authorization,"Bearer ${getCacheString(DATA_MCP_KEY)}")
+    }.also { client ->
+        client.plugin(HttpSend).intercept { request ->
+            request.headers.append(
+                HttpHeaders.Authorization,
+                "Bearer ${getCacheString(DATA_MCP_KEY)}"
+            )
             execute(request)
         }
     }
@@ -331,4 +338,9 @@ actual fun platformAgentTools(): ToolRegistry {
 actual fun plusAgentList(): List<AgentInfoCell> {
     return listOf()
 }
-actual  suspend fun runLiteWork(call:()-> Unit) {}
+
+actual suspend fun runLiteWork(call: () -> Unit) {}
+
+@Composable
+actual fun BoxScope.scrollBarIn(state: ScrollState) {
+}

@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 //common
-fun cBasic() = Color(0xFF014AA7)
+fun cBasic() = Color(0xFF6650a4)
 fun cBasic4D014AA7() = Color(0x4D014AA7)
 fun cLowOrange() = Color(0XFFFAAD96)
 fun cTransparent() = Color(0x00000000)

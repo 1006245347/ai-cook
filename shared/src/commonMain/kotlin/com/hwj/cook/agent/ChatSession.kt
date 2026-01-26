@@ -2,6 +2,7 @@
 
 package com.hwj.cook.agent
 
+import ai.koog.prompt.message.Message
 import com.hwj.cook.global.getMills
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,7 +15,7 @@ data class ChatSession(
     val id: String = Uuid.random().toString(),
     val title: String = "新会话",
     val createTime: Long = getMills(),
-//    val messages: MutableList<ChatMsg>
+    val updateTime: Long=getMills()
 )
 
 //单条消息对话
@@ -23,7 +24,7 @@ data class ChatSession(
 sealed class ChatMsg {
     val id: String = Uuid.random().toString()
     var sessionId: String=""
-    val createTime: Long = 0L
+    val createTime: Long = getMills()
     var state: ChatState = ChatState.Idle
 
     @Serializable
@@ -35,7 +36,9 @@ sealed class ChatMsg {
     @Serializable
     data class ErrorMsg(val txt: String?) : ChatMsg()
     @Serializable
-    data class ToolCallMsg(val txt: String?) : ChatMsg()
+    data class ToolCallMsg(val call: Message.Tool.Call) : ChatMsg()
+    @Serializable
+    data class ToolResultMsg(val result: Message.Tool.Result) : ChatMsg()
     @Serializable
     data class ResultMsg(val txt: String) : ChatMsg()
 }

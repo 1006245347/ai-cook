@@ -41,6 +41,11 @@ suspend fun createMemoryProvider(): AgentMemoryProvider {
     return createFileMemoryProvider(scopeIdFromUserId!!)
 }
 
+//对应会话的记忆
+suspend fun createSessionMemory(sessionId: String): AgentMemoryProvider{
+    return createFileMemoryProvider(sessionId)
+}
+
 //保存的事实是哪类主题subject,属于哪个范围scope,这里的记忆将被所有智能体、功能模块调用，与用户id相关
 suspend fun saveMemory(
     memoryProvider: AgentMemoryProvider,

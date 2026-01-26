@@ -18,6 +18,7 @@ import ai.koog.agents.memory.feature.AgentMemory
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import ai.koog.prompt.message.Message
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.createMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
@@ -33,7 +34,8 @@ class McpSearchAgentProvider(
 
 
     override suspend fun provideAgent(
-        onToolCallEvent: suspend (String) -> Unit,
+        onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
+        onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String

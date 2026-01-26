@@ -16,9 +16,12 @@ import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.executor.model.PromptExecutor
+import ai.koog.prompt.message.ContentPart
 import ai.koog.prompt.message.Message
 import ai.koog.prompt.message.RequestMetaInfo
+import ai.koog.prompt.message.ResponseMetaInfo
 import ai.koog.prompt.streaming.StreamFrame
+import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
@@ -32,7 +35,8 @@ class SuggestCookAgentProvider(
 ) : AgentProvider<String, String> {
 
     override suspend fun provideAgent(
-        onToolCallEvent: suspend (String) -> Unit,
+        onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
+        onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
@@ -46,9 +50,26 @@ class SuggestCookAgentProvider(
 
         val agent = openAiAgent(toolRegistry, remoteAiExecutor) {
             handleEvents {   //可流式的关键
-                onToolCallStarting { context ->
-//                    println("\n🔧 Using ${context.tool.name} with ${context.toolArgs}... ")
-                    onToolCallEvent("\n🔧 Using ${context.toolName} with ${context.toolArgs}... ")
+                onToolCallStarting { ctx ->
+//                    onToolCallEvent("\n🔧 Using ${ctx.toolName} with ${ctx.toolArgs}... ")
+                    onToolCallEvent(
+                        Message.Tool.Call(
+                            id = ctx.toolCallId,
+                            tool = ctx.toolName,
+                            part = ContentPart.Text(text = JsonApi.encodeToString(ctx.toolArgs)),
+                            metaInfo = ResponseMetaInfo.Empty //对不上类型
+                        )
+                    )
+                }
+                onToolCallCompleted { ctx ->
+                    onToolResultEvent(
+                        Message.Tool.Result(
+                            id = ctx.toolCallId,
+                            tool = ctx.toolName,
+                            part = ContentPart.Text(text = JsonApi.encodeToString(ctx.toolArgs)),
+                            metaInfo = RequestMetaInfo.Empty
+                        )
+                    )
                 }
                 onLLMStreamingFrameReceived { context ->
                     when (val chunk = context.streamFrame) {
@@ -108,6 +129,7 @@ class SuggestCookAgentProvider(
 
 
     fun streamingWithToolsStrategy() = strategy("streaming_loop") {
+
         val executeMultipleTools by nodeExecuteMultipleTools(parallelTools = true)
         val nodeStreaming by nodeLLMRequestStreamingAndSendResults() // return List<Message.Response>
 

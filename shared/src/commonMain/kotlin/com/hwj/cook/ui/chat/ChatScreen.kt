@@ -30,6 +30,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
+import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.createPermission
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DATA_AGENT_INDEX
@@ -182,7 +183,16 @@ private fun MessageList(
                     }
 
                     is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(isDark, it) }
-                    is ChatMsg.ToolCallMsg -> msg.txt?.let { ToolCallMessageItem(isDark, it) }
+                    is ChatMsg.ToolCallMsg -> ToolCallMessageItem(
+                        isDark,
+                        JsonApi.encodeToString(msg.call)
+                    )
+
+                    is ChatMsg.ToolResultMsg -> ToolCallMessageItem(
+                        isDark,
+                        JsonApi.encodeToString(msg.result)
+                    )
+
                     is ChatMsg.ResultMsg -> ResultMessageItem(
                         isDark,
                         msg.txt,

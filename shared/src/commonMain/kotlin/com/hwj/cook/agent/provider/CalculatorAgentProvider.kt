@@ -19,6 +19,7 @@ import ai.koog.prompt.executor.clients.LLMClient
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.llm.LLModel
+import ai.koog.prompt.message.Message
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.tools.CalculatorTools
 import com.hwj.cook.global.DATA_APP_TOKEN
@@ -30,14 +31,15 @@ import com.hwj.cook.global.getCacheString
  * des: demo
  */
 class CalculatorAgentProvider(private val provideLLMClient: suspend () -> Pair<LLMClient, LLModel>) :
-    AgentProvider<String, String>  {
+    AgentProvider<String, String> {
 
     override var title: String = "Calculator"
     override val description: String = "Hi, I'm a calculator agent, I can do math"
 
     override suspend fun provideAgent(
-        onToolCallEvent: suspend (String) -> Unit,
-        onLLMStreamFrameEvent:suspend (String)-> Unit,
+        onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
+        onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
+        onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String,
     ): AIAgent<String, String> {
@@ -122,7 +124,7 @@ class CalculatorAgentProvider(private val provideLLMClient: suspend () -> Pair<L
                     """.trimIndent()
                 )
             },
-            model = OpenAIModels.Chat.GPT4o ,
+            model = OpenAIModels.Chat.GPT4o,
             maxAgentIterations = 50
         )
 
@@ -135,7 +137,7 @@ class CalculatorAgentProvider(private val provideLLMClient: suspend () -> Pair<L
         ) {
             handleEvents {
                 onToolCallStarting { ctx ->
-                    onToolCallEvent("Tool ${ctx.toolName}, args ${ctx.toolArgs}")
+//                    onToolCallEvent("Tool ${ctx.toolName}, args ${ctx.toolArgs}")
                 }
 
                 onAgentExecutionFailed { ctx ->

@@ -65,6 +65,7 @@ object AgentManager {
         agent.isRunning()
     }
 
+    //只有搞 node节点时内才有AIAgentContext
     suspend fun AIAgentContext.test1() {
         llm.writeSession {
 //           prompt.messages //历史消息

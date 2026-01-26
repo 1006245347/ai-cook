@@ -8,6 +8,11 @@ import ai.koog.agents.memory.feature.AgentMemory
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import ai.koog.prompt.message.ContentPart
+import ai.koog.prompt.message.Message
+import ai.koog.prompt.message.RequestMetaInfo
+import ai.koog.prompt.message.ResponseMetaInfo
+import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.buildQwenLLMClient
 import com.hwj.cook.agent.createMemoryProvider
@@ -31,7 +36,8 @@ class MemoryAgentProvider(
 ) : AgentProvider<String, String> {
 
     override suspend fun provideAgent(
-        onToolCallEvent: suspend (String) -> Unit,
+        onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
+        onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
@@ -58,7 +64,25 @@ class MemoryAgentProvider(
 
             handleEvents {
                 onToolCallStarting { ctx ->
-                    onToolCallEvent("Tool ${ctx.toolName}, args ${ctx.toolArgs}")
+//                    onToolCallEvent("\n🔧 Using ${ctx.toolName} with ${ctx.toolArgs}... ")
+                    onToolCallEvent(
+                        Message.Tool.Call(
+                            id = ctx.toolCallId,
+                            tool = ctx.toolName,
+                            part = ContentPart.Text(text = JsonApi.encodeToString(ctx.toolArgs)),
+                            metaInfo = ResponseMetaInfo.Empty //对不上类型
+                        )
+                    )
+                }
+                onToolCallCompleted { ctx ->
+                    onToolResultEvent(
+                        Message.Tool.Result(
+                            id = ctx.toolCallId,
+                            tool = ctx.toolName,
+                            part = ContentPart.Text(text = JsonApi.encodeToString(ctx.toolArgs)),
+                            metaInfo = RequestMetaInfo.Empty
+                        )
+                    )
                 }
 
                 onAgentExecutionFailed { ctx ->

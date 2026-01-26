@@ -160,7 +160,7 @@ fun ToolCallMessageItem(isDark: Boolean, text: String) {
         ) {
             Text(
                 text = "Tool call",
-                color = MaterialTheme.colorScheme.tertiary,
+                color =cAutoTxt(isDark),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(start = dp10())
             )
@@ -191,7 +191,7 @@ fun ResultMessageItem(isDark: Boolean, text: String, isLatest: Boolean, isLoadin
         ) {
             Text(
                 text = "Result",
-                color = MaterialTheme.colorScheme.secondary,
+                color = cAutoTxt(isDark),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(start = dp10())
             )

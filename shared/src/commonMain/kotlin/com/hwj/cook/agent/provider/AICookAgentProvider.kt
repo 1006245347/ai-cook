@@ -18,6 +18,11 @@ import ai.koog.agents.memory.feature.AgentMemory
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
+import ai.koog.prompt.message.ContentPart
+import ai.koog.prompt.message.Message
+import ai.koog.prompt.message.RequestMetaInfo
+import ai.koog.prompt.message.ResponseMetaInfo
+import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.buildEditLLM
 import com.hwj.cook.agent.createMemoryProvider
@@ -43,7 +48,8 @@ class AICookAgentProvider : AgentProvider<String, String> {
     override val description: String = "Hi,I'm a chef agent,I can teach how to cook."
 
     override suspend fun provideAgent(
-        onToolCallEvent: suspend (String) -> Unit,
+        onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
+        onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
@@ -146,7 +152,7 @@ class AICookAgentProvider : AgentProvider<String, String> {
                     """.trimIndent()
                 )
             }, model = buildEditLLM(modelInfo!!.modelName),
-            maxAgentIterations = 10
+            maxAgentIterations = 30
         )
 
         val userMemoryAgentProvider = createMemoryProvider()
@@ -161,7 +167,25 @@ class AICookAgentProvider : AgentProvider<String, String> {
             }
             handleEvents {
                 onToolCallStarting { ctx ->
-                    onToolCallEvent("start>Tool ${ctx.toolName}, args ${ctx.toolArgs}")
+//                    onToolCallEvent("\n🔧 Using ${ctx.toolName} with ${ctx.toolArgs}... ")
+                    onToolCallEvent(
+                        Message.Tool.Call(
+                            id = ctx.toolCallId,
+                            tool = ctx.toolName,
+                            part = ContentPart.Text(text = JsonApi.encodeToString(ctx.toolArgs)),
+                            metaInfo = ResponseMetaInfo.Empty //对不上类型
+                        )
+                    )
+                }
+                onToolCallCompleted { ctx ->
+                    onToolResultEvent(
+                        Message.Tool.Result(
+                            id = ctx.toolCallId,
+                            tool = ctx.toolName,
+                            part = ContentPart.Text(text = JsonApi.encodeToString(ctx.toolArgs)),
+                            metaInfo = RequestMetaInfo.Empty
+                        )
+                    )
                 }
 
                 onAgentExecutionFailed { ctx -> //这个会返回给外部

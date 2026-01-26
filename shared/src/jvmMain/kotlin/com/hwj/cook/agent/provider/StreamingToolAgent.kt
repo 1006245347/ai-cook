@@ -5,20 +5,24 @@ import com.hwj.cook.models.SuggestCookSwitch
 
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.GraphAIAgent.FeatureContext
+import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.dsl.builder.forwardTo
 import ai.koog.agents.core.dsl.builder.strategy
 import ai.koog.agents.core.dsl.extension.nodeExecuteMultipleTools
 import ai.koog.agents.core.dsl.extension.nodeLLMRequestStreamingAndSendResults
+import ai.koog.agents.core.dsl.extension.nodeLLMSendToolResult
 import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.core.tools.reflect.asTools
 import ai.koog.agents.features.eventHandler.feature.handleEvents
+import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.executor.model.PromptExecutor
 import ai.koog.prompt.message.Message
 import ai.koog.prompt.message.RequestMetaInfo
+import ai.koog.prompt.params.LLMParams
 import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.buildQwen3LLM
@@ -31,11 +35,13 @@ suspend fun testConsoleAgent1() {
     val toolRegistry = ToolRegistry {
         tools(SwitchTools(switch).asTools())
     }
-//    val apiKey = getCacheString(DATA_APP_TOKEN)!! //java测试时不能用，setting没搞
-    val apiKey = "sssss"
+////    val apiKey = getCacheString(DATA_APP_TOKEN)!! //java测试时不能用，setting没搞
+    val apiKey = "ssss"
     SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey = apiKey)).use { executor ->
         //agent的类型 GraphAIAgent<String, List<Message.Response>>
 //        val agent= anthropicAgent(toolRegistry,executor)
+
+//        executor.executeStreaming() //见鬼？
         val agent = chatAiAgent(toolRegistry, executor) {
 
             handleEvents {
@@ -61,7 +67,7 @@ suspend fun testConsoleAgent1() {
         while (input != "/quit") {
             input = readln()  //读一次用户输入
 
-            // Example message:
+            // Example message: 这个
             // Tell me if the switch if on or off. Elaborate on how you will determine that. After that, if it was off, turn it on. Be very verbose in all the steps
 
             agent.run(input)
@@ -72,7 +78,27 @@ suspend fun testConsoleAgent1() {
     }
 }
 
- fun chatAiAgent(
+fun unStreamAgent(
+    toolRegistry: ToolRegistry,
+    executor: PromptExecutor,
+    installFeatures: FeatureContext.() -> Unit = {}
+) = AIAgent.invoke(
+    promptExecutor = executor,
+    strategy = streamingWithToolsStrategy(),
+    agentConfig = AIAgentConfig(//streaming = false  executor??
+        prompt = prompt(
+            id = "prompt",
+            params = LLMParams(temperature = 0.0)
+        ) {
+            system("You're responsible for running a Switch and perform operations on it by request")
+        }, model = buildQwen3LLM(), maxAgentIterations = 50
+    ),
+    toolRegistry = toolRegistry,
+    installFeatures = installFeatures
+)
+
+
+fun chatAiAgent(
     toolRegistry: ToolRegistry,
     executor: PromptExecutor,
     installFeatures: FeatureContext.() -> Unit = {}

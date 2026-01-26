@@ -10,8 +10,9 @@ interface AgentProvider<I, O> {
     val description: String
 
     suspend fun provideAgent(
-        onToolCallEvent: suspend (String) -> Unit,
-        onLLMStreamFrameEvent:suspend (String)-> Unit,
+        onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
+        onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
+        onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
     ): AIAgent<I, O>

@@ -67,16 +67,16 @@ const val logTAG = "COC"
 //desktop端日志在 terminal显示
 fun printD(log: String?, tag: String = logTAG) {
     if (!openLog) return
-    globalScope.launch {
+//    globalScope.launch {
         printLog(log, tag)
-    }
+//    }
 }
 
 fun printD(log: String?, des: String? = null, tag: String = logTAG) {
     if (!openLog) return
-    globalScope.launch {
+//    globalScope.launch {
         printD("$des $log", tag)
-    }
+//    }
 }
 
 fun initKermitLog() {

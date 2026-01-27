@@ -3,6 +3,7 @@ package com.hwj.cook.agent.provider
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.AIAgentService
 import ai.koog.agents.core.agent.GraphAIAgent
+import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.agent.entity.AIAgentGraphStrategy
 import ai.koog.agents.core.agent.invoke
 import ai.koog.agents.core.dsl.builder.forwardTo
@@ -13,6 +14,7 @@ import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.features.eventHandler.feature.handleEvents
+import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.executor.model.PromptExecutor
@@ -23,6 +25,7 @@ import ai.koog.prompt.message.ResponseMetaInfo
 import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printLog
@@ -30,11 +33,11 @@ import com.hwj.cook.platformAgentTools
 import io.ktor.client.request.invoke
 
 class SuggestCookAgentProvider(
-    override var title: String = "Switch",
+    override var title: String = "SwitchAgent",
     override val description: String = "You are a agent,you're responsible for running a Switch and perform operations on it by request"
 ) : AgentProvider<String, String> {
 
-    override suspend fun provideAgent(
+    override suspend fun provideAgent(prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
         onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
@@ -48,7 +51,7 @@ class SuggestCookAgentProvider(
 
         val toolRegistry = ToolRegistry {}.plus(platformAgentTools())
 
-        val agent = openAiAgent(toolRegistry, remoteAiExecutor) {
+        val agent = openAiAgent(toolRegistry,prompt, remoteAiExecutor) {
             handleEvents {   //可流式的关键
                 onToolCallStarting { ctx ->
 //                    onToolCallEvent("\n🔧 Using ${ctx.toolName} with ${ctx.toolArgs}... ")
@@ -114,15 +117,13 @@ class SuggestCookAgentProvider(
     //Argument type mismatch: actual type is 'AIAgentGraphStrategy<String, List<Message.Response>>',
     // but 'AIAgentGraphStrategy<String, String>' was expected.
     fun openAiAgent(
-        toolRegistry: ToolRegistry,
+        toolRegistry: ToolRegistry,prompt: Prompt,
         executor: PromptExecutor,
         installFeatures: GraphAIAgent.FeatureContext.() -> Unit = {}
     ) = AIAgent.Companion.invoke(
         promptExecutor = executor,
         strategy = streamingWithToolsStrategy(),
-        llmModel = OpenAIModels.Chat.GPT4o,
-        systemPrompt = "You're responsible for running a Switch and perform operations on it by request",
-        temperature = 0.0,
+        agentConfig = AIAgentConfig(prompt = prompt, model = buildQwen3LLM(), maxAgentIterations = 30),
         toolRegistry = toolRegistry,
         installFeatures = installFeatures
     )

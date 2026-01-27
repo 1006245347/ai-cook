@@ -15,6 +15,7 @@ import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.agents.memory.feature.AgentMemory
+import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
@@ -34,6 +35,7 @@ class McpSearchAgentProvider(
 
 
     override suspend fun provideAgent(
+        prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
         onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
@@ -44,9 +46,8 @@ class McpSearchAgentProvider(
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
-        val agentConfig = AIAgentConfig(prompt = prompt("prompt") {
-            system("Hi,I'm a personal assistant.")
-        }, model = OpenAIModels.Chat.GPT4o, maxAgentIterations = 50)
+        val agentConfig =
+            AIAgentConfig(prompt = prompt, model = OpenAIModels.Chat.GPT4o, maxAgentIterations = 50)
 
         val strategy = strategy<String, String>("mcp_search") {
             // 发送LLM请求（可生成多个工具调用或回复） LLM分析用户问题，决定是否调用工具

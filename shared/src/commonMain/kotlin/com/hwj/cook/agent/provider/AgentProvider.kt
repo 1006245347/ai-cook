@@ -1,6 +1,7 @@
 package com.hwj.cook.agent.provider
 
 import ai.koog.agents.core.agent.AIAgent
+import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.message.Message
 
 //智能体实现基础
@@ -10,6 +11,7 @@ interface AgentProvider<I, O> {
     val description: String
 
     suspend fun provideAgent(
+        prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
         onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,

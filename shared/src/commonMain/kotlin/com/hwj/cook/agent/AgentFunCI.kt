@@ -148,9 +148,9 @@ fun buildQwen3LLM_8B(): LLModel {
     )
 }
 
-fun buildQwen3LLM(id: String = "Qwen/Qwen3-VL-8B-Instruct"): LLModel {
+fun buildQwen3LLM(id: String = "Qwen/Qwen2.5-7B-Instruct"): LLModel {
     //预设的模型
-//    OllamaModels.Alibaba.QWQ_32B   Qwen/Qwen2.5-7B-Instruct
+//    OllamaModels.Alibaba.QWQ_32B   Qwen/Qwen2.5-7B-Instruct  Qwen/Qwen3-VL-8B-Instruct
 
     //自定义的模型定义
     return LLModel(

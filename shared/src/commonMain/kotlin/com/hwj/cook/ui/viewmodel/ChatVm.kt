@@ -21,6 +21,7 @@ import com.hwj.cook.agent.provider.AgentManager
 import com.hwj.cook.agent.provider.AgentProvider
 import com.hwj.cook.agent.tools.testMcp11
 import com.hwj.cook.agent.tools.testMcp2
+import com.hwj.cook.data.local.addAllMsg
 import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgList
 import com.hwj.cook.data.local.fetchMsgListFlow
@@ -61,6 +62,7 @@ import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
 import org.koin.core.Koin
 import org.koin.core.qualifier.named
+import kotlin.text.get
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -79,6 +81,8 @@ class ChatVm(
 
     //在智能体模式下，涉及工具，如果继续把请求数据集放到uiState,很难保持正确，单独搞个数据源吧
     private val promptMessages = mutableListOf<ChatMsg>()
+    private val reqPromptMsg = mutableListOf<ChatMsg>()
+    private var curPrompt: Prompt? = null
 
     val uiObs: StateFlow<AgentUiState> = _uiState.asStateFlow()
     private val _isAutoScroll: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -108,17 +112,6 @@ class ChatVm(
     private val _validAgentObs = mutableStateListOf<AgentInfoCell>()
     val validAgentState = MutableStateFlow(_validAgentObs).asStateFlow()
 
-    suspend fun createAgent(koin: Koin, name: String?) {
-        saveString(DATA_AGENT_INDEX, name ?: defAgentLabel)
-        _agentModelObs.value = name ?: defAgentLabel
-        agentProvider = if (name == null) {
-//            AICookAgentProvider()
-            koin.get<AgentProvider<String, String>>(named(defAgentLabel))
-        } else {
-            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
-        }
-    }
-
     init {  //这个创建时间顺序影响逻辑吧？
         viewModelScope.launch { //agent=null是问答模式不是智能体
             _agentModelObs.value = getCacheString(DATA_AGENT_INDEX)
@@ -126,14 +119,28 @@ class ChatVm(
             _validAgentObs.clear()
             _validAgentObs.addAll(AgentManager.validAgentList())
             createSession()
-
-            _uiState.update {
-                it.copy(
-                    title = if (isLLMAsk()) "Ask" else agentProvider?.title,
-                    messages = listOf(ChatMsg.SystemMsg(if (isLLMAsk()) defSystemTip else agentProvider?.description))
-                )
-            }
         }
+    }
+
+    suspend fun createAgent(koin: Koin, name: String?) {
+        saveString(DATA_AGENT_INDEX, name ?: defAgentLabel)
+        _agentModelObs.value = name ?: defAgentLabel
+        agentProvider = if (name == null) {
+            koin.get<AgentProvider<String, String>>(named(defAgentLabel))
+        } else {
+            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
+        }
+        _uiState.update {
+            it.copy(
+                title = if (isLLMAsk()) "Ask" else agentProvider?.title,
+                messages = listOf(ChatMsg.SystemMsg(if (isLLMAsk()) defSystemTip else agentProvider?.description))
+            )
+        }
+        promptMessages.clear()
+        //界面、数据是分开的效果
+        promptMessages += ChatMsg.SystemMsg(agentProvider?.description)
+        reqPromptMsg.clear()
+        reqPromptMsg += ChatMsg.SystemMsg(agentProvider?.description)
     }
 
     fun updateInputText(txt: String) {
@@ -144,6 +151,9 @@ class ChatVm(
         val userInput = _uiState.value.inputTxt.trim()
         if (userInput.isEmpty()) return
         _stopReceivingObs.value = false
+
+        //诡异，存在agent构建失败null，导致都没执行
+
         viewModelScope.launch(Dispatchers.Default) {
             try {
                 //先根据sessionId找消息队列，如果空则要新建对话
@@ -161,10 +171,15 @@ class ChatVm(
         if (_agentModelObs.value.isNullOrEmpty()) { //是否是问答模式
             curChatJob = viewModelScope.launch { runAnswer(userInput) }
         } else {
+            val userMsg = ChatMsg.UserMsg(userInput).apply { sessionId = _currentSessionId.value }
             if (_uiState.value.userResponseRequested) { //回复智能体的问题，用户再输入
+
                 _uiState.update {
                     val ll = it.messages.toMutableList().apply {
-                        add(0, ChatMsg.UserMsg(userInput))
+                        add(0, ChatMsg.ResultMsg(thinkingTip).apply {
+                            sessionId = _currentSessionId.value
+                        })
+                        add(1, userMsg)
                     }
                     it.copy(
                         messages = ll,
@@ -181,8 +196,7 @@ class ChatVm(
                             sessionId = _currentSessionId.value
                             state = ChatState.Thinking
                         })
-                        add(1, ChatMsg.UserMsg(userInput).apply {
-                            sessionId = _currentSessionId.value
+                        add(1, userMsg.apply {
                             state = ChatState.Idle
                         })
                     }
@@ -190,28 +204,32 @@ class ChatVm(
                         messages = ll, isInputEnabled = false, isLoading = true
                     )
                 }
-                promptMessages += ChatMsg.UserMsg(userInput)
+//                promptMessages += userMsg //不应该加，agent.run会加一次 ,这再搞个备用的list?
+                reqPromptMsg += userMsg
             }
-            curChatJob = viewModelScope.launch(Dispatchers.Default) { runAgent(userInput) }
+            curChatJob = viewModelScope.launch(Dispatchers.Default) { runAgent(userMsg) }
         }
     }
 
-    private suspend fun runAgent(userInput: String) {
+    private suspend fun runAgent(userMsg: ChatMsg.UserMsg) {
+        var responseFromAgent = ""
         try {
-            var responseFromAgent = ""
             agentInstance = agentProvider?.provideAgent(
+                prompt = createPrompt(promptMessages),
                 onToolCallEvent = { msg ->
                     viewModelScope.launch {
                         _uiState.update {
                             it.copy(
                                 messages = it.messages.toMutableList()
-                                    .apply { add(0, ChatMsg.ToolCallMsg(msg)) })
+                                    .apply { add(1, ChatMsg.ToolCallMsg(msg)) })
                         }
 
                     }
-                    promptMessages += ChatMsg.ToolCallMsg(msg)
+//                    promptMessages += ChatMsg.ToolCallMsg(msg)
+                    reqPromptMsg += ChatMsg.ToolCallMsg(msg)
                 }, onToolResultEvent = { msg ->
-                    promptMessages += ChatMsg.ToolResultMsg(msg)
+//                    promptMessages += ChatMsg.ToolResultMsg(msg)
+                    reqPromptMsg += ChatMsg.ToolResultMsg(msg)
                 },
                 onErrorEvent = { errorMsg ->
                     viewModelScope.launch {
@@ -224,22 +242,23 @@ class ChatVm(
                                 isLoading = false
                             )
                         }
+                        stopReceiveMsg(userMsg, responseFromAgent, null)
                     }
                 }, onAssistantMessage = { agentQuestion ->
+                    val msgList = _uiState.value.messages.toMutableList()
+                    msgList.removeFirst() //现在第一个应该是loading
+                    msgList.add(0, ChatMsg.AgentMsg(agentQuestion))
                     _uiState.update {
-                        val ll = it.messages.toMutableList().apply {
-                            add(0, ChatMsg.AgentMsg(agentQuestion))
-                        }
-//                    printList(ll, "end>")
                         it.copy(
-                            messages = ll,
+                            messages = msgList, inputTxt = "",
                             isInputEnabled = true,
                             isLoading = false,
                             userResponseRequested = true
                         )
                     }
                     //大模型在会话当中主动提问
-                    promptMessages += ChatMsg.AgentMsg(agentQuestion)
+//                    promptMessages += ChatMsg.AgentMsg(agentQuestion)
+                    reqPromptMsg += ChatMsg.AgentMsg(agentQuestion)
 
                     // Wait for user response
                     val userResponse =
@@ -257,49 +276,34 @@ class ChatVm(
                     userResponse
                 }, onLLMStreamFrameEvent = { frame ->//流式
                     responseFromAgent += frame
-                    _uiState.update {
-                        val ll = it.messages.toMutableList().apply {
-                            add(0, ChatMsg.ResultMsg(responseFromAgent))
-                        }
-                        it.copy(
-                            messages = ll,
-                            isInputEnabled = false,
-                            isLoading = false,
-                            isChatEnded = true
-                        )
-                    }
+                    updateLocalResponse(responseFromAgent)
                 })
 
+//            printD("agent=$agentInstance p=$agentProvider")
             //这里是非流式返回
             agentInstance?.use { _agent ->
-                //不可能每次都构建agent吧
-//                _agent.agentConfig.prompt=createPrompt(promptMessages) //val
-                val answer = _agent.run(userInput)
-
-                _uiState.update {
-                    val ll = it.messages.toMutableList().apply {
-                        add(0, ChatMsg.ResultMsg(answer.toString()))
-                    }
-                    it.copy(
-                        messages = ll,// + ChatMsg.SystemMsg("The agent has stopped."),
-                        isInputEnabled = true, isLoading = false, isChatEnded = false //不搞重置会话
-                    )
-                }
-
-//                "Agent done with $answer"//有什么用？
+                //有个逻辑问题，这里run会自动prompt添加userMsg,如果我再promptMessage再手动加会重复
+                responseFromAgent = _agent.run(userMsg.txt) as String
+//                _agent.agentConfig.prompt.messages.also {
+//                    printList(it, "promptList")
+//                }
+                stopReceiveMsg(userMsg, responseFromAgent, null)
             }
         } catch (e: Exception) {
-            _uiState.update {
-                it.copy(
-                    messages = it.messages.toMutableList().apply {
-                        add(0, ChatMsg.ErrorMsg("error2:${e.message}"))
-                    },
-                    isInputEnabled = true,
-                    isLoading = false
-                )
-            }
+//            _uiState.update {
+//                it.copy(
+//                    messages = it.messages.toMutableList().apply {
+//                        add(0, ChatMsg.ErrorMsg("error2:${e.message}"))
+//                    },
+//                    isInputEnabled = true,
+//                    isLoading = false
+//                )
+//            }
+            stopReceiveMsg(userMsg, responseFromAgent, e)
             printD(e.message)
         }
+
+        printD("agent=$agentInstance")
     }
 
     //根据会话id找它的消息列表
@@ -322,6 +326,12 @@ class ChatVm(
                 )
             } //界面上用了反序
             printList(list, "loadSession>$sessionId")
+            if (!isLLMAsk()) {
+                promptMessages.clear()
+                promptMessages += list.reversed()
+                reqPromptMsg.clear()
+                reqPromptMsg += list.reversed()
+            }
         }
 
         _isAutoScroll.value = true
@@ -350,6 +360,8 @@ class ChatVm(
     fun createSession() {
         promptMessages.clear()
         promptMessages += ChatMsg.SystemMsg(agentProvider?.description)
+        reqPromptMsg.clear()
+        reqPromptMsg += ChatMsg.SystemMsg(agentProvider?.description)
         _currentSessionId.value = Uuid.random().toString()
         _uiState.value = buildDefState()//重置界面数据
     }
@@ -357,7 +369,8 @@ class ChatVm(
     fun buildDefState() = AgentUiState(
         title = agentProvider?.title,
         //当前会话的消息列表数据,是反序的
-        messages = listOf(ChatMsg.SystemMsg(agentProvider?.description))
+        messages = if (agentProvider?.description == null) listOf()
+        else listOf(ChatMsg.SystemMsg(agentProvider?.description))
     )
 
     suspend fun runAnswer(userInput: String) { //问答流式
@@ -458,27 +471,43 @@ class ChatVm(
                     is ChatMsg.ResultMsg -> assistant(msg.txt)
                 }
             }
-        }
+        }.also { curPrompt = it }  //prompt可以累加的，不知道有用不
     }
 
     private suspend fun stopReceiveMsg(
         userMsg: ChatMsg.UserMsg, response: String, cause: Throwable?
     ) {
         var tmpAnswer = response
-        if (cause is CancellationException) {
-            _stopReceivingObs.value = true
-            if (response.isEmpty()) {
-                tmpAnswer = stopAnswerTip
-                updateLocalResponse(tmpAnswer)
+        cause?.let {
+            if (cause is CancellationException) {
+                _stopReceivingObs.value = true
+                if (response.isEmpty()) {
+                    tmpAnswer = stopAnswerTip
+                    updateLocalResponse(tmpAnswer)
+                }
             }
+        }
+        if (null == cause) {
+            updateLocalResponse(tmpAnswer)
         }
         val assistantMsg = ChatMsg.ResultMsg(tmpAnswer).apply {
             sessionId = userMsg.sessionId
         }
 
         // us2 as2 ,us1 as1  user as ,这里的顺序有问题 存的
-        addMsg(userMsg)
-        addMsg(assistantMsg)
+        if (isLLMAsk()) {
+            addMsg(userMsg)
+            addMsg(assistantMsg)
+        } else {
+//            promptMessages += assistantMsg //
+            reqPromptMsg += assistantMsg //到这步，promptMessage里都没对话的msg，userMsg不能加到prompt,智能体有个自动加会重复
+            //这里根据reqPromptMsg恢复下promptMessages
+            reqPromptMsg.drop(promptMessages.size)
+                .let { extra-> if (extra.isNotEmpty()) promptMessages.addAll(extra) }
+
+            //不能每次保存都drop出新的list
+            addAllMsg(promptMessages.reversed()) //删systemMsg后反序
+        }
         _uiState.update { it.copy(isLoading = false, isInputEnabled = true, isChatEnded = false) }
     }
 
@@ -504,7 +533,7 @@ class ChatVm(
         _uiState.update {
             it.copy(
                 messages = msgList, inputTxt = "",
-                isInputEnabled = true,
+                isInputEnabled = true, isLoading = false,
                 userResponseRequested = false,
             )
         }
@@ -579,9 +608,11 @@ class ChatVm(
         viewModelScope.launch {
 //            printList(_sessionObs.value, "all-session")
 //            clearCache()
-            runLiteWork { }
+//            runLiteWork { }
 //            testMcp2()
-
+            printList(promptMessages, "ppp")
+            printList(reqPromptMsg,"req")
+//            printList(agentInstance?.agentConfig?.prompt?.messages,"config")
         }
     }
 }

@@ -51,7 +51,7 @@ fun initKoin(): Koin {
 //依赖注入目的是为了对象创建解耦，对象不在new具体的类，而是根据模版依赖生成
 //factory每次都会创建新实例，而single是单例
 val mainModule = module {
-    single { createKtorHttpClient(15000,{}) }
+    single { createKtorHttpClient(15000, {}) }
 
     single {
         val factory: SettingsFactory = get()
@@ -68,11 +68,7 @@ val mainModule = module {
             Pair(OpenAiRemoteLLMClient(apiKey!!), OpenAIModels.Chat.GPT4o)
         }
     }
-    single<AgentProvider<String, String>>(named("calculator")) {
-        CalculatorAgentProvider(
-            provideLLMClient = get()
-        )
-    }
+    single<AgentProvider<String, String>>(named("calculator")) { CalculatorAgentProvider() }
 
     single<AgentProvider<String, String>>(named("cook")) { AICookAgentProvider() }
     single<AgentProvider<String, String>>(named("chat")) { ChatAgentProvider() }
@@ -90,7 +86,7 @@ val modelModule = module { //viewModel一般用factory
     single { MainVm(get(), get()) }
     single { SettingVm() }
     single { CookVm() }
-    single { ChatVm(get(), get(),get()) }
+    single { ChatVm(get(), get(), get()) }
     single { TechVm() }
 }
 

@@ -115,6 +115,23 @@ suspend fun addMsg(chatMsg: ChatMsg): ChatMsg {
     return chatMsg
 }
 
+suspend fun addAllMsg(list: List<ChatMsg>) {
+//    val cacheList = getMsgList(list[0].sessionId)
+//    if (cacheList.isNullOrEmpty()) {
+//        val newList = mutableListOf<ChatMsg>()
+//        newList.addAll(list)
+//        saveString(buildMsgTag(list[0].sessionId), JsonApi.encodeToString(newList))
+//    } else {
+//        cacheList.addAll(0, list)
+//        saveString(buildMsgTag(list[0].sessionId), JsonApi.encodeToString(cacheList).also {
+//            printD(it, des = "saveAll?")
+//        })
+//    }  //每次参数都是全额保存的，全量替换算了,最后一个是systemMsg
+    saveString(buildMsgTag(list[0].sessionId), JsonApi.encodeToString(list.drop(list.size)).also {
+        printD(it, "saveAll?")
+    })
+}
+
 //有时候还没来得及保存数据，消息为空但是id相同
 fun isNewSession(sessionId: String, sessionList: List<ChatSession>): Boolean {
     var isNew = true

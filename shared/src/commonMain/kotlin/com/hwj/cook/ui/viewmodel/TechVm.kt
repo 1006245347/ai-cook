@@ -1,5 +1,7 @@
 package com.hwj.cook.ui.viewmodel
 
+import ai.koog.prompt.dsl.Prompt
+import ai.koog.prompt.dsl.prompt
 import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.getCacheString
@@ -51,7 +53,9 @@ class TechVm : ViewModel() {
 
     private suspend fun runAgent(userInput: String) {
         try {
-            val agent = agentProvider?.provideAgent({}, onErrorEvent = { errorMsg ->
+            val agent = agentProvider?.provideAgent(prompt = prompt(id="tech") {
+                system("A conversational agent that supports long-term memory, with clear and concise responses.")
+            },{},{}, onErrorEvent = { errorMsg ->
                 _uiState.update { it.copy(isLoading = false) }
             }, onLLMStreamFrameEvent = {}, onAssistantMessage = { "" })
             val result = agent?.run(userInput)

@@ -32,7 +32,7 @@ import kotlin.time.ExperimentalTime
  */
 class ChatAgentProvider(
     override var title: String = "Chat",
-    override val description: String = "A conversational agent that supports long-term memory, with clear and concise responses."
+    override val description: String = "I'm an assistant who provides simple and clear answers to users."
 ) : AgentProvider<String, String> {
 
     private var agentInstance: AIAgent<String, String>? = null
@@ -40,6 +40,7 @@ class ChatAgentProvider(
 
     @OptIn(ExperimentalTime::class)
     override suspend fun provideAgent(
+        prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
         onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
@@ -73,24 +74,7 @@ class ChatAgentProvider(
             toolRegistry = toolRegistry,
 //            strategy = ,
             agentConfig = AIAgentConfig(
-                prompt = prompt(
-                    id = "chat",
-                    params = LLMParams(temperature = 0.8, numberOfChoices = 1, maxTokens = 1500)
-                ) {
-                    system("I'm an assistant who provides simple and clear answers to users.")
-//                    system ("""
-//You are an assistant that must use tools to answer any question
-//that requires real-time or factual information such as dates, news, or web content.
-//If a tool is available, you should call it instead of answering directly.
-//""")
-
-//                    user {  }
-//                    assistant {  }
-//                    tool {
-//                        call()
-//                        result()
-//                    }
-                },
+                prompt = prompt,
                 model = buildQwen3LLM("Qwen/Qwen2.5-7B-Instruct"),
                 maxAgentIterations = 50 //太少反而会导致无法结束智能体
             ),
@@ -137,7 +121,6 @@ class ChatAgentProvider(
                 }
 
                 onAgentCompleted { ctx ->
-//                    ctx.result
                     // Skip finish event handling
                 }
             }
@@ -155,6 +138,7 @@ class ChatAgentProvider(
         )
     ): Prompt {
         return prompt(id = "2", params = params) {
+
             list.forEach { msg ->
                 when (msg) {
                     is ChatMsg.UserMsg -> user(msg.txt)

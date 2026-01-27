@@ -5,6 +5,7 @@ import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.agents.memory.feature.AgentMemory
+import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
@@ -14,6 +15,7 @@ import ai.koog.prompt.message.RequestMetaInfo
 import ai.koog.prompt.message.ResponseMetaInfo
 import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
+import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.agent.buildQwenLLMClient
 import com.hwj.cook.agent.createMemoryProvider
 import com.hwj.cook.agent.memoryAgentConfig
@@ -36,6 +38,7 @@ class MemoryAgentProvider(
 ) : AgentProvider<String, String> {
 
     override suspend fun provideAgent(
+        prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
         onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
@@ -51,8 +54,12 @@ class MemoryAgentProvider(
         val agent = AIAgent.invoke(
             promptExecutor = remoteAiExecutor,
             strategy = memoryStrategy(),
-            agentConfig = memoryAgentConfig,
-            toolRegistry = ToolRegistry{ //工具需要注册
+            agentConfig = AIAgentConfig(
+                prompt = prompt,
+                model = buildQwen3LLM(),
+                maxAgentIterations = 30
+            ),
+            toolRegistry = ToolRegistry { //工具需要注册
                 tool(UserInfoTool)
                 tool(DiagnosticTool)
             }

@@ -15,6 +15,7 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.ext.tool.ExitTool
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.agents.memory.feature.AgentMemory
+import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
@@ -45,9 +46,17 @@ import com.hwj.cook.models.ModelInfoCell
 class AICookAgentProvider : AgentProvider<String, String> {
     override var title: String = "Chef Agent"
 
-    override val description: String = "Hi,I'm a chef agent,I can teach how to cook."
+    override val description: String = """
+                   I'm a professional chef skilled in various cooking techniques. If the user's inquiry isn't related to cooking, I'll still provide a brief response. All replies will be clear and concise.
+                    Your goal is to recommend recipes from the local knowledge base.
+                    - When the user asks for something to eat, use tools to search recipes.
+                    - Filter based on user's dislikes or dietary needs.
+                    - Finally recommend one or more recipes.
+                    """.trimIndent()
+
 
     override suspend fun provideAgent(
+        prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
         onToolResultEvent: suspend (Message.Tool.Result) -> Unit,
         onLLMStreamFrameEvent: suspend (String) -> Unit,
@@ -141,17 +150,7 @@ class AICookAgentProvider : AgentProvider<String, String> {
         }
 
         val agentConfig = AIAgentConfig(
-            prompt = prompt("cook") {
-                system(
-                    """
-                    I'm a professional chef skilled in various cooking techniques. If the user's inquiry isn't related to cooking, I'll still provide a brief response. All replies will be clear and concise.
-                    Your goal is to recommend recipes from the local knowledge base.
-                    - When the user asks for something to eat, use tools to search recipes.
-                    - Filter based on user's dislikes or dietary needs.
-                    - Finally recommend one or more recipes.
-                    """.trimIndent()
-                )
-            }, model = buildEditLLM(modelInfo!!.modelName),
+            prompt = prompt, model = buildEditLLM(modelInfo!!.modelName),
             maxAgentIterations = 30
         )
 

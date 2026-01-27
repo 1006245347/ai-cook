@@ -132,7 +132,6 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
             json(Json {
                 ignoreUnknownKeys = true
                 prettyPrint = true
-
             })
         }
 
@@ -142,8 +141,8 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
             level = LogLevel.ALL
             logger = object : Logger {
                 override fun log(message: String) {
-//                    printD(message)
-                    println(message)
+                    printD(message)
+//                    println(message)
                 }
             }
         }

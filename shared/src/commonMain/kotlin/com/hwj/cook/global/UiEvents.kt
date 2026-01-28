@@ -54,7 +54,7 @@ fun isLightPanel(): Color {
     return BackInnerColor1
 }
 
-fun roundBorderTextStyle(i: Int): Modifier {
+fun Modifier.roundBorderTextStyle(i: Int): Modifier {
     return Modifier.padding(end = 5.dp).background(
         color = cTransparent()
     ).border(

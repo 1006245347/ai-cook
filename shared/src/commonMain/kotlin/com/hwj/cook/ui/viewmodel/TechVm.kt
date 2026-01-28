@@ -2,13 +2,25 @@ package com.hwj.cook.ui.viewmodel
 
 import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.dsl.prompt
+import androidx.compose.runtime.mutableStateListOf
+import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.getMills
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveString
+import com.hwj.cook.models.FileInfoCell
 import com.hwj.cook.models.MemoryUiState
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +39,18 @@ class TechVm : ViewModel() {
     private val _uiState = MutableStateFlow(MemoryUiState())
     val uiObs: StateFlow<MemoryUiState> = _uiState.asStateFlow()
 
+    //处理选择的需要被向量化的文件
+    private val _fileInfoListObs = mutableStateListOf<FileInfoCell>()
+    val fileInfoListState = MutableStateFlow(_fileInfoListObs).asStateFlow()
+
     private var agentProvider: MemoryAgentProvider? = null
+
+    fun initialize(){
+        viewModelScope.launch (Dispatchers.Default){
+            createRootDir("rag")
+            //koog的rag会复制一份新的
+        }
+    }
 
     fun updateInputText(txt: String) { //更新了输入了呀
         _uiState.update { it.copy(inputTxt = txt) }
@@ -53,9 +76,9 @@ class TechVm : ViewModel() {
 
     private suspend fun runAgent(userInput: String) {
         try {
-            val agent = agentProvider?.provideAgent(prompt = prompt(id="tech") {
+            val agent = agentProvider?.provideAgent(prompt = prompt(id = "tech") {
                 system("A conversational agent that supports long-term memory, with clear and concise responses.")
-            },{},{}, onErrorEvent = { errorMsg ->
+            }, {}, {}, onErrorEvent = { errorMsg ->
                 _uiState.update { it.copy(isLoading = false) }
             }, onLLMStreamFrameEvent = {}, onAssistantMessage = { "" })
             val result = agent?.run(userInput)
@@ -71,6 +94,19 @@ class TechVm : ViewModel() {
             e.printStackTrace()
             _uiState.update {
                 it.copy(isLoading = false, isInputEnabled = true)
+            }
+        }
+    }
+
+    suspend fun chooseFile() {
+        val mode = FileKitMode.Single
+        val list = listOf("txt", "md")
+        val file =
+            FileKit.openFilePicker(type = FileKitType.File(extensions = list), mode = mode)
+        file?.let { f->
+            if (_fileInfoListObs.none { f.path == file.path }) {
+                val info = FileInfoCell(f.path,f.name, getMills(),f.size(),false)
+                _fileInfoListObs.add(info)
             }
         }
     }

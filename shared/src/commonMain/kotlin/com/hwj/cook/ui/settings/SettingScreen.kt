@@ -177,7 +177,7 @@ fun SettingsScreenContent(
                 }
 
                 itemsIndexed(models) { index, cell ->
-                    val defLabel = if (cell.default) " 默认" else ""
+                    val defLabel = if (cell.default) " （默认）" else ""
                     Column(
                         Modifier.clickable(onClick = { onAddClicked(index + 1) })
                             .padding(top = 10.dp)
@@ -198,7 +198,6 @@ fun SettingsScreenContent(
         }
 
         if (isShowDefView) {
-            printList(models,"mm")
             Column(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 60.dp)
                     .clickable(

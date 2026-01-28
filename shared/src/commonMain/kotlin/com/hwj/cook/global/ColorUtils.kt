@@ -59,6 +59,14 @@ fun cSetBg(isDark: Boolean): Color {
     }
 }
 
+fun cAutoFloatBg(isDark: Boolean, color: Color? = null): Color {
+    return if (isDark) {
+        color ?: BackFloatColor2
+    } else {
+        BackFloatColor1
+    }
+}
+
 val Purple80 = Color(0xFFD0BCFF)//粉
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
@@ -74,6 +82,7 @@ val BackGroundColor2 = Color(0xFF262828)//黑
 val BackInnerColor1 = Color(0xFFFFFFFF)//白色
 val BackInnerColor2 = Color(0xFF2C2E2F)//中黑 消息列表背景色
 val BackTxtColor1 = Color(0xFF464F5C) //0xFF464F5C=浅黑
+val BackFloatColor1 = Color(0xFFF4F4F5)//F4F4F5FF
 
 //val BackTxtColor2 = Color(0xFFDFDFDF) //0xFFDFDFDF=白
 val BackTxtColor2 = Color(0xE9E8E8FF) //0xFFDFDFDF=白
@@ -81,13 +90,14 @@ val BackCodeTxtColor = Color(0xFF9798BA) //代码颜色
 val BackCodeGroundColor = Color(0xFF292C33) //代码背景框
 val BackHumanColor1 = Color(0XFFEAF1FC)
 val BackHumanColor2 = Color(0xFF2B4270)
-
+val BackFloatColor2 = Color(0x30616165)
 
 val BackGroundMessageHuman = Color(0xFFE2F0E9)
 val BackGroundMessageGPT = Color(0xFF2F3237)
 val ColorTextHuman = Color(0xFF3D3D4E)
 val ColorTextGPT = Color(0xFFFFFFF2)
 fun cOrangeFFB8664() = Color(0xFFFB8664)
+val ct1=Color(0xFF1c1f24)
 
 //textSize
 fun sp7() = 7.sp

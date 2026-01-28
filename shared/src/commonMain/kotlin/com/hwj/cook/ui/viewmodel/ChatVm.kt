@@ -281,14 +281,13 @@ class ChatVm(
 
 //            printD("agent=$agentInstance p=$agentProvider")
             //这里是非流式返回
-            agentInstance?.use { _agent ->
-                //有个逻辑问题，这里run会自动prompt添加userMsg,如果我再promptMessage再手动加会重复
-                responseFromAgent = _agent.run(userMsg.txt) as String
-//                _agent.agentConfig.prompt.messages.also {
+            //有个逻辑问题，这里run会自动prompt添加userMsg,如果我再promptMessage再手动加会重复
+            responseFromAgent = agentInstance?.run(userMsg.txt) as String
+//                agentInstance.agentConfig.prompt.messages.also {
 //                    printList(it, "promptList")
 //                }
-                stopReceiveMsg(userMsg, responseFromAgent, null)
-            }
+            stopReceiveMsg(userMsg, responseFromAgent, null)
+            //官方每次run后都是重新聊天，其实我们也是，但是会带入历史会话到新的作为上下文
         } catch (e: Exception) {
 //            _uiState.update {
 //                it.copy(
@@ -325,7 +324,6 @@ class ChatVm(
                     messages = list, isLoading = false, isInputEnabled = true, isChatEnded = false
                 )
             } //界面上用了反序
-            printList(list, "loadSession>$sessionId")
             if (!isLLMAsk()) {
                 promptMessages.clear()
                 promptMessages += list.reversed()
@@ -503,7 +501,7 @@ class ChatVm(
             reqPromptMsg += assistantMsg //到这步，promptMessage里都没对话的msg，userMsg不能加到prompt,智能体有个自动加会重复
             //这里根据reqPromptMsg恢复下promptMessages
             reqPromptMsg.drop(promptMessages.size)
-                .let { extra-> if (extra.isNotEmpty()) promptMessages.addAll(extra) }
+                .let { extra -> if (extra.isNotEmpty()) promptMessages.addAll(extra) }
 
             //不能每次保存都drop出新的list
             addAllMsg(promptMessages.reversed()) //删systemMsg后反序
@@ -611,7 +609,7 @@ class ChatVm(
 //            runLiteWork { }
 //            testMcp2()
             printList(promptMessages, "ppp")
-            printList(reqPromptMsg,"req")
+            printList(reqPromptMsg, "req")
 //            printList(agentInstance?.agentConfig?.prompt?.messages,"config")
         }
     }

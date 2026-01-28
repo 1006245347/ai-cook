@@ -123,6 +123,10 @@ class SettingVm : ViewModel() {
             val cache = getCacheString(DATA_MODEL_LIST)
             if (!cache.isNullOrEmpty()) {
                 val list = JsonApi.decodeFromString<MutableList<ModelInfoCell>>(cache)
+                if (modelName == getCacheObj<ModelInfoCell>(DATA_MODEL_DEF)?.modelName) {
+                    ToastUtils.show("不能删除默认")
+                    return@launch
+                }
                 _modelsObs.clear()
                 if (list.isNotEmpty()) {
                     val iterator = list.iterator()
@@ -152,6 +156,7 @@ class SettingVm : ViewModel() {
                 cell.default = true
                 saveString(DATA_APP_TOKEN, cell.apiKey)
                 saveObj(DATA_MODEL_DEF, cell)
+                saveString(DATA_MODEL_LIST, JsonApi.encodeToString(_modelsObs.toList()))
             }
         }
     }

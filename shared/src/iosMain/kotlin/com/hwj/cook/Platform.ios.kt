@@ -5,19 +5,25 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.SimpleStorage
+import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import com.hwj.cook.agent.GlobalDocumentProvider
 import com.hwj.cook.global.askPermission
 import com.hwj.cook.agent.IOSFileMemoryProvider
 import com.hwj.cook.agent.IOSFileSystemProvider
+import com.hwj.cook.agent.IOSKFileSystemProvider
+import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.data.local.PermissionPlatform
+import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
+import com.hwj.cook.global.getCacheString
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import dev.icerock.moko.permissions.Permission
@@ -35,9 +41,11 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.memScoped
+import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
@@ -49,8 +57,14 @@ import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSUserDomainMask
+import platform.Foundation.create
 import platform.Foundation.lastPathComponent
+import platform.Foundation.pathExtension
+import platform.Foundation.stringByAppendingPathComponent
+import platform.Foundation.stringByDeletingLastPathComponent
+import platform.Foundation.stringByStandardizingPath
 import platform.Foundation.stringWithContentsOfFile
+import platform.Foundation.writeToFile
 import platform.UIKit.UIDevice
 import platform.darwin.ByteVar
 import platform.darwin.sysctlbyname
@@ -118,7 +132,7 @@ actual fun createPermission(
     grantedAction: () -> Unit,
     deniedAction: () -> Unit
 ) {
-    val p = when (permissions[0] as PermissionPlatform ) {
+    val p = when (permissions[0] as PermissionPlatform) {
         PermissionPlatform.CAMERA -> Permission.CAMERA
         PermissionPlatform.GALLERY -> Permission.GALLERY
         PermissionPlatform.STORAGE -> Permission.STORAGE
@@ -231,10 +245,70 @@ actual suspend fun runLiteWork(call: () -> Unit) {
 }
 
 @Composable
-actual  fun demoUI(content: @Composable ()-> Unit){
+actual fun demoUI(content: @Composable () -> Unit) {
     content()
 }
 
 @Composable
 actual fun BoxScope.scrollBarIn(state: ScrollState) {
 }
+
+
+@OptIn(BetaInteropApi::class)
+actual class KFile(val filePath: String) {
+
+    actual val name: String get() = (NSString.create(filePath)).lastPathComponent
+
+    actual val extension: String
+        get() = (NSString.create(filePath)).pathExtension
+
+    actual val absolutePath: String
+        get() = (NSString.create(filePath)).stringByStandardizingPath
+
+    actual fun resolve(child: String): KFile =
+        KFile((NSString.create(filePath)).stringByAppendingPathComponent(child))
+
+    actual fun parent(): KFile? {
+        val p = (NSString.create(filePath)).stringByDeletingLastPathComponent
+        return if (p.isEmpty()) null else KFile(p)
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    actual suspend fun readText(): String =
+        NSString.stringWithContentsOfFile(filePath, NSUTF8StringEncoding, null) as String
+
+    actual suspend fun readLines(): List<String> =
+        readText().split("\n")
+
+    @OptIn(ExperimentalForeignApi::class)
+    actual suspend fun writeText(text: String) {
+
+        val str = NSString.create(text)
+        str.writeToFile(filePath, atomically = true, encoding = NSUTF8StringEncoding, error = null)
+    }
+
+    actual suspend fun writeLines(lines: List<String>) {
+        writeText(lines.joinToString("\n"))
+    }
+}
+
+lateinit var storageProvider: TextFileDocumentEmbeddingStorage<KFile, KFile>
+
+actual suspend fun <T> buildFileStorage(filePath: T) {
+    val mFile = KFile(filePath as String)
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder = buildEmbedder(apiKey!!)
+    val storage = TextFileDocumentEmbeddingStorage(
+        embedder,
+        GlobalDocumentProvider,
+        IOSKFileSystemProvider.ReadWrite,
+        mFile
+    )
+    storageProvider = storage
+}
+
+actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
+    val id = storageProvider.store(KFile(filePath))
+    callback(id)
+}
+

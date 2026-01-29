@@ -37,6 +37,8 @@ import com.hwj.cook.global.cAutoFloatBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cBlackTxt
 import com.hwj.cook.global.cOrangeFFB8664
+import com.hwj.cook.global.formatFileSize
+import com.hwj.cook.global.mill2Date
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
@@ -82,7 +84,7 @@ fun RAGScreen() {
         }
 
         Button(onClick = {
-            subScope.launch {
+            subScope.launch { //打开文件管理器
                 techVm.chooseFile()
             }
         }, modifier = Modifier.align(alignment = Alignment.TopEnd)) {
@@ -97,7 +99,7 @@ fun RAGScreen() {
 fun MultipleCheckUI(
     isDark: Boolean, files: List<FileInfoCell>, callback: (Boolean, FileInfoCell) -> Unit
 ) {
-    val firstItem = files[0]
+    val firstItem = files.firstOrNull()
     val multipleConfig = MultipleItemContentConfig.Custom(
         content = { item, isSelected, selectListener -> //多选处理事件
             Column(Modifier.fillMaxWidth().height(if (firstItem == item) 90.dp else 50.dp)) {
@@ -107,7 +109,7 @@ fun MultipleCheckUI(
                             text = "文件名称",
                             color = cAutoTxt(isDark),
                             fontSize = 10.sp,
-                            modifier = Modifier.weight(4f)
+                            modifier = Modifier.weight(2f)
                         )
                         Text(
                             text = "日期",
@@ -125,7 +127,7 @@ fun MultipleCheckUI(
                             text = "位置",
                             color = cAutoTxt(isDark),
                             fontSize = 10.sp,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(3f)
                         )
                     }
                 }
@@ -144,12 +146,29 @@ fun MultipleCheckUI(
                             callback(!isSelected, item)
                         }) {
                     Text(
-                        text = item.name.truncate(30),//省略文字
+                        text = item.name.truncate(15),//省略文字
                         color = cAutoTxt(isDark),
                         fontSize = 13.sp,
+                        modifier = Modifier.weight(2f)
+                    )
+                    Text(
+                        text = mill2Date(item.millDate),
+                        color = cAutoTxt(isDark),
+                        fontSize = 10.sp,
                         modifier = Modifier.weight(1f)
                     )
-                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = item.fileSize.formatFileSize(),
+                        color = cAutoTxt(isDark),
+                        fontSize = 10.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = item.path.truncate(20),
+                        color = cAutoTxt(isDark),
+                        fontSize = 10.sp,
+                        modifier = Modifier.weight(3f)
+                    )
                     if (isSelected) {
                         Image(
                             Icons.Default.Check,

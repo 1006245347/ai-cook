@@ -9,7 +9,9 @@ import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.rag.base.files.JVMDocumentProvider
 import ai.koog.rag.base.files.JVMFileSystemProvider
+import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
@@ -31,10 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
+import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.data.local.PermissionPlatform
+import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
@@ -78,8 +82,16 @@ import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 import java.io.File
 import java.io.InputStream
+import java.nio.file.Path
 import java.util.zip.ZipInputStream
 import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.extension
+import kotlin.io.path.name
+import kotlin.io.path.readLines
+import kotlin.io.path.readText
+import kotlin.io.path.writeLines
+import kotlin.io.path.writeText
 import kotlin.reflect.jvm.jvmName
 
 class AndroidPlatform : Platform {
@@ -346,6 +358,56 @@ actual fun BoxScope.scrollBarIn(state: ScrollState) {
 }
 
 @Composable
-actual  fun demoUI(content: @Composable ()-> Unit){
+actual fun demoUI(content: @Composable () -> Unit) {
     content()
+}
+
+actual class KFile(val path: Path) {
+    actual val name: String get() = path.name
+
+    actual suspend fun readText(): String = path.readText()
+    actual suspend fun readLines(): List<String> = path.readLines()
+    actual suspend fun writeText(text: String) = path.writeText(text)
+    actual suspend fun writeLines(lines: List<String>) {
+        path.writeLines(lines)
+    }
+
+    actual val extension: String
+        get() = path.fileName
+            ?.toString()
+            ?.substringAfterLast('.', "")
+            ?: ""
+    actual val absolutePath: String
+        get() = path.absolutePathString()
+
+    actual fun resolve(child: String): KFile {
+        return KFile(path.resolve(child))
+    }
+
+    actual fun parent(): KFile? =
+        path.parent?.let { KFile(it) }
+
+}
+
+lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
+
+//JVMDocumentProvider 内部支持java.nio.file.Path,导致
+//filePath是保存向量文件的根目录
+actual suspend fun <T> buildFileStorage(filePath: T) {
+    val mFile = Path(filePath as String)
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder = buildEmbedder(apiKey!!)
+    val storage = TextFileDocumentEmbeddingStorage(
+        embedder,
+        JVMDocumentProvider,
+        JVMFileSystemProvider.ReadWrite,
+        mFile
+    )
+    storageProvider = storage
+}
+
+//不知道如何处理storageProvider的类型，搞了个全局变量
+actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
+    val id = storageProvider.store(Path(filePath))
+    callback(id)
 }

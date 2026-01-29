@@ -1,3 +1,5 @@
+@file:OptIn(InternalCompottieApi::class)
+
 package com.hwj.cook.agent
 
 import ai.koog.agents.core.agent.AIAgent
@@ -7,26 +9,34 @@ import ai.koog.agents.memory.model.Fact
 import ai.koog.agents.memory.model.MemoryScope
 import ai.koog.agents.memory.model.MemorySubject
 import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.embeddings.base.Embedder
 import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.executor.clients.openai.OpenAIClientSettings
-import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.llm.LLMCapability
 import ai.koog.prompt.llm.LLMProvider
 import ai.koog.prompt.llm.LLModel
 import ai.koog.prompt.streaming.StreamFrame
+import com.hwj.cook.KFile
+import com.hwj.cook.buildFileStorage
 import com.hwj.cook.createFileMemoryProvider
 import com.hwj.cook.global.DATA_APPLICATION_NAME
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_USER_ID
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.getCacheString
-import com.hwj.cook.global.printD
 import com.hwj.cook.global.printE
+import io.github.alexzhirkevich.compottie.InternalCompottieApi
+import io.github.alexzhirkevich.compottie.createFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
+import okio.FileSystem
+import okio.Path
+import okio.SYSTEM
 
 /**
  * @author by jason-何伟杰，2025/10/11
@@ -42,7 +52,7 @@ suspend fun createMemoryProvider(): AgentMemoryProvider {
 }
 
 //对应会话的记忆
-suspend fun createSessionMemory(sessionId: String): AgentMemoryProvider{
+suspend fun createSessionMemory(sessionId: String): AgentMemoryProvider {
     return createFileMemoryProvider(sessionId)
 }
 
@@ -213,4 +223,23 @@ fun buildEmbedder(apiKey: String, llModel: LLModel = buildQwen3EmeLLM()): LLMEmb
     )
     val embedder = LLMEmbedder(client, llModel)
     return embedder
+}
+
+
+//得搞个向量化映射表，不然没法记录删除
+fun buildIndexJson(fileName: String = "index.json"): String {
+    val rootDir = createRootDir("embed")
+
+    val indexFile = PlatformFile(PlatformFile(rootDir), fileName)
+//    FileSystem.SYSTEM.createFile(Path(indexFile.absolutePath()))
+    return indexFile.absolutePath()
+}
+
+
+suspend fun buildDocumentStorage(embedder: Embedder) {
+//    TextFileDocumentEmbeddingStorage //已经封装好文件提取器，偏上层可用
+//    FileDocumentEmbeddingStorage //更底层 ，暂时没有到
+
+    buildFileStorage(createRootDir("embed/index"))
+
 }

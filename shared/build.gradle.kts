@@ -139,7 +139,7 @@ kotlin {
             //aallam openai  https://github.com/aallam/openai-kotlin
 //            implementation(libs.openai.client)
             implementation(libs.ktoken)
-
+            implementation(libs.okio.core)
         }
 
         androidMain.dependencies {

@@ -8,14 +8,20 @@ import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.rag.base.files.JVMDocumentProvider
 import ai.koog.rag.base.files.JVMFileSystemProvider
+import ai.koog.rag.vector.EmbeddingBasedDocumentStorage
+import ai.koog.rag.vector.FileDocumentEmbeddingStorage
+import ai.koog.rag.vector.FileVectorStorage
+import ai.koog.rag.vector.JVMFileVectorStorage
+import ai.koog.rag.vector.JVMTextFileDocumentEmbeddingStorage
+import ai.koog.rag.vector.TextDocumentEmbedder
+import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
@@ -23,11 +29,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.hwj.cook.agent.McpClientUtils
+import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
-import com.hwj.cook.agent.provider.testConsoleAgent1
 import com.hwj.cook.agent.tools.SwitchTools
+import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
@@ -35,7 +41,6 @@ import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.cBasic
 import com.hwj.cook.global.cBlue244260FF
-import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.models.BookNode
@@ -53,8 +58,6 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.plugin
 import io.ktor.client.plugins.sse.SSE
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.request
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
@@ -65,8 +68,15 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.InputStream
 import java.lang.management.ManagementFactory
+import java.nio.file.Path
 import java.util.zip.ZipInputStream
 import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.name
+import kotlin.io.path.readLines
+import kotlin.io.path.readText
+import kotlin.io.path.writeLines
+import kotlin.io.path.writeText
 
 class DesktopPlatform : Platform {
     override val name: String
@@ -293,4 +303,76 @@ actual fun BoxScope.scrollBarIn(state: ScrollState) {
         adapter = rememberScrollbarAdapter(state), style = barStyle,
         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight()
     )
+}
+
+actual class KFile(val path: Path) {
+    actual val name: String get() = path.name
+    actual val extension: String
+        get() = path.fileName
+            ?.toString()
+            ?.substringAfterLast('.', "")
+            ?: ""
+    actual val absolutePath: String
+        get() = path.absolutePathString()
+
+    actual fun resolve(child: String): KFile {
+        return KFile(path.resolve(child))
+    }
+
+    actual fun parent(): KFile? =
+        path.parent?.let { KFile(it) }
+
+    actual suspend fun readText(): String = path.readText()
+    actual suspend fun readLines(): List<String> = path.readLines()
+    actual suspend fun writeText(text: String) = path.writeText(text)
+    actual suspend fun writeLines(lines: List<String>) {
+        path.writeLines(lines)
+    }
+}
+
+lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
+
+//JVMDocumentProvider 内部支持java.nio.file.Path,导致
+actual suspend fun <T> buildFileStorage(filePath: T) {
+    val mFile = Path(filePath as String)
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder = buildEmbedder(apiKey!!)
+    val storage = TextFileDocumentEmbeddingStorage(
+        embedder,
+        JVMDocumentProvider,
+        JVMFileSystemProvider.ReadWrite,
+        mFile
+    )
+    storageProvider = storage
+//    val id: String = storage.store(Path("ok.md"))
+
+//    JVMTextFileDocumentEmbeddingStorage
+    //这不对，String 到 Path
+//    return storage as TextFileDocumentEmbeddingStorage<T, T>
+//    return storage as TextFileDocumentEmbeddingStorage<Path, Path>
+}
+
+
+//不知道如何处理storageProvider的类型，搞了个全局变量
+actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
+    val id = storageProvider.store(Path(filePath))
+    callback(id)
+}
+
+
+private suspend fun c() {
+    val documentEmbedder = TextDocumentEmbedder(JVMDocumentProvider, buildEmbedder(""))
+    val vectorStorage = EmbeddingBasedDocumentStorage(
+        documentEmbedder, FileVectorStorage(
+            JVMDocumentProvider,
+            JVMFileSystemProvider.ReadWrite, Path("s")
+        )
+    ) //等同于FileDocumentEmbeddingStorage
+//    vectorStorage.mostRelevantDocuments() //相识度
+//     JVMTextFileDocumentEmbeddingStorage //用这个不就好了。。。、
+    val sss = JVMTextFileDocumentEmbeddingStorage(buildEmbedder(""), Path(""))
+//    sss.store(Path(""))
+//    sss.store()
+
+
 }

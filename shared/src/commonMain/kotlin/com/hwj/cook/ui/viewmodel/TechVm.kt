@@ -1,20 +1,25 @@
 package com.hwj.cook.ui.viewmodel
 
-import ai.koog.prompt.dsl.Prompt
+import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.prompt.dsl.prompt
 import androidx.compose.runtime.mutableStateListOf
+import com.hwj.cook.agent.JsonApi
+import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.MemoryAgentProvider
+import com.hwj.cook.buildFileStorage
+import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MEMORY_INPUT
+import com.hwj.cook.global.DATA_RAG_FILE
+import com.hwj.cook.global.getCacheList
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.getMills
 import com.hwj.cook.global.printD
-import com.hwj.cook.global.printLog
 import com.hwj.cook.global.saveString
 import com.hwj.cook.models.FileInfoCell
 import com.hwj.cook.models.MemoryUiState
+import com.hwj.cook.storeFile
 import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
@@ -45,10 +50,13 @@ class TechVm : ViewModel() {
 
     private var agentProvider: MemoryAgentProvider? = null
 
-    fun initialize(){
-        viewModelScope.launch (Dispatchers.Default){
-            createRootDir("rag")
+    private var llmEmbedder: LLMEmbedder? = null
+
+    fun initialize() {
+        viewModelScope.launch(Dispatchers.Default) {
+            createRootDir("rag") //这里？
             //koog的rag会复制一份新的
+            ragReqFile()
         }
     }
 
@@ -103,12 +111,31 @@ class TechVm : ViewModel() {
         val list = listOf("txt", "md")
         val file =
             FileKit.openFilePicker(type = FileKitType.File(extensions = list), mode = mode)
-        file?.let { f->
+        file?.let { f ->
             if (_fileInfoListObs.none { f.path == file.path }) {
-                val info = FileInfoCell(f.path,f.name, getMills(),f.size(),false)
+                val info = FileInfoCell(f.path, f.name, getMills(), f.size(), false)
                 _fileInfoListObs.add(info)
+//                saveString(DATA_RAG_FILE, JsonApi.encodeToString(_fileInfoListObs))//bug
+                ragStorage(f.path)
             }
         }
+    }
+
+    suspend fun ragStorage(filePath: String) {
+        if (llmEmbedder == null) {
+            llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
+            buildFileStorage(createRootDir("embed/index"))
+        }
+
+        storeFile(filePath, { id ->
+            printD("id=$id $filePath")
+        })
+    }
+
+    suspend fun ragReqFile() {
+        _fileInfoListObs.clear()
+        val list = getCacheList<FileInfoCell>(DATA_RAG_FILE)
+        list?.let { _fileInfoListObs.addAll(list) }
     }
 
     fun restartRun() {

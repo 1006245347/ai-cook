@@ -94,18 +94,14 @@ fun TechScreenContent(
     onInputTxtChanged: (String) -> Unit,
     onSendClicked: () -> Unit
 ) {
-
     val listState = rememberLazyListState()
     val focusRequester = remember { FocusRequester() }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
-
-
             Column(
                 modifier = Modifier.padding(top = 80.dp).fillMaxSize().roundBorderTextStyle(10),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Text(
                     text = "Edit content for agent memory",
                     fontSize = 16.sp,

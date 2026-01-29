@@ -7,6 +7,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
+import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.except.DataSettings
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
@@ -35,6 +36,7 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Composable
 fun Dp.dpToPx() = with(LocalDensity.current) { this@dpToPx.toPx() }
@@ -49,11 +51,18 @@ fun getNowTime(): LocalDateTime {
 }
 
 //自定义格式化
-fun LocalDateTime.formatDefault(): String{
+fun LocalDateTime.formatDefault(): String {
     fun Int.pad2() = this.toString().padStart(2, '0')
     //pad2是补0
     return "${year}-${month.number.pad2()}-${day.pad2()} " +
             "${hour.pad2()}:${minute.pad2()}:${second.pad2()}"
+}
+
+fun mill2Date(mill: Long): String {
+    val instant = Instant.fromEpochMilliseconds(mill)
+    val date = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    fun Int.pad2() = this.toString().padStart(2, '0')
+    return "${date.year}-${date.month.number.pad2()}-${date.day.pad2()}"
 }
 
 fun today(): LocalDateTime {
@@ -90,17 +99,15 @@ const val logTAG = "COC"
 
 //desktop端日志在 terminal显示
 fun printD(log: String?, tag: String = logTAG) {
-    if (!openLog) return
-//    globalScope.launch {
+    if (!openLog) {
         printLog(log, tag)
-//    }
+    }
 }
 
 fun printD(log: String?, des: String? = null, tag: String = logTAG) {
-    if (!openLog) return
-//    globalScope.launch {
+    if (!openLog) {
         printD("$des $log", tag)
-//    }
+    }
 }
 
 fun initKermitLog() {
@@ -125,7 +132,7 @@ fun printE(throws: Throwable?, des: String? = null, tag: String = logTAG) {
     throws?.printStackTrace()
     throws?.let {
         globalScope.launch {
-            Logger.e(tag) { throws.message+">$des"  }
+            Logger.e(tag) { throws.message + ">$des" }
         }
     }
 }
@@ -290,6 +297,16 @@ suspend fun getCacheFloat(key: String, def: Float = 0f): Float {
 
 suspend fun getCacheDouble(key: String, def: Double = 0.0): Double {
     return settingsCache.getDouble(key, def)
+}
+
+suspend fun <T> getCacheList(key: String): List<T>? {
+    val cache = getCacheString(key)
+    if (cache.isNullOrEmpty()) {
+        return null
+    } else {
+        val list = JsonApi.decodeFromString<MutableList<T>>(cache)
+        return list
+    }
 }
 
 suspend fun hasCacheKey(key: String): Boolean {

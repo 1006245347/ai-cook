@@ -42,9 +42,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hwj.cook.global.DATA_RAG_FILE
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.dp10
+import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.roundBorderTextStyle
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.TechVm
@@ -70,8 +72,6 @@ fun TechScreen(navigator: Navigator) {
             techVm.createAgent()
         }
     }
-
-
 
     TechScreenContent(
         isDark,

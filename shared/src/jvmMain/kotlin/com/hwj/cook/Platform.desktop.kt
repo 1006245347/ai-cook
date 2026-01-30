@@ -333,8 +333,8 @@ actual class KFile(val path: Path) {
 lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
 
 //JVMDocumentProvider 内部支持java.nio.file.Path,导致
-actual suspend fun <T> buildFileStorage(filePath: T) {
-    val mFile = Path(filePath as String)
+actual suspend fun buildFileStorage(filePath: String) {
+    val mFile = Path(filePath )
     val apiKey = getCacheString(DATA_APP_TOKEN)
     val embedder = buildEmbedder(apiKey!!)
     val storage = TextFileDocumentEmbeddingStorage(
@@ -355,8 +355,11 @@ actual suspend fun <T> buildFileStorage(filePath: T) {
 
 //不知道如何处理storageProvider的类型，搞了个全局变量
 actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
-    val id = storageProvider.store(Path(filePath))
-    callback(id)
+//    val id = storageProvider.store(Path(filePath))
+//    printD("documentId>$id")
+//    callback(id)
+    callback("ssss?")
+    printD("s???")
 }
 
 

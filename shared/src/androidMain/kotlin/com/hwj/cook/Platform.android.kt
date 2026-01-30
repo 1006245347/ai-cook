@@ -393,8 +393,8 @@ lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
 
 //JVMDocumentProvider 内部支持java.nio.file.Path,导致
 //filePath是保存向量文件的根目录
-actual suspend fun <T> buildFileStorage(filePath: T) {
-    val mFile = Path(filePath as String)
+actual suspend fun buildFileStorage(filePath: String) {
+    val mFile = Path(filePath)
     val apiKey = getCacheString(DATA_APP_TOKEN)
     val embedder = buildEmbedder(apiKey!!)
     val storage = TextFileDocumentEmbeddingStorage(

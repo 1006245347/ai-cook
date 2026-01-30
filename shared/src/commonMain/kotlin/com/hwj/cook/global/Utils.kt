@@ -190,7 +190,6 @@ suspend fun encodeImageToBase64(byteArray: ByteArray): String {
     return "data:image/jpeg;base64," + Base64.encode(byteArray)
 }
 
-
 val globalScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 val settingsCache: FlowSettings = DataSettings().settingsCache
 
@@ -299,12 +298,20 @@ suspend fun getCacheDouble(key: String, def: Double = 0.0): Double {
     return settingsCache.getDouble(key, def)
 }
 
-suspend fun <T> getCacheList(key: String): List<T>? {
+suspend inline fun <reified T> saveCacheList(key: String, list: List<T>?) {
+    if (!list.isNullOrEmpty()) {
+        val cache = JsonApi.encodeToString(list)
+        saveString(key, cache)
+    }
+}
+
+//注意存取的都是List,不然蹦
+suspend inline fun <reified T> getCacheList(key: String): List<T>? {
     val cache = getCacheString(key)
     if (cache.isNullOrEmpty()) {
         return null
     } else {
-        val list = JsonApi.decodeFromString<MutableList<T>>(cache)
+        val list = JsonApi.decodeFromString<List<T>>(cache)
         return list
     }
 }

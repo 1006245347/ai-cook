@@ -84,6 +84,6 @@ expect class KFile {
 
 //保留jvm的Provider,内部的文件提取都是java.Path没法修改，所以iOS用了KFile
 //filePath是保存向量文件的根目录
-expect suspend fun <T> buildFileStorage(filePath: T)
+expect suspend fun buildFileStorage(filePath: String)
 expect suspend fun storeFile(filePath: String, callback: (String?) -> Unit)
 

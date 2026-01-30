@@ -20,6 +20,8 @@ import com.hwj.cook.models.FileInfoCell
 import com.hwj.cook.models.MemoryUiState
 import com.hwj.cook.storeFile
 import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.delete
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
@@ -48,16 +50,17 @@ class TechVm : ViewModel() {
     private val _fileInfoListObs = mutableStateListOf<FileInfoCell>()
     val fileInfoListState = MutableStateFlow(_fileInfoListObs).asStateFlow()
 
+    //已选择的向量化文件，知识库文件
+    private val _selectedFileObs = mutableStateListOf<FileInfoCell>()
+    val selectedFileState = MutableStateFlow(_selectedFileObs).asStateFlow()
+
     private var agentProvider: MemoryAgentProvider? = null
 
     private var llmEmbedder: LLMEmbedder? = null
 
-    fun initialize() {
-        viewModelScope.launch(Dispatchers.Default) {
-            createRootDir("rag") //这里？
-            //koog的rag会复制一份新的
-            ragReqFile()
-        }
+    suspend fun initialize() {
+        //koog的rag会复制一份新的
+        ragReqFile()
     }
 
     fun updateInputText(txt: String) { //更新了输入了呀
@@ -111,31 +114,57 @@ class TechVm : ViewModel() {
         val list = listOf("txt", "md")
         val file =
             FileKit.openFilePicker(type = FileKitType.File(extensions = list), mode = mode)
+        printD("file?$file")
         file?.let { f ->
+            printD("f>${f.name}")
             if (_fileInfoListObs.none { f.path == file.path }) {
                 val info = FileInfoCell(f.path, f.name, getMills(), f.size(), false)
                 _fileInfoListObs.add(info)
-//                saveString(DATA_RAG_FILE, JsonApi.encodeToString(_fileInfoListObs))//bug
+                saveString(DATA_RAG_FILE, JsonApi.encodeToString(_fileInfoListObs.toList()))//bug
                 ragStorage(f.path)
             }
         }
     }
 
     suspend fun ragStorage(filePath: String) {
+        printD("start>ragStorage")
         if (llmEmbedder == null) {
             llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
             buildFileStorage(createRootDir("embed/index"))
         }
 
-        storeFile(filePath, { id ->
+        storeFile(filePath) { id ->
             printD("id=$id $filePath")
-        })
+        }
     }
 
     suspend fun ragReqFile() {
-        _fileInfoListObs.clear()
-        val list = getCacheList<FileInfoCell>(DATA_RAG_FILE)
-        list?.let { _fileInfoListObs.addAll(list) }
+        try {
+            _fileInfoListObs.clear()
+            val list = getCacheList<FileInfoCell>(DATA_RAG_FILE)
+            list?.let { _fileInfoListObs.addAll(list) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun selectRagFile(path: String) {
+        val item = _fileInfoListObs.firstOrNull { it.path == path }
+        item?.let {
+            _selectedFileObs.add(it)
+        }
+    }
+
+    fun deleteRagFile() {
+        viewModelScope.launch {
+            _selectedFileObs.forEach {
+                PlatformFile(it.path).delete()
+            }
+            //删除某个元素的属性值同时在两个集合相同的元素
+            val list2 = _selectedFileObs.map { it.path }.toSet()
+            _fileInfoListObs.removeAll { it.path in list2 }
+            _selectedFileObs.clear()
+        }
     }
 
     fun restartRun() {

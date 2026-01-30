@@ -1,6 +1,5 @@
 package com.hwj.cook
 
-import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.agent.GlobalDocumentProvider
-import com.hwj.cook.global.askPermission
 import com.hwj.cook.agent.IOSFileMemoryProvider
 import com.hwj.cook.agent.IOSFileSystemProvider
 import com.hwj.cook.agent.IOSKFileSystemProvider
@@ -23,6 +21,7 @@ import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
+import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
@@ -43,16 +42,12 @@ import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.memScoped
-import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSFileType
 import platform.Foundation.NSFileTypeDirectory
-import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
@@ -66,9 +61,6 @@ import platform.Foundation.stringByStandardizingPath
 import platform.Foundation.stringWithContentsOfFile
 import platform.Foundation.writeToFile
 import platform.UIKit.UIDevice
-import platform.darwin.ByteVar
-import platform.darwin.sysctlbyname
-import platform.posix.size_tVar
 
 class IOSPlatform : Platform {
     override val name: String =
@@ -294,8 +286,8 @@ actual class KFile(val filePath: String) {
 
 lateinit var storageProvider: TextFileDocumentEmbeddingStorage<KFile, KFile>
 
-actual suspend fun <T> buildFileStorage(filePath: T) {
-    val mFile = KFile(filePath as String)
+actual suspend fun buildFileStorage(filePath: String) {
+    val mFile = KFile(filePath)
     val apiKey = getCacheString(DATA_APP_TOKEN)
     val embedder = buildEmbedder(apiKey!!)
     val storage = TextFileDocumentEmbeddingStorage(

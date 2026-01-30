@@ -1,6 +1,5 @@
 package com.hwj.cook.ui.tech
 
-import ai.koog.prompt.text.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,10 +21,11 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -36,23 +36,20 @@ import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoFloatBg
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.cBlackTxt
-import com.hwj.cook.global.cOrangeFFB8664
 import com.hwj.cook.global.formatFileSize
 import com.hwj.cook.global.mill2Date
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
-import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.TechVm
-import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import org.example.dropdown.data.DropdownConfig
 import org.example.dropdown.data.DropdownItemSeparator
 import org.example.dropdown.data.ToggleIcon
 import org.example.dropdown.data.enum.DefaultSelectorPosition
-import org.example.dropdown.data.listener.DropdownActionListener
 import org.example.dropdown.data.search.SearchSettings
 import org.example.dropdown.data.selection.CheckboxParams
 import org.example.dropdown.data.selection.MultipleItemContentConfig
@@ -65,39 +62,59 @@ import org.example.project.ui.SearchableDropdown
  */
 @Composable
 fun RAGScreen() {
-    //记忆  rag
     val mainVm = koinViewModel(MainVm::class)
     val isDark = mainVm.darkState.collectAsState().value
     val subScope = rememberCoroutineScope()
     val techVm = koinViewModel(TechVm::class)
     val fileInfoListState = techVm.fileInfoListState.collectAsState().value
-
+    val selectedFileState = techVm.selectedFileState.collectAsState().value
+    val deleteReq = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-
+        subScope.launch(Dispatchers.Default) {
+            techVm.initialize()
+        }
     }
 
-
-
-    Box(Modifier.fillMaxSize()) {
-        MultipleCheckUI(isDark = isDark, fileInfoListState) { isSelected, item ->
-            printD("i>$isSelected $item")
+    LaunchedEffect(deleteReq.value) {
+        if (deleteReq.value) {
+            deleteReq.value = false
+            techVm.deleteRagFile()
         }
-
-        Button(onClick = {
-            subScope.launch { //打开文件管理器
-                techVm.chooseFile()
+    }
+    Box(Modifier.fillMaxSize().padding(10.dp)) {
+        MultipleCheckUI(
+            isDark = isDark,
+            deleteReq,
+            fileInfoListState,
+            selectedFileState
+        ) { isSelected, item ->
+            printD("select>$isSelected $item") //删除选中的
+            if (isSelected) {
+                techVm.selectRagFile(item.path)
             }
-        }, modifier = Modifier.align(alignment = Alignment.TopEnd)) {
-            Text(text = "添加文件", color = cAutoTxt(isDark))
+        }
+
+        Button(
+            onClick = {
+                subScope.launch { //打开文件管理器
+                    techVm.chooseFile()
+                }
+            }, modifier = Modifier.align(alignment = Alignment.TopEnd).size(90.dp, 40.dp)
+                .background(color = PrimaryColor)
+        ) {
+            Text(text = "添加文件", color = cAutoTxt(isDark), fontSize = 12.sp)
         }
     }
-
 }
 
 //多选列表
 @Composable
 fun MultipleCheckUI(
-    isDark: Boolean, files: List<FileInfoCell>, callback: (Boolean, FileInfoCell) -> Unit
+    isDark: Boolean,
+    deleteReq: MutableState<Boolean>,
+    files: List<FileInfoCell>,
+    selectedFiles: List<FileInfoCell>?,
+    callback: (Boolean, FileInfoCell) -> Unit
 ) {
     val firstItem = files.firstOrNull()
     val multipleConfig = MultipleItemContentConfig.Custom(
@@ -105,6 +122,13 @@ fun MultipleCheckUI(
             Column(Modifier.fillMaxWidth().height(if (firstItem == item) 90.dp else 50.dp)) {
                 if (firstItem == item) {
                     Row {
+                        if (!selectedFiles.isNullOrEmpty()) {
+                            Button(onClick = {
+                                deleteReq.value = true
+                            }) {
+                                Text(text = "删除", color = cAutoTxt(isDark), fontSize = 10.sp)
+                            }
+                        }
                         Text(
                             text = "文件名称",
                             color = cAutoTxt(isDark),
@@ -144,7 +168,8 @@ fun MultipleCheckUI(
                                 selectListener.onSelect(item)
                             }
                             callback(!isSelected, item)
-                        }) {
+                        }, verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = item.name.truncate(15),//省略文字
                         color = cAutoTxt(isDark),
@@ -184,7 +209,7 @@ fun MultipleCheckUI(
                 Modifier.fillMaxWidth().height(55.dp).padding(horizontal = 10.dp)
                     .background(cAutoFloatBg(isDark))
             ) {
-                Text(text = "文件-$item", color = cAutoTxt(isDark))
+                Text(text = item.name.truncate(15), color = cAutoTxt(isDark))
                 Spacer(Modifier.width(2.dp))
                 Icon(
                     Icons.Default.Delete,

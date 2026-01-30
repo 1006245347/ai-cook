@@ -99,24 +99,24 @@ const val logTAG = "COC"
 
 //desktop端日志在 terminal显示
 fun printD(log: String?, tag: String = logTAG) {
-    if (!openLog) {
+    if (openLog) {
         printLog(log, tag)
     }
 }
 
 fun printD(log: String?, des: String? = null, tag: String = logTAG) {
-    if (!openLog) {
+    if (openLog) {
         printD("$des $log", tag)
     }
 }
 
 fun initKermitLog() {
-    Logger.setMinSeverity(Severity.Verbose)
+//    Logger.setMinSeverity(Severity.Verbose)
     Logger.setTag(logTAG)
+
 }
 
 fun printLog(log: String?, tag: String = logTAG) {
-    if (!openLog) return
     log?.let { Logger.d(tag) { it } }
 }
 

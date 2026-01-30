@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hwj.cook.global.DATA_RAG_FILE
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoFloatBg
 import com.hwj.cook.global.cAutoTxt
@@ -39,6 +40,7 @@ import com.hwj.cook.global.cBlackTxt
 import com.hwj.cook.global.formatFileSize
 import com.hwj.cook.global.mill2Date
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -96,7 +98,7 @@ fun RAGScreen() {
 
         Button(
             onClick = {
-                subScope.launch { //打开文件管理器
+                subScope.launch(Dispatchers.Default) { //打开文件管理器
                     techVm.chooseFile()
                 }
             }, modifier = Modifier.align(alignment = Alignment.TopEnd).size(90.dp, 40.dp)

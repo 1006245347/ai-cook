@@ -355,11 +355,8 @@ actual suspend fun buildFileStorage(filePath: String) {
 
 //不知道如何处理storageProvider的类型，搞了个全局变量
 actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
-//    val id = storageProvider.store(Path(filePath))
-//    printD("documentId>$id")
-//    callback(id)
-    callback("ssss?")
-    printD("s???")
+    val id = storageProvider.store(Path(filePath))
+    callback(id)
 }
 
 

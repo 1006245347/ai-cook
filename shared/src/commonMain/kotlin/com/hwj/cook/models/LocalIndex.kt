@@ -15,5 +15,7 @@ data class IndexFile(
     val filePath: String?,//实际路径可能带特殊字符，进行处理
     val fileType: String?,
     val fileSize: Long?,
+    val millDate: Long?,
+    val isEmbed: Boolean?,
     val fileHash: String?
 )

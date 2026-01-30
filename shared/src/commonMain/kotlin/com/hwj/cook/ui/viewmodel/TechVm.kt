@@ -5,30 +5,41 @@ import ai.koog.prompt.dsl.prompt
 import androidx.compose.runtime.mutableStateListOf
 import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.buildEmbedder
+import com.hwj.cook.agent.buildIndexJson
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.buildFileStorage
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MEMORY_INPUT
-import com.hwj.cook.global.DATA_RAG_FILE
-import com.hwj.cook.global.getCacheList
+import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.getMills
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.saveString
+import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
+import com.hwj.cook.models.IndexFile
+import com.hwj.cook.models.LocalIndex
 import com.hwj.cook.models.MemoryUiState
 import com.hwj.cook.storeFile
+import io.github.alexzhirkevich.compottie.InternalCompottieApi
+import io.github.alexzhirkevich.compottie.createFile
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.delete
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.extension
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.readString
 import io.github.vinceglb.filekit.size
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,11 +47,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
+import okio.FileSystem
+import okio.Path.Companion.toPath
+import okio.SYSTEM
 
 /**
  * @author by jason-何伟杰，2025/10/13
  * des:agent存事实、某类主题、应用范围的记忆
  */
+@OptIn(InternalCompottieApi::class)
 class TechVm : ViewModel() {
 
     private val _uiState = MutableStateFlow(MemoryUiState())
@@ -60,7 +75,7 @@ class TechVm : ViewModel() {
 
     suspend fun initialize() {
         //koog的rag会复制一份新的
-        ragReqFile()
+        loadRagReqFile()
     }
 
     fun updateInputText(txt: String) { //更新了输入了呀
@@ -114,35 +129,94 @@ class TechVm : ViewModel() {
         val list = listOf("txt", "md")
         val file =
             FileKit.openFilePicker(type = FileKitType.File(extensions = list), mode = mode)
-        printD("file?$file")
         file?.let { f ->
-            printD("f>${f.name}")
-            if (_fileInfoListObs.none { f.path == file.path }) {
+            if (_fileInfoListObs.none { f.path == it.path }) {//是否已经添加过文件
                 val info = FileInfoCell(f.path, f.name, getMills(), f.size(), false)
                 _fileInfoListObs.add(info)
-                saveString(DATA_RAG_FILE, JsonApi.encodeToString(_fileInfoListObs.toList()))//bug
                 ragStorage(f.path)
+            }else{
+                ToastUtils.show("已经添加过${f.name}".truncate(20))
             }
         }
     }
 
+    //向量化一个文件
     suspend fun ragStorage(filePath: String) {
-        printD("start>ragStorage")
         if (llmEmbedder == null) {
             llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
             buildFileStorage(createRootDir("embed/index"))
         }
 
-        storeFile(filePath) { id ->
-            printD("id=$id $filePath")
+        ///Users/jasonmac/Library/Application Support/AI_COOK/embed/index/vectors/c06275ff-2e7c-4fc2-a953-57d623323622
+        storeFile(filePath) { id -> //直接以id作为文件名存了
+            viewModelScope.launch(Dispatchers.IO) {
+
+                val indexFilePath = buildIndexJson()
+                if (!PlatformFile(indexFilePath).exists()) {
+                    //创建文件
+                    FileSystem.SYSTEM.createFile(indexFilePath.toPath())
+                }
+
+                val json = PlatformFile(indexFilePath).readString() //读取文件内容
+                val srcFile = PlatformFile(filePath)
+                val itemFile = IndexFile(
+                    id,
+                    filePath,
+                    srcFile.name,
+                    srcFile.absolutePath(),
+                    srcFile.extension,
+                    srcFile.size(), getMills(), false,
+                    null
+                )
+                if (!json.isEmpty()) {
+                    val indexRoot: LocalIndex = JsonApi.decodeFromString<LocalIndex>(json)
+                    val indexFiles = indexRoot.indexedFiles
+
+                    if (indexFiles == null || indexFiles.isEmpty()) {
+//                        val mList = mutableListOf<IndexFile>()
+                        //向量化后的文件名都为新路径+id,看看删除会成功不
+                        indexRoot.indexedFiles = mutableListOf(itemFile)
+                    } else { //续旧的
+                        indexFiles.add(itemFile)
+//                        indexRoot.indexedFiles = indexFiles
+                    }
+                    val cache = JsonApi.encodeToString(indexRoot)
+                    PlatformFile(indexFilePath).writeString(cache) //覆盖文本
+                } else {
+                    val indexRoot = LocalIndex()
+                    indexRoot.indexedFiles = mutableListOf(itemFile)
+                    val cache = JsonApi.encodeToString(indexRoot)
+                    PlatformFile(indexFilePath).writeString(cache)
+                }
+            }
         }
     }
 
-    suspend fun ragReqFile() {
+    suspend fun loadRagReqFile() {
         try {
-            _fileInfoListObs.clear()
-            val list = getCacheList<FileInfoCell>(DATA_RAG_FILE)
-            list?.let { _fileInfoListObs.addAll(list) }
+            val indexFilePath = buildIndexJson()
+            if (PlatformFile(indexFilePath).exists()) {
+                val json = PlatformFile(indexFilePath).readString()
+                val indexRoot = JsonApi.decodeFromString<LocalIndex>(json)
+                if (!json.isEmpty()) {
+                    val indexFiles = indexRoot.indexedFiles
+                    if (indexFiles != null && indexFiles.isNotEmpty()) {
+                        val list = mutableListOf<FileInfoCell>()
+                        indexFiles.forEach { item ->
+                            list.add(
+                                FileInfoCell(
+                                    item.filePath!!,
+                                    item.fileName!!,
+                                    item.millDate!!,
+                                    item.fileSize!!,
+                                    item.isEmbed!!
+                                )
+                            )
+                        }
+                        _fileInfoListObs.addAll(list)
+                    }
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

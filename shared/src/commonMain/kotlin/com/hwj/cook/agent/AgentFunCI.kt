@@ -231,15 +231,15 @@ fun buildIndexJson(fileName: String = "index.json"): String {
     val rootDir = createRootDir("embed")
 
     val indexFile = PlatformFile(PlatformFile(rootDir), fileName)
-//    FileSystem.SYSTEM.createFile(Path(indexFile.absolutePath()))
+
+
     return indexFile.absolutePath()
 }
 
 
-suspend fun buildDocumentStorage(embedder: Embedder) {
+suspend fun buildDocumentStorage() {
 //    TextFileDocumentEmbeddingStorage //已经封装好文件提取器，偏上层可用
 //    FileDocumentEmbeddingStorage //更底层 ，暂时没有到
 
     buildFileStorage(createRootDir("embed/index"))
-
 }

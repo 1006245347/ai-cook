@@ -12,3 +12,5 @@
 4.智能体广场设计，prompt的高级设计，很大程度智能体的执行效果取决于prompt是否够‘狠’。
 
 5.多Agent协作，memory可视化记忆管理
+
+6.ASR + TTS + LLM

@@ -244,12 +244,7 @@ fun SingleCheckUI(
                 Modifier.fillMaxWidth().height(50.dp).padding(horizontal = 10.dp, vertical = 1.dp)
                     .background(cAutoFloatBg(isDark))
             ) {
-                Column(
-//                    modifier = Modifier.clickable(
-//                        onClick = {},
-//                        indication = null,
-//                        interactionSource = remember { MutableInteractionSource() })
-                ) {
+                Column {
                     Text(
                         text = modelInfo.modelName,
                         color = if (modelInfo == selectedModel) PrimaryColor else cAutoTxt(isDark),
@@ -287,20 +282,6 @@ fun SingleCheckUI(
     )
     val list = mutableListOf<ModelInfoCell>() //测试
     list.addAll(models)
-//    list.addAll(models)
-//    list.addAll(models)
-//    list.addAll(models)
-//    list.addAll(models)
-//    list.addAll(models)
-//    list.addAll(models)
-
-//    Column(
-//        modifier = Modifier.padding(horizontal = 60.dp)
-//            .clickable(onClick = { callback(null) }), //背景取消
-////        contentAlignment = Alignment.TopCenter
-//    ) {
-//        //发现直接在父布局用padding top=70dp会导致分隔很远
-//        Spacer(Modifier.height(70.dp).background(cBlue629DE8()))
 
     SearchableDropdown(
         items = list,
@@ -325,7 +306,7 @@ fun SingleCheckUI(
             }
         ),
         dropdownConfig = DropdownConfig(
-            headerHeight =55.dp,
+            headerHeight = 55.dp,
             headerBackgroundColor = cAutoFloatBg(isDark, cBlackTxt()), //header颜色，点击弹列表
             contentBackgroundColor = cAutoFloatBg(isDark, cBlackTxt()), //整个背景颜色？
             headerPlaceholder = {
@@ -348,7 +329,6 @@ fun SingleCheckUI(
         selectedItem = selected,
         itemContentConfig = singleConfig
     )
-//    }
 }
 
 @Composable

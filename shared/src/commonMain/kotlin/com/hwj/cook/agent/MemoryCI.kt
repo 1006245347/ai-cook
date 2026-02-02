@@ -157,7 +157,6 @@ fun memoryStrategy() =
             nodeStart then nodeLoadUserPreferences then nodeLoadUserIssues then nodeLoadDeviceResults then nodeLoadOrganizationSolutions then nodeFinish
         }
 
-        //这？
         val supportSession by subgraphWithTask<String, String>(tools = memoryTools) { userInput ->
             markdown {
                 h2(

@@ -3,6 +3,7 @@ package com.hwj.cook
 import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
+import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxScope
@@ -84,6 +85,6 @@ expect class KFile {
 
 //保留jvm的Provider,内部的文件提取都是java.Path没法修改，所以iOS用了KFile
 //filePath是保存向量文件的根目录
-expect suspend fun buildFileStorage(filePath: String)
+expect suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder)
 expect suspend fun storeFile(filePath: String, callback: (String?) -> Unit)
-
+expect suspend fun deleteRAGFile(documentId: String)

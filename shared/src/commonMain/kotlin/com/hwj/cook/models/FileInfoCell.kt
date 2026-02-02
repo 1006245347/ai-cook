@@ -1,5 +1,6 @@
 package com.hwj.cook.models
 
+import com.benasher44.uuid.uuid4
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,7 +9,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FileInfoCell(
+    val id: String= uuid4().toString(),
     val path: String,
+    val documentId: String?,
     val name: String,
     val millDate: Long,
     val fileSize: Long,

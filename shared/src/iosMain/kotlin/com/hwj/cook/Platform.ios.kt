@@ -4,6 +4,7 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.SimpleStorage
+import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxScope
@@ -286,7 +287,7 @@ actual class KFile(val filePath: String) {
 
 lateinit var storageProvider: TextFileDocumentEmbeddingStorage<KFile, KFile>
 
-actual suspend fun buildFileStorage(filePath: String) {
+actual suspend fun buildFileStorage(filePath: String, embedder: LLMEmbedder) {
     val mFile = KFile(filePath)
     val apiKey = getCacheString(DATA_APP_TOKEN)
     val embedder = buildEmbedder(apiKey!!)
@@ -303,4 +304,9 @@ actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
     val id = storageProvider.store(KFile(filePath))
     callback(id)
 }
+
+actual suspend fun deleteRAGFile(documentId: String) {
+    storageProvider.delete(documentId = documentId)
+}
+
 

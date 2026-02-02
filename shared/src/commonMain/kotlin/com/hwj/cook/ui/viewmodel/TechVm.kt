@@ -9,12 +9,14 @@ import com.hwj.cook.agent.buildIndexJson
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.MemoryAgentProvider
 import com.hwj.cook.buildFileStorage
+import com.hwj.cook.deleteRAGFile
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MEMORY_INPUT
 import com.hwj.cook.global.ToastUtils
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.getMills
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printList
 import com.hwj.cook.global.saveString
 import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
@@ -131,42 +133,52 @@ class TechVm : ViewModel() {
             FileKit.openFilePicker(type = FileKitType.File(extensions = list), mode = mode)
         file?.let { f ->
             if (_fileInfoListObs.none { f.path == it.path }) {//是否已经添加过文件
-                val info = FileInfoCell(f.path, f.name, getMills(), f.size(), false)
+                val info = FileInfoCell(
+                    path = f.path,
+                    documentId = null,
+                    name = f.name,
+                    millDate = getMills(),
+                    fileSize = f.size(),
+                    isEmbed = false
+                )
                 _fileInfoListObs.add(info)
-                ragStorage(f.path)
-            }else{
+                ragStorage(f.path, info.id)
+            } else {
                 ToastUtils.show("已经添加过${f.name}".truncate(20))
             }
         }
     }
 
     //向量化一个文件
-    suspend fun ragStorage(filePath: String) {
+    suspend fun ragStorage(filePath: String, id: String) {
         if (llmEmbedder == null) {
             llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
-            buildFileStorage(createRootDir("embed/index"))
+            buildFileStorage(createRootDir("embed/index"), llmEmbedder!!)
         }
 
         ///Users/jasonmac/Library/Application Support/AI_COOK/embed/index/vectors/c06275ff-2e7c-4fc2-a953-57d623323622
-        storeFile(filePath) { id -> //直接以id作为文件名存了
+        storeFile(filePath) { documentId -> //直接以id作为文件名存了
             viewModelScope.launch(Dispatchers.IO) {
 
                 val indexFilePath = buildIndexJson()
                 if (!PlatformFile(indexFilePath).exists()) {
-                    //创建文件
+                    //创建文件 向量化过的索引表
                     FileSystem.SYSTEM.createFile(indexFilePath.toPath())
                 }
 
                 val json = PlatformFile(indexFilePath).readString() //读取文件内容
                 val srcFile = PlatformFile(filePath)
                 val itemFile = IndexFile(
-                    id,
-                    filePath,
-                    srcFile.name,
-                    srcFile.absolutePath(),
-                    srcFile.extension,
-                    srcFile.size(), getMills(), false,
-                    null
+                    id = id,
+                    documentId = documentId,
+                    absolutePath = filePath,
+                    fileName = srcFile.name,
+                    filePath = srcFile.absolutePath(),
+                    fileType = srcFile.extension,
+                    fileSize = srcFile.size(),
+                    millDate = getMills(),
+                    isEmbed = false,
+                    fileHash = null
                 )
                 if (!json.isEmpty()) {
                     val indexRoot: LocalIndex = JsonApi.decodeFromString<LocalIndex>(json)
@@ -178,7 +190,6 @@ class TechVm : ViewModel() {
                         indexRoot.indexedFiles = mutableListOf(itemFile)
                     } else { //续旧的
                         indexFiles.add(itemFile)
-//                        indexRoot.indexedFiles = indexFiles
                     }
                     val cache = JsonApi.encodeToString(indexRoot)
                     PlatformFile(indexFilePath).writeString(cache) //覆盖文本
@@ -205,14 +216,17 @@ class TechVm : ViewModel() {
                         indexFiles.forEach { item ->
                             list.add(
                                 FileInfoCell(
-                                    item.filePath!!,
-                                    item.fileName!!,
-                                    item.millDate!!,
-                                    item.fileSize!!,
-                                    item.isEmbed!!
+                                    id = item.id,
+                                    path = item.filePath!!,
+                                    documentId = item.documentId,
+                                    name = item.fileName!!,
+                                    millDate = item.millDate!!,
+                                    fileSize = item.fileSize!!,
+                                    isEmbed = item.isEmbed!!
                                 )
                             )
                         }
+                        _fileInfoListObs.clear()
                         _fileInfoListObs.addAll(list)
                     }
                 }
@@ -222,22 +236,55 @@ class TechVm : ViewModel() {
         }
     }
 
-    fun selectRagFile(path: String) {
-        val item = _fileInfoListObs.firstOrNull { it.path == path }
-        item?.let {
-            _selectedFileObs.add(it)
+    fun selectRagFile(isSelected: Boolean, file: FileInfoCell) {
+        if (isSelected) {
+            if (_selectedFileObs.none { file.path == it.path && file.id == it.id }) {
+                _selectedFileObs.add(file)
+            }
+        } else {
+            val item = _selectedFileObs.firstOrNull { it.path == file.path }
+            _selectedFileObs.remove(item)
         }
     }
 
-    fun deleteRagFile() {
-        viewModelScope.launch {
-            _selectedFileObs.forEach {
-                PlatformFile(it.path).delete()
+    fun deleteRagFile() { //删除选中的文件
+        viewModelScope.launch(Dispatchers.IO) {
+            _selectedFileObs.forEach { item ->
+//                PlatformFile(it.path).delete() //不是删源文件呀
+                if (llmEmbedder == null) {
+                    llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
+                    buildFileStorage(createRootDir("embed/index"), llmEmbedder!!)
+                }
+                printD("delete>${item.documentId}")
+                item.documentId?.let {
+                    deleteRAGFile(it)
+                }
             }
+            //index.json也要删
+            updateIndexJson(_selectedFileObs)
             //删除某个元素的属性值同时在两个集合相同的元素
-            val list2 = _selectedFileObs.map { it.path }.toSet()
+            val list2 = _selectedFileObs.map { it.id }.toSet()
+
             _fileInfoListObs.removeAll { it.path in list2 }
             _selectedFileObs.clear()
+
+        }
+    }
+
+    suspend fun updateIndexJson(deleteList: List<FileInfoCell>) {
+        val indexFilePath = buildIndexJson()
+        if (!PlatformFile(indexFilePath).exists()) {
+            FileSystem.SYSTEM.createFile(indexFilePath.toPath())
+        }
+        val json = PlatformFile(indexFilePath).readString() //读取文件内容
+        if (!json.isEmpty()) {
+            val indexRoot: LocalIndex = JsonApi.decodeFromString<LocalIndex>(json)
+            //组合条件，元素同时满足条件切都在两个list存在
+            val list = deleteList.map { it.id to it.path }.toSet()
+            printList(list.toList(),"index?")
+            indexRoot.indexedFiles?.removeAll { it.id to it.absolutePath in list }
+            val cache = JsonApi.encodeToString(indexRoot)
+            PlatformFile(indexFilePath).writeString(cache)
         }
     }
 

@@ -9,6 +9,7 @@ import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.rag.base.files.JVMDocumentProvider
 import ai.koog.rag.base.files.JVMFileSystemProvider
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
@@ -393,10 +394,8 @@ lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
 
 //JVMDocumentProvider 内部支持java.nio.file.Path,导致
 //filePath是保存向量文件的根目录
-actual suspend fun buildFileStorage(filePath: String) {
+actual suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder) {
     val mFile = Path(filePath)
-    val apiKey = getCacheString(DATA_APP_TOKEN)
-    val embedder = buildEmbedder(apiKey!!)
     val storage = TextFileDocumentEmbeddingStorage(
         embedder,
         JVMDocumentProvider,
@@ -410,4 +409,8 @@ actual suspend fun buildFileStorage(filePath: String) {
 actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
     val id = storageProvider.store(Path(filePath))
     callback(id)
+}
+
+actual suspend fun deleteRAGFile(documentId: String){
+    storageProvider.delete(documentId)
 }

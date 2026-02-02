@@ -1,7 +1,7 @@
 package com.hwj.cook.ui.tech
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -12,35 +12,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
+import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hwj.cook.global.DATA_RAG_FILE
 import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoFloatBg
 import com.hwj.cook.global.cAutoTxt
+import com.hwj.cook.global.cBasic
 import com.hwj.cook.global.cBlackTxt
+import com.hwj.cook.global.cDeepLine
+import com.hwj.cook.global.cOrangeFFB8664
+import com.hwj.cook.global.cWhite
 import com.hwj.cook.global.formatFileSize
 import com.hwj.cook.global.mill2Date
-import com.hwj.cook.global.printD
-import com.hwj.cook.global.removeCacheKey
 import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -79,32 +83,60 @@ fun RAGScreen() {
 
     LaunchedEffect(deleteReq.value) {
         if (deleteReq.value) {
-            deleteReq.value = false
             techVm.deleteRagFile()
+            deleteReq.value = false
         }
     }
-    Box(Modifier.fillMaxSize().padding(10.dp)) {
-        MultipleCheckUI(
-            isDark = isDark,
-            deleteReq,
-            fileInfoListState,
-            selectedFileState
-        ) { isSelected, item ->
-            printD("select>$isSelected $item") //删除选中的
-            if (isSelected) {
-                techVm.selectRagFile(item.path)
-            }
-        }
+    SideEffect {
 
-        Button(
-            onClick = {
-                subScope.launch(Dispatchers.Default) { //打开文件管理器
-                    techVm.chooseFile()
-                }
-            }, modifier = Modifier.align(alignment = Alignment.TopEnd).size(90.dp, 40.dp)
-                .background(color = PrimaryColor)
+    }
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.padding(top = 10.dp, end = 5.dp).border(
+                width = 1.dp, color = cDeepLine(), shape = RoundedCornerShape(
+                    topStart = 10.dp, topEnd = 10.dp, bottomStart = 10.dp, bottomEnd = 10.dp
+                )
+            ).padding(5.dp)
         ) {
-            Text(text = "添加文件", color = cAutoTxt(isDark), fontSize = 12.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(5.dp)) {
+                Text(
+                    text = "本地知识库",
+                    color = cAutoTxt(isDark),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold //加粗
+                )
+                Text(
+                    text = "添加文件>",
+                    color = cAutoTxt(isDark),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp)
+                        .clickable(onClick = {
+                            subScope.launch { techVm.chooseFile() }
+                        }).padding(3.dp)
+                )
+                Text(
+                    text = "删除文件>${if (selectedFileState.isNotEmpty()) "${selectedFileState.size}" else ""}",
+                    color = cAutoTxt(isDark),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clickable(onClick = {
+                            subScope.launch {
+                                deleteReq.value = true
+                            }
+                        }).padding(3.dp)
+                )
+            }
+
+            key(deleteReq.value) { //太辣鸡啦，好多bug 这控件
+                MultipleCheckUI(
+                    isDark = isDark,
+                    deleteReq,
+                    fileInfoListState,
+                ) { isSelected, item ->
+//                printD("select>$isSelected $item") //删除选中的
+                    techVm.selectRagFile(isSelected, item)
+                }
+            }
         }
     }
 }
@@ -115,22 +147,14 @@ fun MultipleCheckUI(
     isDark: Boolean,
     deleteReq: MutableState<Boolean>,
     files: List<FileInfoCell>,
-    selectedFiles: List<FileInfoCell>?,
     callback: (Boolean, FileInfoCell) -> Unit
 ) {
     val firstItem = files.firstOrNull()
     val multipleConfig = MultipleItemContentConfig.Custom(
         content = { item, isSelected, selectListener -> //多选处理事件
-            Column(Modifier.fillMaxWidth().height(if (firstItem == item) 90.dp else 50.dp)) {
+            Column(Modifier.fillMaxWidth().height(if (firstItem == item) 55.dp else 45.dp)) {
                 if (firstItem == item) {
                     Row {
-                        if (!selectedFiles.isNullOrEmpty()) {
-                            Button(onClick = {
-                                deleteReq.value = true
-                            }) {
-                                Text(text = "删除", color = cAutoTxt(isDark), fontSize = 10.sp)
-                            }
-                        }
                         Text(
                             text = "文件名称",
                             color = cAutoTxt(isDark),
@@ -159,7 +183,7 @@ fun MultipleCheckUI(
                 }
 
                 Row(
-                    Modifier.fillMaxWidth().height(50.dp).padding(10.dp)
+                    Modifier.fillMaxWidth().height(50.dp).padding(8.dp)
                         .background(cAutoFloatBg(isDark)).clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -172,6 +196,18 @@ fun MultipleCheckUI(
                             callback(!isSelected, item)
                         }, verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Checkbox(
+                        checked = isSelected, onCheckedChange = { selected ->
+                            when (selected) {
+                                true -> selectListener.onSelect(item)
+                                false -> selectListener.onDeselect(item)
+                            }
+                            callback(selected, item)
+                        }, colors = CheckboxDefaults.colors(
+                            checkedColor = cBasic(),
+                            uncheckedColor = Color.Gray, checkmarkColor = cWhite()
+                        ), modifier = Modifier.weight(0.6f)
+                    )
                     Text(
                         text = item.name.truncate(15),//省略文字
                         color = cAutoTxt(isDark),
@@ -191,18 +227,11 @@ fun MultipleCheckUI(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = item.path.truncate(20),
+                        text = item.path.truncate(50),
                         color = cAutoTxt(isDark),
                         fontSize = 10.sp,
                         modifier = Modifier.weight(3f)
                     )
-                    if (isSelected) {
-                        Image(
-                            Icons.Default.Check,
-                            contentDescription = "checked",
-                            modifier = Modifier.size(25.dp)
-                        )
-                    }
                 }
             }
         },
@@ -225,7 +254,7 @@ fun MultipleCheckUI(
         },
         options = MultipleItemOptions(
             selectionMaxCount = files.size,
-            useDefaultSelector = true,
+            useDefaultSelector = false, //默认的checkbox没有对外响应接口，用不了
             defaultCheckboxParams = CheckboxParams(
                 checkedColor = cAutoTxt(isDark), checkmarkColor = PrimaryColor
             ),
@@ -238,16 +267,17 @@ fun MultipleCheckUI(
         searchSettings = SearchSettings(searchEnabled = false),
         dropdownConfig = DropdownConfig(
             headerHeight = 55.dp,
+            horizontalPadding = 8.dp,
             headerBackgroundColor = cAutoFloatBg(isDark, cBlackTxt()), //header颜色，点击弹列表
             contentBackgroundColor = cAutoFloatBg(isDark, cBlackTxt()), //整个背景颜色？
             headerPlaceholder = {
                 Text(text = "RAG知识库文件", color = cAutoTxt(isDark))
             },
             maxHeight = 280.dp,
-            separationSpace = 0,
+            separationSpace = -80, //影响弹出列表的padding
             toggleIcon = ToggleIcon(iconTintColor = cAutoTxt(isDark)),
             itemSeparator = DropdownItemSeparator(color = cAutoTxt(isDark)),
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(8.dp)
         ),
         itemContentConfig = multipleConfig
     )

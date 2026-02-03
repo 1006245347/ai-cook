@@ -131,6 +131,7 @@ class TechVm : ViewModel() {
         val list = listOf("txt", "md")
         val file =
             FileKit.openFilePicker(type = FileKitType.File(extensions = list), mode = mode)
+        printD("choose>${file?.path}")
         file?.let { f ->
             if (_fileInfoListObs.none { f.path == it.path }) {//是否已经添加过文件
                 val info = FileInfoCell(

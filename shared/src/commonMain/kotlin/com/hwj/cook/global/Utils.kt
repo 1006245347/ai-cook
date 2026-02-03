@@ -87,6 +87,11 @@ fun Long.formatFileSize(): String {
     return "${(size * 10).toInt() / 10.0} ${units[unitIndex]}"
 }
 
+fun getFileLabel(path: String): String {
+    return path.substringAfterLast('/')
+        .let { if (it.contains('.')) it.substringBeforeLast('.') else it }
+}
+
 /**
  * Extension function to truncate strings with ellipsis.
  */

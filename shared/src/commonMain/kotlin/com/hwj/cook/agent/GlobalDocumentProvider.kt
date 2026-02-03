@@ -1,21 +1,15 @@
 package com.hwj.cook.agent
 
-import ai.koog.embeddings.base.Embedder
 import ai.koog.rag.base.files.DocumentProvider
-import ai.koog.rag.vector.TextDocumentEmbedder
-import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import com.hwj.cook.KFile
-import com.hwj.cook.global.DATA_APP_TOKEN
-import com.hwj.cook.global.getCacheString
-import kotlinx.io.files.Path
 
 /**
  * @author by jason-何伟杰，2026/1/29
  * des: 类似JVMDocumentProvider，其实就是iOS不支持，所以再搞个通用的
  */
 public object GlobalDocumentProvider : DocumentProvider<KFile, KFile> {
-    override suspend fun document(path: KFile): KFile {
 
+    override suspend fun document(path: KFile): KFile {
         return path
     }
 
@@ -30,6 +24,7 @@ public object GlobalDocumentProvider : DocumentProvider<KFile, KFile> {
             text: String,
             range: DocumentProvider.DocumentRange?
         ) {
+
             if (range != null) {
                 val fileLines = document.readLines()
                 document.writeLines(modifyLines(fileLines, text, range))

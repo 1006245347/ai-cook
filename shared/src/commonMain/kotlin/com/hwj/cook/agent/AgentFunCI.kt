@@ -229,12 +229,11 @@ fun buildEmbedder(apiKey: String, llModel: LLModel = buildQwen3EmeLLM()): LLMEmb
 //得搞个向量化映射表，不然没法记录删除
 fun buildIndexJson(fileName: String = "index.json"): String {
     val rootDir = createRootDir("embed")
-
     val indexFile = PlatformFile(PlatformFile(rootDir), fileName)
-
-
     return indexFile.absolutePath()
 }
+
+
 
 
 suspend fun buildDocumentStorage() {

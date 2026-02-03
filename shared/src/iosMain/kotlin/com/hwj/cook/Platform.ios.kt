@@ -5,6 +5,7 @@ import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.SimpleStorage
 import ai.koog.embeddings.local.LLMEmbedder
+import ai.koog.rag.base.files.FileSystemProvider
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxScope
@@ -308,5 +309,6 @@ actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
 actual suspend fun deleteRAGFile(documentId: String) {
     storageProvider.delete(documentId = documentId)
 }
+
 
 

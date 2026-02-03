@@ -14,7 +14,6 @@ import ai.koog.rag.base.files.JVMFileSystemProvider
 import ai.koog.rag.vector.EmbeddingBasedDocumentStorage
 import ai.koog.rag.vector.FileDocumentEmbeddingStorage
 import ai.koog.rag.vector.FileVectorStorage
-import ai.koog.rag.vector.JVMFileVectorStorage
 import ai.koog.rag.vector.JVMTextFileDocumentEmbeddingStorage
 import ai.koog.rag.vector.TextDocumentEmbedder
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
@@ -30,9 +29,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.hwj.cook.agent.JvmChunkDocumentProvider
 import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
+import com.hwj.cook.agent.rag.FileChunk
+import com.hwj.cook.agent.rag.chunkFile
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DATA_MCP_KEY
@@ -43,9 +45,14 @@ import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.cBasic
 import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.getFileLabel
 import com.hwj.cook.global.printD
+import com.hwj.cook.global.printList
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.hwj.cook.models.RagEvidence
+import com.hwj.cook.models.RagPayload
+import com.hwj.cook.models.RagResult
 import com.hwj.cook.models.SuggestCookSwitch
 import com.hwj.cook.ui.StreamingChatScreen
 import com.sun.management.OperatingSystemMXBean
@@ -65,6 +72,8 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.headers
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.InputStream
@@ -278,8 +287,9 @@ actual suspend fun runLiteWork(call: () -> Unit) {
 //    McpClientUtils.tryClient()
 //    McpClientUtils.testMcp()
 
-    //
-
+//    searchRag("部门人数多少？")
+//    buildChunkStorage()
+    searchRAGChunk("RAG 系统由两个核心模块组成")
     call()
 }
 
@@ -334,8 +344,8 @@ actual class KFile(val path: Path) {
 lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
 
 //JVMDocumentProvider 内部支持java.nio.file.Path,导致
-actual suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder) {
-    val mFile = Path(filePath )
+actual suspend fun buildFileStorage(filePath: String, embedder: LLMEmbedder) {
+    val mFile = Path(filePath)
     val storage = TextFileDocumentEmbeddingStorage(
         embedder,
         JVMDocumentProvider,
@@ -343,12 +353,6 @@ actual suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder) {
         mFile
     )
     storageProvider = storage
-//    val id: String = storage.store(Path("ok.md"))
-
-//    JVMTextFileDocumentEmbeddingStorage
-    //这不对，String 到 Path
-//    return storage as TextFileDocumentEmbeddingStorage<T, T>
-//    return storage as TextFileDocumentEmbeddingStorage<Path, Path>
 }
 
 
@@ -358,11 +362,130 @@ actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
     callback(id)
 }
 
-actual suspend fun deleteRAGFile(documentId: String){
+actual suspend fun deleteRAGFile(documentId: String) {
     storageProvider.delete(documentId)
 }
 
+
+suspend fun searchRag(query: String, similarityThreshold: Double = 0.0, topK: Int = 3): RagResult {
+//    storageProvider.apply { //拥有的能力api
+//        rankDocuments()
+//        read()
+//        store()
+//        delete()
+//        read()
+//    }
+
+
+    //相关性排序
+//    val rankedFiles = storageProvider.rankDocuments(query).toList()
+    //最相关的文档
+//    val tops = storageProvider.mostRelevantDocuments(query, count = topK, similarityThreshold)
+//    tops.forEach { p ->
+//        printD(">>>>$p")
+//    }
+
+//    JVMTextFileDocumentEmbeddingStorage(buildEmbedder(""),createRootDir("emb"))
+
+    val list1 = storageProvider.rankDocuments(query)
+        .filter { it.similarity >= similarityThreshold }
+        .toList()
+        .sortedByDescending { it.similarity }
+        .take(topK) //顶部3个
+        .map {
+
+            //这里只返回Path(文件)，没有分片哪行的处理，期望返回切片chunkIndex
+            RagEvidence(it.document.absolutePathString(), payload = null, it.similarity)
+        }.toList()
+
+    val contextString = buildString {
+        appendLine("以下是从本地知识库检索到的内容:")
+        list1.forEachIndexed { index, item ->
+            appendLine("[$index] 相似度:${"%.2f".format(item.similarity)}")
+            appendLine("来源：${item.document}")
+//            appendLine(item.document) //应该返回切片内容
+            appendLine()
+        }
+    }
+
+    printD(contextString)
+    return RagResult(query = query, evidence = list1)
+}
+
+lateinit var chunkStorageProvider: FileDocumentEmbeddingStorage<FileChunk, Path>
+
+suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
+//suspend fun buildChunkStorage() {
+//    val path = "/Users/jasonmac/Documents/androidstudy/rag.txt"
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder1 = buildEmbedder(apiKey!!)
+    val embedder2 = TextDocumentEmbedder(JvmChunkDocumentProvider, embedder1)
+    val root = createRootDir("embed/index/chunk/${getFileLabel(path)}")
+    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
+        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
+        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+    )
+
+    val chunks = chunkFile(kotlinx.io.files.Path(path)) //段落切片
+
+    val listId = mutableListOf<String>()
+    chunks.forEachIndexed { index, chunk ->
+//        printD("chunk$index>$chunk")
+        val id = chunkStorageProvider.store(chunk)
+//        printD("id>$id")
+        listId.add(id)
+    }
+    callback(listId)
+}
+
+suspend fun searchRAGChunk(
+    query: String,
+    similarityThreshold: Double = 0.7,
+    topK: Int = 3
+): RagResult {
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder1 = buildEmbedder(apiKey!!)
+    val embedder2 = TextDocumentEmbedder(JvmChunkDocumentProvider, embedder1)
+    val root = createRootDir("embed/index/chunk/rag")
+    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
+        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
+        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+    )
+
+    val list = chunkStorageProvider.rankDocuments(query)
+        .filter { it.similarity >= similarityThreshold }
+        .toList()
+        .sortedByDescending { it.similarity }
+        .take(topK) //顶部3个
+        .map {
+//            printD("s>${it.document}")
+            RagEvidence(
+                document = it.document.text, payload = RagPayload(
+                    documentId = "id", chunkIndex = it.document.index,
+                    sourcePath = it.document.path.toString()
+                ), similarity = it.similarity
+            )
+        }
+        .toList()
+//    val contextString = buildString {
+//        appendLine("以下是从本地知识库检索到的内容:")
+//        list.forEachIndexed { index, item:RagEvidence ->
+//
+//            appendLine("[$index] 相似度:${"%.2f".format(item.similarity)}")
+//            appendLine("来源：${item.payload?.sourcePath}")
+//            appendLine(item.document) //应该返回切片内容
+//            appendLine()
+//        }
+//    }
+    return RagResult(query = query, evidence = list)
+}
+
 private suspend fun c() {
+    //检索相关文件
+    val path = JVMDocumentProvider.document(Path(""))
+    //检索指定的文件内容
+//    JVMDocumentProvider.textFragment()
+//    JVMDocumentProvider的作用就是将Path引导 将路径转化为文件内容解析
     val documentEmbedder = TextDocumentEmbedder(JVMDocumentProvider, buildEmbedder(""))
     val vectorStorage = EmbeddingBasedDocumentStorage(
         documentEmbedder, FileVectorStorage(
@@ -372,7 +495,19 @@ private suspend fun c() {
     ) //等同于FileDocumentEmbeddingStorage
 //    vectorStorage.mostRelevantDocuments() //相识度
 //     JVMTextFileDocumentEmbeddingStorage //用这个不就好了。。。、
+
+//   val ss= JVMFileVectorStorage(Path(""))
+//    ss.store(Path(""), Vector(listOf())) //直接存文件路径并绑定它内容的向量集
     val sss = JVMTextFileDocumentEmbeddingStorage(buildEmbedder(""), Path(""))
 //    sss.store(Path(""))
 //    sss.store()
+
+    sss.store(Path(""))
+//    sss.rankDocuments("").filter { it.similarity >= 0.5f }
+//        .toList()
+//        .sortedByDescending { it.similarity }
+//        .take(3) //顶部3个
+//        .map{
+//            RagEvidence(it.document,it.similarity)
+//        }
 }

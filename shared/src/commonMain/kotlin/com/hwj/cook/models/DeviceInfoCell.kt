@@ -1,5 +1,6 @@
 package com.hwj.cook.models
 
+import kotlinx.io.files.Path
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,5 +11,5 @@ data class DeviceInfoCell(
     val brand: String?,
     val model: String?,
     val osVersion: String?,
-    val platform: String
+    val platform: String,
 )

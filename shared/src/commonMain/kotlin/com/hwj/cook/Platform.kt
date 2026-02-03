@@ -4,6 +4,7 @@ import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.memory.providers.AgentMemoryProvider
 import ai.koog.embeddings.local.LLMEmbedder
+import ai.koog.rag.base.files.FileSystemProvider
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxScope
@@ -88,3 +89,4 @@ expect class KFile {
 expect suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder)
 expect suspend fun storeFile(filePath: String, callback: (String?) -> Unit)
 expect suspend fun deleteRAGFile(documentId: String)
+

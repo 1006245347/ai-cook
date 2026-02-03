@@ -47,6 +47,7 @@ import com.hwj.cook.global.formatFileSize
 import com.hwj.cook.global.mill2Date
 import com.hwj.cook.global.truncate
 import com.hwj.cook.models.FileInfoCell
+import com.hwj.cook.runLiteWork
 import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.TechVm
 import kotlinx.coroutines.Dispatchers
@@ -121,7 +122,8 @@ fun RAGScreen() {
                     modifier = Modifier
                         .clickable(onClick = {
                             subScope.launch {
-                                deleteReq.value = true
+//                                deleteReq.value = true
+                                runLiteWork {  }
                             }
                         }).padding(3.dp)
                 )

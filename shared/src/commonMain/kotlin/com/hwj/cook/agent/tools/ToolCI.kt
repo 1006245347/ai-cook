@@ -82,7 +82,6 @@ object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>(
 }
 
 //need more time ,dep real rag.
-object LocalRagTool {}
 
 //??使用TooSet设计一个开关，agent去操作开关。不能直接用ToolSet只在jvm
 class SuggestSwitchTools(val switch: SuggestCookSwitch) : KmpToolSet {

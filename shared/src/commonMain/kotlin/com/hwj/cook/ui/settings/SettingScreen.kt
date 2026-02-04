@@ -182,7 +182,6 @@ fun SettingsScreenContent(
                         Modifier.clickable(onClick = { onAddClicked(index + 1) })
                             .padding(top = 10.dp)
                     ) {
-
                         Text(
                             text = (cell.alias ?: "model$index") + defLabel,
                             fontSize = 13.sp,

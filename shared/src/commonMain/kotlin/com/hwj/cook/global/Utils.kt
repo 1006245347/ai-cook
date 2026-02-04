@@ -92,6 +92,15 @@ fun getFileLabel(path: String): String {
         .let { if (it.contains('.')) it.substringBeforeLast('.') else it }
 }
 
+fun bookShouldIgnore(filePath: String): Boolean {
+    val fileName = filePath.substringAfterLast("/")
+    val lowerName= fileName.lowercase()
+    return lowerName.endsWith(".jpg")
+            || lowerName.endsWith(".png")
+            || lowerName.endsWith(".jpeg")
+            || fileName.startsWith(".")
+}
+
 /**
  * Extension function to truncate strings with ellipsis.
  */

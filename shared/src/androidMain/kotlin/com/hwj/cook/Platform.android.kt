@@ -52,6 +52,7 @@ import com.hwj.cook.global.MainApplication
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.baseHostUrl
+import com.hwj.cook.global.bookShouldIgnore
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
@@ -250,12 +251,11 @@ actual fun createPermission(
 }
 
 actual fun loadZipRes(): String? {
-    try { //设置解压的目标地址
-        val zipPath = File(MainApplication.appContext.filesDir, "files").apply {
+    try { //设置解压的目标地址 /data/user/0/com.hwj.cook.android/files
+        val zipPath = File(MainApplication.appContext.filesDir, ".aicook/files").apply {
             if (!exists()) mkdirs()
         }.absolutePath
         val target = File(zipPath)
-
         //安卓只能用assets导资源
         val zipStream = MainApplication.appContext.assets.open("resource.zip")
         unzipResource(zipStream, target.absolutePath)
@@ -285,14 +285,15 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
 }
 
 actual fun listResourceFiles(path: String): BookNode? {
-    fun makeNode(f: File): BookNode {
+    fun makeNode(f: File): BookNode? {
 //        printLog("??>${f.isDirectory} ${f.absolutePath}")
+        if (bookShouldIgnore(f.absolutePath)) return null
         return if (f.isDirectory) {
             BookNode(
                 name = f.name,
                 isDirectory = true, realPath = f.absolutePath,
                 loader = {
-                    f.listFiles()?.map { makeNode(it) } ?: emptyList()
+                    f.listFiles()?.mapNotNull { makeNode(it) } ?: emptyList()
                 }
             )
         } else {
@@ -362,7 +363,9 @@ actual fun plusAgentList(): List<AgentInfoCell> {
     return listOf()
 }
 
-actual suspend fun runLiteWork(call: () -> Unit) {}
+actual suspend fun runLiteWork(call: () -> Unit) {
+    call()
+}
 
 @Composable
 actual fun BoxScope.scrollBarIn(state: ScrollState) {

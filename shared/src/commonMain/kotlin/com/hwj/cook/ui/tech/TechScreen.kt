@@ -111,7 +111,7 @@ fun TechScreenContent(
                     OutlinedTextField(
                         value = inputTxt,
                         onValueChange = onInputTxtChanged,
-                        modifier = Modifier.padding(5.dp).fillMaxWidth()    //      .weight(1f)
+                        modifier = Modifier.fillMaxWidth()    //      .weight(1f)
                             .focusRequester(focusRequester),
                         placeholder = { Text("Type some information for memory...") },
                         enabled = isInputEnabled,

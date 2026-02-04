@@ -35,7 +35,7 @@ class CookVm : ViewModel() {
         _bookRootObs.update { it.copy(isLoading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val root = ResParse.loadRecipe()
+                val root = ResParse.loadRecipe()//加载菜谱
                 lastTime = getMills()
                 _bookRootObs.update { it.copy(isLoading = false, data = root) }
             } catch (e: Exception) {

@@ -19,5 +19,7 @@ data class IndexFile(
     val fileSize: Long?,
     val millDate: Long?,
     val isEmbed: Boolean?,
-    val fileHash: String?
+    val sort: Long=0,
+    val tag:String?=null,
+    val fileHash: String?=null
 )

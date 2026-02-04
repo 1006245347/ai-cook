@@ -42,6 +42,7 @@ import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.baseHostUrl
+import com.hwj.cook.global.bookShouldIgnore
 import com.hwj.cook.global.cBasic
 import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.getCacheString
@@ -158,7 +159,7 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
         install(Logging) {
 //                level = LogLevel.ALL
 //            level = LogLevel.INFO //接口日志屏蔽
-            level = LogLevel.ALL
+            level = LogLevel.NONE
             logger = object : Logger {
                 override fun log(message: String) {
                     printD(message)
@@ -215,13 +216,14 @@ fun unzipResource(zipStream: InputStream, targetDir: String) {
 
 //("应用运行时resource的资源是jar打包在应用内，无法直接获取")
 actual fun listResourceFiles(path: String): BookNode? {
-    fun makeNode(f: File): BookNode {
+    fun makeNode(f: File): BookNode? {
+        if (bookShouldIgnore(f.absolutePath)) return null
         return if (f.isDirectory) {
             BookNode(
                 name = f.name,
                 isDirectory = true, realPath = f.absolutePath,
                 loader = {
-                    f.listFiles()?.map { makeNode(it) } ?: emptyList()
+                    f.listFiles()?.mapNotNull { makeNode(it) } ?: emptyList()
                 }
             )
         } else {

@@ -26,11 +26,13 @@ import com.hwj.cook.data.local.addMsg
 import com.hwj.cook.data.local.fetchMsgList
 import com.hwj.cook.data.local.fetchMsgListFlow
 import com.hwj.cook.data.local.isNewSession
+import com.hwj.cook.data.repository.CookBookRepository
 import com.hwj.cook.data.repository.GlobalRepository
 import com.hwj.cook.data.repository.SessionRepository
 import com.hwj.cook.except.ClipboardHelper
 import com.hwj.cook.global.DATA_AGENT_DEF
 import com.hwj.cook.global.DATA_AGENT_INDEX
+import com.hwj.cook.global.DATA_BOOK_ROOT
 import com.hwj.cook.global.clearCache
 import com.hwj.cook.global.defAgentLabel
 import com.hwj.cook.global.defSystemTip
@@ -45,6 +47,7 @@ import com.hwj.cook.global.stopAnswerTip
 import com.hwj.cook.global.stopByErrTip
 import com.hwj.cook.global.thinkingTip
 import com.hwj.cook.global.workInSub
+import com.hwj.cook.listResourceFiles
 import com.hwj.cook.models.AgentUiState
 import com.hwj.cook.runLiteWork
 import kotlinx.coroutines.CancellationException
@@ -606,11 +609,19 @@ class ChatVm(
         viewModelScope.launch {
 //            printList(_sessionObs.value, "all-session")
 //            clearCache()
-//            runLiteWork { }
+            runLiteWork {
+//                viewModelScope.launch {
+//                    val rootPath = getCacheString(DATA_BOOK_ROOT)!!
+//                    listResourceFiles(rootPath).also { bookNode ->
+//                        CookBookRepository.loadCookBookVector(bookNode)
+//                    }
+//                }
+            }
 //            testMcp2()
-            printList(promptMessages, "ppp")
-            printList(reqPromptMsg, "req")
+//            printList(promptMessages, "ppp")
+//            printList(reqPromptMsg, "req")
 //            printList(agentInstance?.agentConfig?.prompt?.messages,"config")
+
         }
     }
 }

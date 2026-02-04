@@ -29,7 +29,6 @@ import io.github.alexzhirkevich.compottie.createFile
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
-import io.github.vinceglb.filekit.delete
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
@@ -161,13 +160,13 @@ class TechVm : ViewModel() {
         storeFile(filePath) { documentId -> //直接以id作为文件名存了
             viewModelScope.launch(Dispatchers.IO) {
 
-                val indexFilePath = buildIndexJson()
-                if (!PlatformFile(indexFilePath).exists()) {
+                val indexRootPath = buildIndexJson()
+                if (!PlatformFile(indexRootPath).exists()) {
                     //创建文件 向量化过的索引表
-                    FileSystem.SYSTEM.createFile(indexFilePath.toPath())
+                    FileSystem.SYSTEM.createFile(indexRootPath.toPath())
                 }
 
-                val json = PlatformFile(indexFilePath).readString() //读取文件内容
+                val json = PlatformFile(indexRootPath).readString() //读取文件内容
                 val srcFile = PlatformFile(filePath)
                 val itemFile = IndexFile(
                     id = id,
@@ -178,7 +177,7 @@ class TechVm : ViewModel() {
                     fileType = srcFile.extension,
                     fileSize = srcFile.size(),
                     millDate = getMills(),
-                    isEmbed = false,
+                    isEmbed = true,
                     fileHash = null
                 )
                 if (!json.isEmpty()) {
@@ -193,12 +192,12 @@ class TechVm : ViewModel() {
                         indexFiles.add(itemFile)
                     }
                     val cache = JsonApi.encodeToString(indexRoot)
-                    PlatformFile(indexFilePath).writeString(cache) //覆盖文本
+                    PlatformFile(indexRootPath).writeString(cache) //覆盖文本
                 } else {
                     val indexRoot = LocalIndex()
                     indexRoot.indexedFiles = mutableListOf(itemFile)
                     val cache = JsonApi.encodeToString(indexRoot)
-                    PlatformFile(indexFilePath).writeString(cache)
+                    PlatformFile(indexRootPath).writeString(cache)
                 }
             }
         }

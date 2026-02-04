@@ -29,6 +29,7 @@ import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.askPermission
+import com.hwj.cook.global.bookShouldIgnore
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.getFileLabel
 import com.hwj.cook.models.BookNode
@@ -178,14 +179,15 @@ actual fun listResourceFiles(path: String): BookNode? {
     val rootPath = bundle.resourcePath + "/$path"
     val fileManager = NSFileManager.defaultManager
 
-    fun makeNode(dir: String, name: String): BookNode {
+    fun makeNode(dir: String, name: String): BookNode? {
+        if (bookShouldIgnore(path)) return null
         return BookNode(
             name = name,
             isDirectory = true, realPath = dir,
             loader = {
                 val files =
                     fileManager.contentsOfDirectoryAtPath(dir, null) as? List<Any?> ?: emptyList()
-                files.map { file ->
+                files.mapNotNull { file ->
                     val childPath = "$dir/$file"
                     // 用 attributesOfItemAtPath 来判断文件/目录
                     val attrs = fileManager.attributesOfItemAtPath(childPath, null)
@@ -350,7 +352,7 @@ actual suspend fun buildChunkStorage(path: String, callback: (List<String>) -> U
 
 actual suspend fun searchRAGChunk(
     query: String,
-    similarityThreshold: Double ,
+    similarityThreshold: Double,
     topK: Int
 ): RagResult {
     val apiKey = getCacheString(DATA_APP_TOKEN)

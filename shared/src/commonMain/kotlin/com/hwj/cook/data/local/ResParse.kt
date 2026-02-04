@@ -26,7 +26,7 @@ object ResParse {
             listResourceFiles(tmpRoot).also { bookNode ->
                 rootNode = bookNode
             }
-        } else { //
+        } else {
             loadZipRes().also { rootPath ->
                 rootPath?.let {
                     listResourceFiles(rootPath)?.also { bookNode ->

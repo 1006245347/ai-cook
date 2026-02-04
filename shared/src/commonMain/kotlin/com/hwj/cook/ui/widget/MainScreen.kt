@@ -292,7 +292,7 @@ private fun TabNavRoot(
     val cachedPages = remember { mutableMapOf<Int, @Composable () -> Unit>() }
 
     Column(Modifier.fillMaxSize()) {
-        if (pagerState.currentPage == 0)
+        if (pagerState.currentPage == 0||pagerState.currentPage==1)
             AppBar(isDark, pagerState, isOpenDrawer = drawerState.isOpen, onClickMenu = {
                 subScope.launch {
                     drawerState.open()

@@ -1,5 +1,6 @@
 package com.hwj.cook.agent.rag
 
+import com.benasher44.uuid.uuid4
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readString
 import kotlinx.io.files.Path
@@ -19,7 +20,8 @@ data class FileChunk(
     val index: Int,
     val text: String,
     val start: Int,
-    val end: Int
+    val end: Int,
+    val id: String= uuid4().toString()
 )
 
 private fun paragraphChunking(

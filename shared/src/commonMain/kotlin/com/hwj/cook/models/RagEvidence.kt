@@ -20,4 +20,5 @@ data class RagPayload(
 )
 
 //Tools返回结果
+@Serializable
 data class RagResult(val query: String, val evidence: List<RagEvidence>)

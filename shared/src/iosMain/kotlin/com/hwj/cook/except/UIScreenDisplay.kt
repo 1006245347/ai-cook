@@ -25,6 +25,8 @@ import platform.UIKit.UIApplication
 import platform.darwin.DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL
 import platform.darwin.dispatch_queue_create
 import platform.UIKit.UIPasteboard
+import kotlin.math.pow
+import kotlin.math.round
 
 @Composable
 actual fun ToolTipCase(modifier: Modifier?, tip: String, content: @Composable () -> Unit) {
@@ -108,5 +110,12 @@ actual class ClipboardHelper {
     actual fun readFromClipboard(): String? {
         return UIPasteboard.generalPasteboard.string()
     }
+}
 
+actual object NumberFormatter {
+    actual fun format(value: Double, digits: Int): String {
+        val factor = 10.0.pow(digits)
+        val rounded = round(value * factor) / factor
+        return rounded.toString()
+    }
 }

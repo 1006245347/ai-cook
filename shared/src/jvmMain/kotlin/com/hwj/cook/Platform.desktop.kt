@@ -289,7 +289,7 @@ actual suspend fun runLiteWork(call: () -> Unit) {
 
 //    searchRag("部门人数多少？")
 //    buildChunkStorage()
-    searchRAGChunk("RAG 系统由两个核心模块组成")
+//    searchRAGChunk("RAG 系统由两个核心模块组成")
     call()
 }
 
@@ -341,6 +341,7 @@ actual class KFile(val path: Path) {
     }
 }
 
+//这是存一个完整的文件的，没有对文件进行切片
 lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
 
 //JVMDocumentProvider 内部支持java.nio.file.Path,导致
@@ -414,29 +415,29 @@ suspend fun searchRag(query: String, similarityThreshold: Double = 0.0, topK: In
 
 lateinit var chunkStorageProvider: FileDocumentEmbeddingStorage<FileChunk, Path>
 
-suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
+actual suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
 //suspend fun buildChunkStorage() {
 //    val path = "/Users/jasonmac/Documents/androidstudy/rag.txt"
     val apiKey = getCacheString(DATA_APP_TOKEN)
     val embedder1 = buildEmbedder(apiKey!!)
     val embedder2 = TextDocumentEmbedder(JvmChunkDocumentProvider, embedder1)
-    val root = createRootDir("embed/index/chunk/${getFileLabel(path)}")
-//    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
-//        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
-//        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
-//    )
-
-    chunkStorageProvider = TextFileDocumentEmbeddingStorage(
-        embedder = embedder1,
-        JvmChunkDocumentProvider, fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+//    val root = createRootDir("embed/index/chunk/${getFileLabel(path)}")
+    val root = createRootDir("embed/index/chunk/rag")
+    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
+        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
+        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
     )
+
+//    chunkStorageProvider = TextFileDocumentEmbeddingStorage(
+//        embedder = embedder1,
+//        JvmChunkDocumentProvider, fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+//    )
 
 
     val chunks = chunkFile(kotlinx.io.files.Path(path)) //段落切片
 
     val listId = mutableListOf<String>()
     chunks.forEachIndexed { index, chunk ->
-//        printD("chunk$index>$chunk")
         val id = chunkStorageProvider.store(chunk)
 //        printD("id>$id")
         listId.add(id)
@@ -444,10 +445,10 @@ suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
     callback(listId)
 }
 
-suspend fun searchRAGChunk(
+actual suspend fun searchRAGChunk(
     query: String,
-    similarityThreshold: Double = 0.7,
-    topK: Int = 3
+    similarityThreshold: Double ,
+    topK: Int
 ): RagResult {
     val apiKey = getCacheString(DATA_APP_TOKEN)
     val embedder1 = buildEmbedder(apiKey!!)
@@ -472,15 +473,15 @@ suspend fun searchRAGChunk(
             )
         }
         .toList()
-//    val contextString = buildString {
-//        appendLine("以下是从本地知识库检索到的内容:")
-//        list.forEachIndexed { index, item: RagEvidence ->
-//            appendLine("[$index] 相似度:${"%.2f".format(item.similarity)}")
-//            appendLine("来源：${item.payload?.sourcePath}")
-//            appendLine(item.document) //应该返回切片内容
-//            appendLine()
-//        }
-//    }
+    val contextString = buildString {
+        appendLine("以下是从本地知识库检索到的内容:")
+        list.forEachIndexed { index, item: RagEvidence ->
+            appendLine("[$index] 相似度:${"%.2f".format(item.similarity)}")
+            appendLine("来源：${item.payload?.sourcePath}")
+            appendLine(item.document) //应该返回切片内容
+            appendLine()
+        }
+    }
 //    printD("c>$contextString")
     return RagResult(query = query, evidence = list)
 }

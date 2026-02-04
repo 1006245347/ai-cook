@@ -113,4 +113,10 @@ actual class ClipboardHelper(private val context: Context) {
     }
 }
 
+actual object NumberFormatter{
+    actual fun format(value:Double,digits:Int):String{
+        return java.lang.String.format("%.${digits}f", value)
+    }
+}
+
 

@@ -1,28 +1,52 @@
 package com.hwj.cook.agent.tools
 
-import ai.koog.embeddings.local.LLMEmbedder
-import ai.koog.rag.base.files.DocumentProvider
+import ai.koog.agents.core.tools.Tool
+import ai.koog.agents.core.tools.annotations.LLMDescription
 import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.buildIndexJson
+import com.hwj.cook.except.NumberFormatter
 import com.hwj.cook.models.LocalIndex
-import io.github.alexzhirkevich.compottie.createFile
+import com.hwj.cook.models.RagEvidence
+import com.hwj.cook.models.RagResult
+import com.hwj.cook.searchRAGChunk
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.readString
 import kotlinx.io.files.Path
-import okio.FileSystem
-import okio.Path.Companion.toPath
-import okio.SYSTEM
+import kotlinx.serialization.Serializable
 
-class LocalRagTool<Document, Path>(
-    private val embedder: LLMEmbedder,
-    private val documentProvider: DocumentProvider<Document, Path>
+/**
+ * @author by jason-何伟杰，2026/2/4
+ * des:本地知识库检索工具
+ * 工业级索引表是多层，多表，多桶chunk,先缩小范围，给出一批chunk集。我们搞个简单的试试
+ *
+ */
+object LocalRagTool : Tool<LocalRagTool.Args, LocalRagTool.Result>(
+    argsSerializer = Args.serializer(),
+    resultSerializer = Result.serializer(),
+    name = "LocalRagTool",
+    description = "Search query or keywords"
 ) {
 
+    @Serializable
+    data class Args(@property:LLMDescription("从本地知识库检索的相关文本") val query: String)
 
-    suspend fun search(query: String) {
+    @Serializable
+    data class Result(val contextString: String)
 
+    override suspend fun execute(args: Args): Result {
+        val result = searchRAGChunk(args.query, 0.7, 3)
+        val contextString = buildString {
+        appendLine("以下是从本地知识库检索到的内容:")
 
+        result.evidence.forEachIndexed { index, item : RagEvidence ->
+            appendLine("[$index] 相似度:${NumberFormatter.format(item.similarity,2)}")
+            appendLine("来源：${item.payload?.sourcePath}")
+            appendLine(item.document) //应该返回切片内容
+            appendLine()
+        }
+    }
+        return Result(contextString)
     }
 }
 

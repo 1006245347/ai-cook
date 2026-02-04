@@ -12,6 +12,8 @@ import ai.koog.agents.memory.storage.EncryptedStorage
 import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.rag.base.files.JVMDocumentProvider
 import ai.koog.rag.base.files.JVMFileSystemProvider
+import ai.koog.rag.vector.FileDocumentEmbeddingStorage
+import ai.koog.rag.vector.TextDocumentEmbedder
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import android.Manifest
 import android.app.ActivityManager
@@ -34,9 +36,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
+import com.hwj.cook.agent.JvmChunkDocumentProvider
 import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
+import com.hwj.cook.agent.rag.FileChunk
+import com.hwj.cook.agent.rag.chunkFile
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DATA_APP_TOKEN
@@ -53,6 +58,9 @@ import com.hwj.cook.global.printLog
 import com.hwj.cook.global.purePermission
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.hwj.cook.models.RagEvidence
+import com.hwj.cook.models.RagPayload
+import com.hwj.cook.models.RagResult
 import com.hwj.cook.models.SuggestCookSwitch
 import com.permissionx.guolindev.PermissionX
 import dev.icerock.moko.permissions.Permission
@@ -79,6 +87,8 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.headers
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 import java.io.File
@@ -394,7 +404,7 @@ lateinit var storageProvider: TextFileDocumentEmbeddingStorage<Path, Path>
 
 //JVMDocumentProvider 内部支持java.nio.file.Path,导致
 //filePath是保存向量文件的根目录
-actual suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder) {
+actual suspend fun buildFileStorage(filePath: String, embedder: LLMEmbedder) {
     val mFile = Path(filePath)
     val storage = TextFileDocumentEmbeddingStorage(
         embedder,
@@ -411,6 +421,58 @@ actual suspend fun storeFile(filePath: String, callback: (String?) -> Unit) {
     callback(id)
 }
 
-actual suspend fun deleteRAGFile(documentId: String){
+actual suspend fun deleteRAGFile(documentId: String) {
     storageProvider.delete(documentId)
+}
+
+lateinit var chunkStorageProvider: FileDocumentEmbeddingStorage<FileChunk, Path>
+
+actual suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder1 = buildEmbedder(apiKey!!)
+    val embedder2 = TextDocumentEmbedder(JvmChunkDocumentProvider, embedder1)
+//    val root = createRootDir("embed/index/chunk/${getFileLabel(path)}")
+    val root = createRootDir("embed/index/chunk/rag")
+    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
+        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
+        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+    )
+    val chunks = chunkFile(kotlinx.io.files.Path(path)) //段落切片
+
+    val listId = mutableListOf<String>()
+    chunks.forEachIndexed { index, chunk ->
+        val id = chunkStorageProvider.store(chunk)
+        listId.add(id)
+    }
+    callback(listId)
+}
+
+actual suspend fun searchRAGChunk(
+    query: String,
+    similarityThreshold: Double,
+    topK: Int
+): RagResult {
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder1 = buildEmbedder(apiKey!!)
+    val embedder2 = TextDocumentEmbedder(JvmChunkDocumentProvider, embedder1)
+    val root = createRootDir("embed/index/chunk/rag")
+    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
+        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
+        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+    )
+    val list = chunkStorageProvider.rankDocuments(query)
+        .filter { it.similarity >= similarityThreshold }
+        .toList()
+        .sortedByDescending { it.similarity }
+        .take(topK) //顶部3个
+        .map { //返回的是  RankedDocument<Document>
+            RagEvidence(
+                document = Path(it.document.text).readText(), payload = RagPayload(
+                    documentId = "id", chunkIndex = it.document.index,
+                    sourcePath = it.document.path.toString()
+                ), similarity = it.similarity
+            )
+        }
+        .toList()
+    return RagResult(query = query, evidence = list)
 }

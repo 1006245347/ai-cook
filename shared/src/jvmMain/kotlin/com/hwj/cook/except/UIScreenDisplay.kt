@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.capture.LocalMainWindow
 import com.hwj.cook.capture.getPlatformCacheImgDir11
 import com.hwj.cook.global.DATA_SIZE_INPUT_SEND
@@ -29,7 +28,6 @@ import com.hwj.cook.global.thinkingTip
 import com.hwj.cook.global.workInSub
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.widget.BotCommonCard
-import cook.shared.generated.resources.Res
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,6 +39,7 @@ import java.awt.Frame
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.lang.String.format
 import java.net.URI
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -202,5 +201,11 @@ actual class ClipboardHelper {
 
     actual fun readFromClipboard(): String? {
         return clipboard.getData(DataFlavor.stringFlavor) as? String
+    }
+}
+
+actual object NumberFormatter{
+    actual fun format(value:Double,digits:Int):String{
+        return format("%.${digits}f",value)
     }
 }

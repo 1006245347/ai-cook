@@ -122,8 +122,8 @@ fun RAGScreen() {
                     modifier = Modifier
                         .clickable(onClick = {
                             subScope.launch {
-//                                deleteReq.value = true
-                                runLiteWork {  }
+                                deleteReq.value = true
+//                                runLiteWork {  }
                             }
                         }).padding(3.dp)
                 )

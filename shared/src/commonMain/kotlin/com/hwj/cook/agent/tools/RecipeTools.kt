@@ -2,7 +2,6 @@ package com.hwj.cook.agent.tools
 
 import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.annotations.LLMDescription
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime

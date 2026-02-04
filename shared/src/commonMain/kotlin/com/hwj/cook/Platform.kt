@@ -17,6 +17,7 @@ import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.hwj.cook.models.RagResult
 import io.ktor.client.HttpClient
 import io.ktor.http.HeadersBuilder
 
@@ -90,3 +91,7 @@ expect suspend fun buildFileStorage(filePath: String,embedder:LLMEmbedder)
 expect suspend fun storeFile(filePath: String, callback: (String?) -> Unit)
 expect suspend fun deleteRAGFile(documentId: String)
 
+expect suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit)
+expect suspend fun searchRAGChunk(query: String,
+                                  similarityThreshold: Double ,
+                                  topK: Int ): RagResult

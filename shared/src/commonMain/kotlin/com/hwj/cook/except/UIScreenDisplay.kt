@@ -48,3 +48,7 @@ expect class ClipboardHelper {
     fun copyToClipboard(text:String)
     fun readFromClipboard():String?
 }
+
+expect object NumberFormatter{
+    fun format (value :Double,digits:Int): String
+}

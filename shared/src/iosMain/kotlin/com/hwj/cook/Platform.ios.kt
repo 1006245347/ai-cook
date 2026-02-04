@@ -6,18 +6,23 @@ import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.SimpleStorage
 import ai.koog.embeddings.local.LLMEmbedder
 import ai.koog.rag.base.files.FileSystemProvider
+import ai.koog.rag.vector.FileDocumentEmbeddingStorage
+import ai.koog.rag.vector.TextDocumentEmbedder
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import com.hwj.cook.agent.GlobalDocumentProvider
+import com.hwj.cook.agent.IOSChunkSystemProvider
 import com.hwj.cook.agent.IOSFileMemoryProvider
 import com.hwj.cook.agent.IOSFileSystemProvider
 import com.hwj.cook.agent.IOSKFileSystemProvider
 import com.hwj.cook.agent.buildEmbedder
 import com.hwj.cook.agent.createRootDir
 import com.hwj.cook.agent.provider.AgentInfoCell
+import com.hwj.cook.agent.rag.FileChunk
+import com.hwj.cook.agent.rag.chunkFile
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.DarkColorScheme
@@ -25,12 +30,18 @@ import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.getFileLabel
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
+import com.hwj.cook.models.RagEvidence
+import com.hwj.cook.models.RagPayload
+import com.hwj.cook.models.RagResult
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
 import dev.icerock.moko.permissions.storage.STORAGE
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.readString
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
@@ -44,6 +55,9 @@ import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
+import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
@@ -63,6 +77,7 @@ import platform.Foundation.stringByStandardizingPath
 import platform.Foundation.stringWithContentsOfFile
 import platform.Foundation.writeToFile
 import platform.UIKit.UIDevice
+import platform.darwin.GLOB_DOOFFS
 
 class IOSPlatform : Platform {
     override val name: String =
@@ -310,5 +325,57 @@ actual suspend fun deleteRAGFile(documentId: String) {
     storageProvider.delete(documentId = documentId)
 }
 
+lateinit var chunkStorageProvider: FileDocumentEmbeddingStorage<FileChunk, KFile>
 
+actual suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder1 = buildEmbedder(apiKey!!)
+    val embedder2 = TextDocumentEmbedder(IOSChunkSystemProvider, embedder1)
+//    val root = createRootDir("embed/index/chunk/${getFileLabel(path)}")
+    val root = createRootDir("embed/index/chunk/rag")
+
+    chunkStorageProvider = FileDocumentEmbeddingStorage(
+        embedder = embedder2, documentProvider = IOSChunkSystemProvider,
+        fs = IOSKFileSystemProvider.ReadWrite, root = KFile(root)
+    )
+
+    val chunks = chunkFile(Path(path))
+    val listId = mutableListOf<String>()
+    chunks.forEachIndexed { index, chunk ->
+        val id = chunkStorageProvider.store(chunk)
+        listId.add(id)
+    }
+    callback(listId)
+}
+
+actual suspend fun searchRAGChunk(
+    query: String,
+    similarityThreshold: Double ,
+    topK: Int
+): RagResult {
+    val apiKey = getCacheString(DATA_APP_TOKEN)
+    val embedder1 = buildEmbedder(apiKey!!)
+    val embedder2 = TextDocumentEmbedder(IOSChunkSystemProvider, embedder1)
+    val root = createRootDir("embed/index/chunk/rag")
+
+    chunkStorageProvider = FileDocumentEmbeddingStorage(
+        embedder = embedder2, documentProvider = IOSChunkSystemProvider,
+        fs = IOSKFileSystemProvider.ReadWrite, root = KFile(root)
+    )
+    val list = chunkStorageProvider.rankDocuments(query)
+        .filter { it.similarity >= similarityThreshold }
+        .toList()
+        .sortedByDescending { it.similarity }
+        .take(topK) //顶部3个
+        .map { //返回的是  RankedDocument<Document>
+            RagEvidence(
+                document = PlatformFile(it.document.text).readString(), payload = RagPayload(
+                    documentId = "id", chunkIndex = it.document.index,
+                    sourcePath = it.document.path.toString()
+                ), similarity = it.similarity
+            )
+        }
+        .toList()
+    return RagResult(query = query, evidence = list)
+}
 

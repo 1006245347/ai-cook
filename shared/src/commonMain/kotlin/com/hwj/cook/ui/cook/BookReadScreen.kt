@@ -109,7 +109,7 @@ fun BookReadScreen(navigator: Navigator, encodePath: String) {
                         state = mdState.apply {
                             config.linkColor = PrimaryColor //要换
                             setMarkdown(textState!!)
-                        }, modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
+                        }, modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp).fillMaxSize()
                             .background(MaterialTheme.colorScheme.onPrimary),
                         color = cAutoTxt(isDark),
                         style = TextStyle(

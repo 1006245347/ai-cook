@@ -103,7 +103,7 @@ fun RAGScreen() {
                 Text(
                     text = "本地知识库",
                     color = cAutoTxt(isDark),
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold //加粗
                 )
                 Text(

@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
@@ -98,12 +99,12 @@ fun TechScreenContent(
                 Spacer(modifier = Modifier.height(140.dp))
 
                 Column(
-                    modifier = Modifier.fillMaxWidth().roundBorderTextStyle(10).padding(bottom = 10.dp),
+                    modifier = Modifier.fillMaxWidth().roundBorderTextStyle(10).padding(bottom = 5.dp),
                 ) {
 
                     Text(
                         text = "智能体记忆",
-                        fontSize = 16.sp,
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold,
                         color = cAutoTxt(isDark), modifier = Modifier.padding(top = 5.dp)
                     )
 
@@ -132,7 +133,7 @@ fun TechScreenContent(
                         IconButton(
                             onClick = onSendClicked,//响应按钮事件
                             enabled = inputTxt.isNotBlank(),
-                            modifier = Modifier.padding(top = 8.dp).size(26.dp).clip(CircleShape)
+                            modifier = Modifier.padding(top = 8.dp).size(25.dp).clip(CircleShape)
                                 .background(
                                     if (isInputEnabled && inputTxt.isNotBlank()) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.surfaceVariant

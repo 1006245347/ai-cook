@@ -16,10 +16,12 @@ object JvmChunkDocumentProvider : DocumentProvider<Path, FileChunk> {
 //        error("chunk 自己生成 $path")
         // /Users/jasonmac/Library/Application Support/AI_COOK/embed/index/chunk/rag/documents/17e6ac97-d7c2-463a-a371-5828d2dc2648
         //不可以这样，koog是加载所有的知识库文件，每个都读出来？我擦
+        //IndexFile=FileChunk 要合并这两货
         return FileChunk(
             path = kotlinx.io.files.Path(path.toString()),
             index = 0,
-            text = PlatformFile(path.toString()).readString(),
+//            text = PlatformFile(path.toString()).readString(),
+            text = path.toString(), //检索时放内容容易爆内存，在处理层做个内容和路径的映射
             start = -1,
             end = -1
         )

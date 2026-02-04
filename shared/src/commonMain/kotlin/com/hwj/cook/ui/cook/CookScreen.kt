@@ -1,5 +1,6 @@
 package com.hwj.cook.ui.cook
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.hwj.cook.global.NavigationScene
 import com.hwj.cook.global.cAutoBg
 import com.hwj.cook.global.cAutoTxt
+import com.hwj.cook.global.cDeepLine
 import com.hwj.cook.global.cLightLine
 import com.hwj.cook.global.loadingTip
 import com.hwj.cook.global.onlyDesktop
@@ -67,7 +70,9 @@ fun CookScreen(navigator: Navigator) {
                 Text(bookRootState.error!!)
             } else {
                 bookRootState.data?.let { root ->
-                    LazyColumn(Modifier.padding(horizontal = 8.dp)) {
+                    LazyColumn(Modifier.padding(horizontal = 8.dp).border(width = 1.dp, color = cDeepLine(),
+                        shape = RoundedCornerShape(10.dp)
+                    ).padding(5.dp)) {
                         //第一层只有一个文件夹，直接拿它的子类
                         root.children.forEach { cell ->
                             item {
@@ -85,6 +90,7 @@ fun CookScreen(navigator: Navigator) {
                             }
                         }
                     }
+
                 }
             }
         }

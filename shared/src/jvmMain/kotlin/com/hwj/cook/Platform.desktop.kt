@@ -421,10 +421,16 @@ suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
     val embedder1 = buildEmbedder(apiKey!!)
     val embedder2 = TextDocumentEmbedder(JvmChunkDocumentProvider, embedder1)
     val root = createRootDir("embed/index/chunk/${getFileLabel(path)}")
-    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
-        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
-        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+//    chunkStorageProvider = FileDocumentEmbeddingStorage<FileChunk, Path>(
+//        embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
+//        fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
+//    )
+
+    chunkStorageProvider = TextFileDocumentEmbeddingStorage(
+        embedder = embedder1,
+        JvmChunkDocumentProvider, fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
     )
+
 
     val chunks = chunkFile(kotlinx.io.files.Path(path)) //段落切片
 
@@ -451,16 +457,15 @@ suspend fun searchRAGChunk(
         embedder = embedder2, documentProvider = JvmChunkDocumentProvider,
         fs = JVMFileSystemProvider.ReadWrite, root = Path(root)
     )
-
+//    JvmChunkDocumentProvider.document() //这函数只有在检索才调用
     val list = chunkStorageProvider.rankDocuments(query)
         .filter { it.similarity >= similarityThreshold }
         .toList()
         .sortedByDescending { it.similarity }
         .take(topK) //顶部3个
-        .map {
-//            printD("s>${it.document}")
+        .map { //返回的是  RankedDocument<Document>
             RagEvidence(
-                document = it.document.text, payload = RagPayload(
+                document = Path(it.document.text).readText(), payload = RagPayload(
                     documentId = "id", chunkIndex = it.document.index,
                     sourcePath = it.document.path.toString()
                 ), similarity = it.similarity
@@ -469,14 +474,14 @@ suspend fun searchRAGChunk(
         .toList()
 //    val contextString = buildString {
 //        appendLine("以下是从本地知识库检索到的内容:")
-//        list.forEachIndexed { index, item:RagEvidence ->
-//
+//        list.forEachIndexed { index, item: RagEvidence ->
 //            appendLine("[$index] 相似度:${"%.2f".format(item.similarity)}")
 //            appendLine("来源：${item.payload?.sourcePath}")
 //            appendLine(item.document) //应该返回切片内容
 //            appendLine()
 //        }
 //    }
+//    printD("c>$contextString")
     return RagResult(query = query, evidence = list)
 }
 
@@ -493,6 +498,8 @@ private suspend fun c() {
             JVMFileSystemProvider.ReadWrite, Path("s")
         )
     ) //等同于FileDocumentEmbeddingStorage
+
+
 //    vectorStorage.mostRelevantDocuments() //相识度
 //     JVMTextFileDocumentEmbeddingStorage //用这个不就好了。。。、
 

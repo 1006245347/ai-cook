@@ -8,7 +8,10 @@ import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.embeddings.base.Vector
 import ai.koog.embeddings.local.LLMEmbedder
+import ai.koog.rag.base.DocumentWithPayload
+import ai.koog.rag.base.RankedDocument
 import ai.koog.rag.base.files.JVMDocumentProvider
 import ai.koog.rag.base.files.JVMFileSystemProvider
 import ai.koog.rag.vector.EmbeddingBasedDocumentStorage
@@ -46,9 +49,7 @@ import com.hwj.cook.global.bookShouldIgnore
 import com.hwj.cook.global.cBasic
 import com.hwj.cook.global.cBlue244260FF
 import com.hwj.cook.global.getCacheString
-import com.hwj.cook.global.getFileLabel
 import com.hwj.cook.global.printD
-import com.hwj.cook.global.printList
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.RagEvidence
@@ -74,6 +75,7 @@ import io.ktor.http.headers
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -355,6 +357,10 @@ actual suspend fun buildFileStorage(filePath: String, embedder: LLMEmbedder) {
         JVMFileSystemProvider.ReadWrite,
         mFile
     )
+
+    //测试
+//    storage.rankDocuments("")
+
     storageProvider = storage
 }
 
@@ -415,6 +421,60 @@ suspend fun searchRag(query: String, similarityThreshold: Double = 0.0, topK: In
     return RagResult(query = query, evidence = list1)
 }
 
+actual suspend fun fastSearchIndexContent(
+    query: String,
+    ids: List<String>?,
+    similarityThreshold: Double
+): RagResult? {
+    val llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
+
+    val rootVector = createRootDir("embed/cook")
+    val textDocumentEmbedder = TextDocumentEmbedder(JVMDocumentProvider, llmEmbedder)
+    val fileVectorStorage =
+        FileVectorStorage(JVMDocumentProvider, JVMFileSystemProvider.ReadWrite, Path(rootVector))
+    val storageDocument = FileDocumentEmbeddingStorage(
+        textDocumentEmbedder, JVMDocumentProvider,
+        JVMFileSystemProvider.ReadWrite, Path(rootVector)
+    )
+    //看源码storageDocument内部的操作其实都是 fileVectorStorage在store/delete
+    //没法直接用storageDocument获取到vector, fileVectorStorage的allDocumentsWithPayload的可以
+    val queryV = llmEmbedder.embed(query)
+    val validList = mutableListOf<DocumentWithPayload<Path, Vector>>()
+
+    ids?.forEach {
+        val path: DocumentWithPayload<Path, Vector>? = fileVectorStorage.readWithPayload(it)
+        path?.let {
+            validList.add(path)
+        }
+    }
+
+    val fastList = flow {
+        validList.forEach { item ->
+            emit(
+                RankedDocument(
+                    document = item.document, similarity =
+                        1.0 - llmEmbedder.diff(queryV, item.payload)
+                )
+            )
+        }
+    }.filter { it.similarity >= similarityThreshold }
+        .toList().sortedByDescending { it.similarity }
+        .take(2)
+        .map {
+            RagEvidence(
+                document = it.document.absolutePathString(),
+                payload = RagPayload(
+                    documentId = "",
+                    0,
+                    sourcePath = it.document.absolutePathString()
+                ),
+                similarity = it.similarity
+            )
+        }.toList()
+
+    return RagResult(query, fastList)
+}
+
 lateinit var chunkStorageProvider: FileDocumentEmbeddingStorage<FileChunk, Path>
 
 actual suspend fun buildChunkStorage(path: String, callback: (List<String>) -> Unit) {
@@ -449,7 +509,7 @@ actual suspend fun buildChunkStorage(path: String, callback: (List<String>) -> U
 
 actual suspend fun searchRAGChunk(
     query: String,
-    similarityThreshold: Double ,
+    similarityThreshold: Double,
     topK: Int
 ): RagResult {
     val apiKey = getCacheString(DATA_APP_TOKEN)
@@ -495,12 +555,14 @@ private suspend fun c() {
 //    JVMDocumentProvider.textFragment()
 //    JVMDocumentProvider的作用就是将Path引导 将路径转化为文件内容解析
     val documentEmbedder = TextDocumentEmbedder(JVMDocumentProvider, buildEmbedder(""))
+    val fileVectorStorage = FileVectorStorage(
+        JVMDocumentProvider,
+        JVMFileSystemProvider.ReadWrite, Path("s")
+    )
     val vectorStorage = EmbeddingBasedDocumentStorage(
-        documentEmbedder, FileVectorStorage(
-            JVMDocumentProvider,
-            JVMFileSystemProvider.ReadWrite, Path("s")
-        )
+        documentEmbedder, fileVectorStorage
     ) //等同于FileDocumentEmbeddingStorage
+    fileVectorStorage.allDocumentsWithPayload() //这里返回带Vector
 
 
 //    vectorStorage.mostRelevantDocuments() //相识度
@@ -511,6 +573,7 @@ private suspend fun c() {
     val sss = JVMTextFileDocumentEmbeddingStorage(buildEmbedder(""), Path(""))
 //    sss.store(Path(""))
 //    sss.store()
+
 
     sss.store(Path(""))
 //    sss.rankDocuments("").filter { it.similarity >= 0.5f }

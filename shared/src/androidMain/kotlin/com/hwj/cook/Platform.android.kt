@@ -9,10 +9,14 @@ import ai.koog.agents.memory.providers.LocalFileMemoryProvider
 import ai.koog.agents.memory.providers.LocalMemoryConfig
 import ai.koog.agents.memory.storage.Aes256GCMEncryptor
 import ai.koog.agents.memory.storage.EncryptedStorage
+import ai.koog.embeddings.base.Vector
 import ai.koog.embeddings.local.LLMEmbedder
+import ai.koog.rag.base.DocumentWithPayload
+import ai.koog.rag.base.RankedDocument
 import ai.koog.rag.base.files.JVMDocumentProvider
 import ai.koog.rag.base.files.JVMFileSystemProvider
 import ai.koog.rag.vector.FileDocumentEmbeddingStorage
+import ai.koog.rag.vector.FileVectorStorage
 import ai.koog.rag.vector.TextDocumentEmbedder
 import ai.koog.rag.vector.TextFileDocumentEmbeddingStorage
 import android.Manifest
@@ -89,6 +93,7 @@ import io.ktor.http.headers
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
@@ -478,4 +483,58 @@ actual suspend fun searchRAGChunk(
         }
         .toList()
     return RagResult(query = query, evidence = list)
+}
+
+actual suspend fun fastSearchIndexContent(
+    query: String,
+    ids: List<String>?,
+    similarityThreshold: Double
+): RagResult? {
+    val llmEmbedder = buildEmbedder(getCacheString(DATA_APP_TOKEN)!!)
+
+    val rootVector = createRootDir("embed/cook")
+    val textDocumentEmbedder = TextDocumentEmbedder(JVMDocumentProvider, llmEmbedder)
+    val fileVectorStorage =
+        FileVectorStorage(JVMDocumentProvider, JVMFileSystemProvider.ReadWrite, Path(rootVector))
+    val storageDocument = FileDocumentEmbeddingStorage(
+        textDocumentEmbedder, JVMDocumentProvider,
+        JVMFileSystemProvider.ReadWrite, Path(rootVector)
+    )
+    //看源码storageDocument内部的操作其实都是 fileVectorStorage在store/delete
+    //没法直接用storageDocument获取到vector, fileVectorStorage的allDocumentsWithPayload的可以
+    val queryV = llmEmbedder.embed(query)
+    val validList = mutableListOf<DocumentWithPayload<Path, Vector>>()
+
+    ids?.forEach {
+        val path: DocumentWithPayload<Path, Vector>? = fileVectorStorage.readWithPayload(it)
+        path?.let {
+            validList.add(path)
+        }
+    }
+
+    val fastList = flow {
+        validList.forEach { item ->
+            emit(
+                RankedDocument(
+                    document = item.document, similarity =
+                        1.0 - llmEmbedder.diff(queryV, item.payload)
+                )
+            )
+        }
+    }.filter { it.similarity >= similarityThreshold }
+        .toList().sortedByDescending { it.similarity }
+        .take(2)
+        .map {
+            RagEvidence(
+                document = it.document.absolutePathString(),
+                payload = RagPayload(
+                    documentId = "",
+                    0,
+                    sourcePath = it.document.absolutePathString()
+                ),
+                similarity = it.similarity
+            )
+        }.toList()
+
+    return RagResult(query, fastList)
 }

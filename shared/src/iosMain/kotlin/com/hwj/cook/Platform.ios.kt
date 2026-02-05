@@ -381,3 +381,6 @@ actual suspend fun searchRAGChunk(
     return RagResult(query = query, evidence = list)
 }
 
+actual suspend fun fastSearchIndexContent(query: String,ids:List<String>?,similarityThreshold: Double): RagResult?{
+return null
+}

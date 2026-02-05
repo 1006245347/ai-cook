@@ -95,3 +95,5 @@ expect suspend fun buildChunkStorage(path: String, callback: (List<String>) -> U
 expect suspend fun searchRAGChunk(query: String,
                                   similarityThreshold: Double ,
                                   topK: Int ): RagResult
+
+expect suspend fun fastSearchIndexContent(query: String,ids:List<String>?,similarityThreshold: Double): RagResult?

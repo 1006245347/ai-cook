@@ -235,19 +235,22 @@ class ChatVm(
                     reqPromptMsg += ChatMsg.ToolResultMsg(msg)
                 },
                 onErrorEvent = { errorMsg ->
-                    viewModelScope.launch {
-                        _uiState.update {
-                            it.copy(
-                                messages = it.messages.toMutableList().apply {
-                                    add(0, ChatMsg.ErrorMsg(errorMsg))
-                                },
-                                isInputEnabled = true,
-                                isLoading = false
-                            )
+                    if (!errorMsg.contains("StandaloneCoroutine was cancelled")) {
+                        viewModelScope.launch {
+                            _uiState.update {
+                                it.copy(
+                                    messages = it.messages.toMutableList().apply {
+                                        add(0, ChatMsg.ErrorMsg(errorMsg))
+                                    },
+                                    isInputEnabled = true,
+                                    isLoading = false
+                                )
+                            }
+                            stopReceiveMsg(userMsg, responseFromAgent, null)
                         }
-                        stopReceiveMsg(userMsg, responseFromAgent, null)
                     }
                 }, onAssistantMessage = { agentQuestion ->
+//                    printD("onAssistantMessage>$agentQuestion")
                     val msgList = _uiState.value.messages.toMutableList()
                     msgList.removeFirst() //现在第一个应该是loading
                     msgList.add(0, ChatMsg.AgentMsg(agentQuestion))
@@ -259,9 +262,13 @@ class ChatVm(
                             userResponseRequested = true
                         )
                     }
-                    //大模型在会话当中主动提问
+                    //大模型在会话当中主动提问  //这里有点问题？到底那类型好？Result?Agent
 //                    promptMessages += ChatMsg.AgentMsg(agentQuestion)
                     reqPromptMsg += ChatMsg.AgentMsg(agentQuestion)
+                    //在这block中agent没结束,但问题是会导致重复加入吗
+                    reqPromptMsg.drop(promptMessages.size) //丢前几个
+                        .let { extra -> if (extra.isNotEmpty()) promptMessages.addAll(extra) }
+
 
                     // Wait for user response
                     val userResponse =
@@ -289,6 +296,7 @@ class ChatVm(
 //                agentInstance.agentConfig.prompt.messages.also {
 //                    printList(it, "promptList")
 //                }
+            printD("response done.-->stopReceiveMsg")
             stopReceiveMsg(userMsg, responseFromAgent, null)
             //官方每次run后都是重新聊天，其实我们也是，但是会带入历史会话到新的作为上下文
         } catch (e: Exception) {
@@ -304,8 +312,6 @@ class ChatVm(
             stopReceiveMsg(userMsg, responseFromAgent, e)
             printD(e.message)
         }
-
-        printD("agent=$agentInstance")
     }
 
     //根据会话id找它的消息列表
@@ -480,8 +486,13 @@ class ChatVm(
     ) {
         var tmpAnswer = response
         cause?.let {
+            _stopReceivingObs.value = true
             if (cause is CancellationException) {
-                _stopReceivingObs.value = true
+                if (response.isEmpty()) {
+                    tmpAnswer = stopAnswerTip
+                    updateLocalResponse(tmpAnswer)
+                }
+            } else if (cause.message!!.contains("Failed to parse HTTP response")) {
                 if (response.isEmpty()) {
                     tmpAnswer = stopAnswerTip
                     updateLocalResponse(tmpAnswer)
@@ -500,14 +511,17 @@ class ChatVm(
             addMsg(userMsg)
             addMsg(assistantMsg)
         } else {
+
 //            promptMessages += assistantMsg //
             reqPromptMsg += assistantMsg //到这步，promptMessage里都没对话的msg，userMsg不能加到prompt,智能体有个自动加会重复
-            //这里根据reqPromptMsg恢复下promptMessages
-            reqPromptMsg.drop(promptMessages.size)
+            //这里根据reqPromptMsg恢复下promptMessages ！！！！！！
+            reqPromptMsg.drop(promptMessages.size)//丢前n个
                 .let { extra -> if (extra.isNotEmpty()) promptMessages.addAll(extra) }
 
             //不能每次保存都drop出新的list
             addAllMsg(promptMessages.reversed()) //删systemMsg后反序
+
+//            printList(promptMessages)
         }
         _uiState.update { it.copy(isLoading = false, isInputEnabled = true, isChatEnded = false) }
     }
@@ -530,7 +544,12 @@ class ChatVm(
     //问答的信息肯定在顶部，UI会令消息倒序显示
     fun updateLocalResponse(response: String) {
         val msgList = _uiState.value.messages.toMutableList() //这里的数据是倒序的结果
-        msgList[0] = (msgList[0] as ChatMsg.ResultMsg).copy(txt = response)
+        //这里很容易报错 errorMsg cast
+        if (msgList[0] is ChatMsg.ResultMsg) {
+            (msgList[0] as ChatMsg.ResultMsg).copy(txt = response)
+        } else if (msgList[0] is ChatMsg.ErrorMsg) {
+            (msgList[0] as ChatMsg.ErrorMsg).copy(txt = response)
+        }
         _uiState.update {
             it.copy(
                 messages = msgList, inputTxt = "",
@@ -618,8 +637,9 @@ class ChatVm(
 //                }
             }
 //            testMcp2()
-//            printList(promptMessages, "ppp")
-//            printList(reqPromptMsg, "req")
+            printList(promptMessages, "ppp")
+            delay(100)
+            printList(reqPromptMsg, "req")
 //            printList(agentInstance?.agentConfig?.prompt?.messages,"config")
 
         }

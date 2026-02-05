@@ -8,6 +8,7 @@ import ai.koog.prompt.executor.clients.openai.OpenAILLMClient
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import com.hwj.cook.createKtorHttpClient
 import com.hwj.cook.global.baseHostUrl
+import com.hwj.cook.global.printD
 import com.hwj.cook.global.printLog
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.LogLevel
@@ -31,10 +32,12 @@ open class OpenAiRemoteLLMClient(
         )
     ), baseClient: HttpClient = HttpClient { }.config {
         install(Logging) {
-            level = LogLevel.NONE
+//            level = LogLevel.NONE
+            level= LogLevel.ALL
             logger = object : Logger {
                 override fun log(message: String) {
-                    println(message)
+//                    println(message)
+                    printD(message)
                 }
             }
         }

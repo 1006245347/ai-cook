@@ -38,6 +38,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hwj.cook.except.BotMessageCard
@@ -54,14 +55,14 @@ import com.hwj.cook.models.ModelInfoCell
  * des:对话页面的消息体UI
  */
 @Composable
-fun UserMessageBubble(isDark: Boolean, text: String) {
+fun UserMessageBubble(isDark: Boolean, maxWidth: Dp, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(max = maxWidth)
                 .clip(RoundedCornerShape(dp10()))
 //                .background(MaterialTheme.colorScheme.primary)
                 .padding(dp6())
@@ -79,14 +80,14 @@ fun UserMessageBubble(isDark: Boolean, text: String) {
 }
 
 @Composable
-fun AgentMessageBubble(isDark: Boolean, text: String) {
+fun AgentMessageBubble(isDark: Boolean, maxWidth: Dp, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(max = maxWidth)
                 .clip(RoundedCornerShape(dp10()))
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(dp6())
@@ -101,7 +102,7 @@ fun AgentMessageBubble(isDark: Boolean, text: String) {
 }
 
 @Composable
-fun SystemMessageItem(isDark: Boolean, text: String) {
+fun SystemMessageItem(isDark: Boolean, maxWidth: Dp, text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -117,14 +118,14 @@ fun SystemMessageItem(isDark: Boolean, text: String) {
 }
 
 @Composable
-fun ErrorMessageItem(isDark: Boolean, text: String) {
+fun ErrorMessageItem(isDark: Boolean, maxWidth: Dp, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(max = maxWidth)
         ) {
             Text(
                 text = "Error3",
@@ -149,18 +150,18 @@ fun ErrorMessageItem(isDark: Boolean, text: String) {
 }
 
 @Composable
-fun ToolCallMessageItem(isDark: Boolean, text: String) {
+fun ToolCallMessageItem(isDark: Boolean, maxWidth: Dp, text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(max = maxWidth)
         ) {
             Text(
                 text = "Tool call",
-                color =cAutoTxt(isDark),
+                color = cAutoTxt(isDark),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(start = dp10())
             )
@@ -181,13 +182,19 @@ fun ToolCallMessageItem(isDark: Boolean, text: String) {
 }
 
 @Composable
-fun ResultMessageItem(isDark: Boolean, text: String, isLatest: Boolean, isLoading: Boolean) {
+fun ResultMessageItem(
+    isDark: Boolean,
+    maxWidth: Dp,
+    text: String,
+    isLatest: Boolean,
+    isLoading: Boolean
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
         Column(
-            modifier = Modifier.widthIn(max = 280.dp)
+            modifier = Modifier.widthIn(max = maxWidth)
         ) {
             Text(
                 text = "Result",

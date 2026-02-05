@@ -159,9 +159,9 @@ actual fun createKtorHttpClient(timeout: Long?, builder: HeadersBuilder.() -> Un
         }
 
         install(Logging) {
-//                level = LogLevel.ALL
+            level = LogLevel.ALL
 //            level = LogLevel.INFO //接口日志屏蔽
-            level = LogLevel.NONE
+//            level = LogLevel.NONE
             logger = object : Logger {
                 override fun log(message: String) {
                     printD(message)
@@ -358,9 +358,6 @@ actual suspend fun buildFileStorage(filePath: String, embedder: LLMEmbedder) {
         mFile
     )
 
-    //测试
-//    storage.rankDocuments("")
-
     storageProvider = storage
 }
 
@@ -377,15 +374,6 @@ actual suspend fun deleteRAGFile(documentId: String) {
 
 
 suspend fun searchRag(query: String, similarityThreshold: Double = 0.0, topK: Int = 3): RagResult {
-//    storageProvider.apply { //拥有的能力api
-//        rankDocuments()
-//        read()
-//        store()
-//        delete()
-//        read()
-//    }
-
-
     //相关性排序
 //    val rankedFiles = storageProvider.rankDocuments(query).toList()
     //最相关的文档
@@ -457,8 +445,10 @@ actual suspend fun fastSearchIndexContent(
                 )
             )
         }
-    }.filter { it.similarity >= similarityThreshold }
-        .toList().sortedByDescending { it.similarity }
+    }.filter {
+        printD("item>${it.similarity}")
+        it.similarity >= similarityThreshold
+    }.toList().sortedByDescending { it.similarity }
         .take(2)
         .map {
             RagEvidence(

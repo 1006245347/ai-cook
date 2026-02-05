@@ -86,6 +86,7 @@ import com.hwj.cook.ui.viewmodel.MainVm
 import com.hwj.cook.ui.viewmodel.SettingVm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.BackHandler
@@ -169,6 +170,7 @@ fun MainScreen(navigator: Navigator) {
                     subScope.launch {
                         chatVm.stopReceivingResults()
                         drawerState.close()
+                        delay(100)
                         chatVm.createSession()
                     }
                 },

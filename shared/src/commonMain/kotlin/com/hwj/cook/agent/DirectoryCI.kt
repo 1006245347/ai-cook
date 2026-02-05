@@ -28,7 +28,7 @@ fun cacheDir(): String {
 ///Users/jasonmac/Library/Application Support/AI_COOK/ai
 //注意权限申请 ,这里塞个userId可以隔离账号
 fun createRootDir(subDir: String = "ai"): String { //  /. /data/user/0/com.hwj.cook.android/files /data/user/0/com.hwj.cook.android/cache
-    printLog("root>${projectDir()} ${fileDir()} ${cacheDir()} ")
+//    printLog("root>${projectDir()} ${fileDir()} ${cacheDir()} ")
     return PlatformFile(fileDir() + "/$subDir").apply {
         createDirectories()
     }.absolutePath().also {

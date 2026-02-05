@@ -28,14 +28,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hwj.cook.agent.ChatMsg
 import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.createPermission
 import com.hwj.cook.data.local.PermissionPlatform
 import com.hwj.cook.global.DATA_AGENT_INDEX
+import com.hwj.cook.global.OsStatus
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.onlyMobile
 import com.hwj.cook.models.ModelInfoCell
 import com.hwj.cook.ui.viewmodel.ChatVm
 import com.hwj.cook.ui.viewmodel.MainVm
@@ -44,6 +47,7 @@ import kotlinx.coroutines.launch
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
 import org.koin.compose.getKoin
+import kotlin.math.max
 
 /**
  * @author by jason-何伟杰，2025/10/øø9
@@ -164,6 +168,7 @@ private fun MessageList(
     isDark: Boolean,
     isLoading: Boolean
 ) {
+    val maxWidth : Dp = if (onlyMobile()) 280.dp else 450.dp
     Box(
         modifier = modifier
     ) {
@@ -175,25 +180,25 @@ private fun MessageList(
         ) {
             itemsIndexed(messages) { index, msg ->
                 when (msg) {
-                    is ChatMsg.UserMsg -> UserMessageBubble(isDark, msg.txt)
-                    is ChatMsg.AgentMsg -> AgentMessageBubble(isDark, msg.txt)
+                    is ChatMsg.UserMsg -> UserMessageBubble(isDark, maxWidth,msg.txt)
+                    is ChatMsg.AgentMsg -> AgentMessageBubble(isDark, maxWidth,msg.txt)
                     is ChatMsg.SystemMsg -> msg.txt?.let {
 //                        SystemMessageItem(isDark,it)
                     }
 
-                    is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(isDark, it) }
+                    is ChatMsg.ErrorMsg -> msg.txt?.let { ErrorMessageItem(isDark, maxWidth,it) }
                     is ChatMsg.ToolCallMsg -> ToolCallMessageItem(
-                        isDark,
+                        isDark,maxWidth,
                         JsonApi.encodeToString(msg.call)
                     )
 
                     is ChatMsg.ToolResultMsg -> ToolCallMessageItem(
-                        isDark,
+                        isDark,maxWidth,
                         JsonApi.encodeToString(msg.result)
                     )
 
                     is ChatMsg.ResultMsg -> ResultMessageItem(
-                        isDark,
+                        isDark,maxWidth,
                         msg.txt,
                         index == 0,
                         isLoading

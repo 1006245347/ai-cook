@@ -6,6 +6,8 @@ import com.hwj.cook.agent.JsonApi
 import com.hwj.cook.agent.buildIndexJson
 import com.hwj.cook.except.NumberFormatter
 import com.hwj.cook.fastSearchIndexContent
+import com.hwj.cook.global.printD
+import com.hwj.cook.global.printList
 import com.hwj.cook.models.IndexFile
 import com.hwj.cook.models.LocalIndex
 import com.hwj.cook.models.RagEvidence
@@ -14,6 +16,10 @@ import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.readString
 import kotlinx.serialization.Serializable
 
+/**
+ * @author by jason-何伟杰，2026/2/5
+ * des:菜谱检索工具
+ */
 object RecipeSearchTool : Tool<RecipeSearchTool.Args, RecipeSearchTool.Result>(
     argsSerializer = Args.serializer(),
     resultSerializer = Result.serializer(),
@@ -45,18 +51,25 @@ object RecipeSearchTool : Tool<RecipeSearchTool.Args, RecipeSearchTool.Result>(
 
     override suspend fun execute(args: Args): Result {
         val candidateFiles = findIndexBook(args.query)
+        printList(candidateFiles,"search?????")
         val ids = candidateFiles?.map { it.documentId!! }?.toList()
 
-        val ragResult = fastSearchIndexContent(query = args.query, ids, 0.7)
+        val ragResult = fastSearchIndexContent(query = args.query, ids, 0.6)
+
         val contextString = buildString {
-            appendLine("The following recipes are retrieved from the knowledge base:")
+            if (ragResult?.evidence.isNullOrEmpty()) {
+                appendLine("Can not find any thing from the knowledge base:")
+            } else {
+                appendLine("The following recipes are retrieved from the knowledge base:")
+            }
             ragResult?.evidence?.forEachIndexed { index, item: RagEvidence ->
                 appendLine("[$index] Similarity:${NumberFormatter.format(item.similarity, 2)}")
                 appendLine("Source：${item.payload?.sourcePath}")
-                appendLine(item.document) //应该返回切片内容
+                appendLine(PlatformFile(item.document).readString()) //应该返回切片内容
                 appendLine()
             }
         }
+//        printD("contextString??????$contextString")
         return Result(contextString)
     }
 }
@@ -73,7 +86,7 @@ suspend fun findIndexBook(query: String): List<IndexFile>? {
             q.contains(file.fileName!!.removeSuffix(".md").lowercase())
                     || file.tag != null && q.contains(file.tag.lowercase())
                     || q.contains("技巧") && file.filePath!!.contains("tips")
-                    || q.contains("如何使用") && file.filePath!!.contains("tips")
+                    || q.contains("使用") && file.filePath!!.contains("tips")
                     || q.contains("学习") && file.filePath!!.contains("tips")
         }
 

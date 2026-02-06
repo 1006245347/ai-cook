@@ -131,7 +131,9 @@ class ChatVm(
         agentProvider = if (name == null) {
             koin.get<AgentProvider<String, String>>(named(defAgentLabel))
         } else {
-            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
+//            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
+            koin.get<AgentProvider<String, List<Message.Response>>>(named(name))  //(agentProvider is McpSearchProvider)
+
         }
         _uiState.update {
             it.copy(
@@ -237,9 +239,11 @@ class ChatVm(
                 onErrorEvent = { errorMsg ->
                     if (!errorMsg.contains("StandaloneCoroutine was cancelled")) {
                         viewModelScope.launch {
+                            val tmpList = _uiState.value.messages.toMutableList()
+                            tmpList.removeFirst()
                             _uiState.update {
                                 it.copy(
-                                    messages = it.messages.toMutableList().apply {
+                                    messages = tmpList.apply {
                                         add(0, ChatMsg.ErrorMsg(errorMsg))
                                     },
                                     isInputEnabled = true,
@@ -292,7 +296,7 @@ class ChatVm(
 //            printD("agent=$agentInstance p=$agentProvider")
             //这里是非流式返回
             //有个逻辑问题，这里run会自动prompt添加userMsg,如果我再promptMessage再手动加会重复
-            responseFromAgent = agentInstance?.run(userMsg.txt) as String
+            responseFromAgent = agentInstance?.run(userMsg.txt).toString()
 //                agentInstance.agentConfig.prompt.messages.also {
 //                    printList(it, "promptList")
 //                }
@@ -363,8 +367,9 @@ class ChatVm(
         }
     }
 
-    //新建会话
+    //新建会话 不同模式
     fun createSession() {
+        if(isLLMAsk())agentProvider=null
         promptMessages.clear()
         promptMessages += ChatMsg.SystemMsg(agentProvider?.description)
         reqPromptMsg.clear()

@@ -168,7 +168,7 @@ private fun MessageList(
     isDark: Boolean,
     isLoading: Boolean
 ) {
-    val maxWidth : Dp = if (onlyMobile()) 280.dp else 450.dp
+    val maxWidth : Dp = if (onlyMobile()) 280.dp else 470.dp
     Box(
         modifier = modifier
     ) {

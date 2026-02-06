@@ -3,6 +3,7 @@ package di
 import ai.koog.prompt.executor.clients.LLMClient
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.llm.LLModel
+import ai.koog.prompt.message.Message
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.provider.AICookAgentProvider
 import com.hwj.cook.agent.provider.AgentProvider
@@ -70,7 +71,8 @@ val mainModule = module {
     }
     single<AgentProvider<String, String>>(named("calculator")) { CalculatorAgentProvider() }
 
-    single<AgentProvider<String, String>>(named("cook")) { AICookAgentProvider() }
+//    single<AgentProvider<String, String>>(named("cook")) { AICookAgentProvider() }
+    single<AgentProvider<String, List<Message.Response>>>(named("cook")) { AICookAgentProvider() }
     single<AgentProvider<String, String>>(named("chat")) { ChatAgentProvider() }
     single<AgentProvider<String, String>>(named("search")) { McpSearchAgentProvider() }
     single<AgentProvider<String, String>>(named("memory")) { MemoryAgentProvider() }

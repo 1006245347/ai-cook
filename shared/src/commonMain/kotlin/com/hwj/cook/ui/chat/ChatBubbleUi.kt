@@ -48,6 +48,7 @@ import com.hwj.cook.global.PrimaryColor
 import com.hwj.cook.global.cAutoTxt
 import com.hwj.cook.global.dp10
 import com.hwj.cook.global.dp6
+import com.hwj.cook.global.thinkingTip
 import com.hwj.cook.models.ModelInfoCell
 
 /**
@@ -212,7 +213,7 @@ fun ResultMessageItem(
             ) {
                 BotMessageCard(text)
             }
-            if (!isLoading && isLatest) {
+            if (!isLoading && isLatest&& text != thinkingTip) {
                 BotMsgMenu(text)
             }
         }

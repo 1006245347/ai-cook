@@ -54,7 +54,7 @@ object RecipeSearchTool : Tool<RecipeSearchTool.Args, RecipeSearchTool.Result>(
         printList(candidateFiles,"search?????")
         val ids = candidateFiles?.map { it.documentId!! }?.toList()
 
-        val ragResult = fastSearchIndexContent(query = args.query, ids, 0.6)
+        val ragResult = fastSearchIndexContent(query = args.query, ids, 0.5)
 
         val contextString = buildString {
             if (ragResult?.evidence.isNullOrEmpty()) {

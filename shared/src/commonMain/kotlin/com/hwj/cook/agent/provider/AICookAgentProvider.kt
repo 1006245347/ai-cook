@@ -66,7 +66,6 @@ class AICookAgentProvider : AgentProvider<String, List<Message.Response>> {
                     - When the user asks for something to eat, use tools to search recipes.
                     """.trimIndent()
 
-
     override suspend fun provideAgent(
         prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,

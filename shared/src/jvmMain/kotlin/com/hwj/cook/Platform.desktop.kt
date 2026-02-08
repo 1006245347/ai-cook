@@ -55,7 +55,7 @@ import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.RagEvidence
 import com.hwj.cook.models.RagPayload
 import com.hwj.cook.models.RagResult
-import com.hwj.cook.models.SuggestCookSwitch
+import com.hwj.cook.models.Switch
 import com.hwj.cook.ui.StreamingChatScreen
 import com.sun.management.OperatingSystemMXBean
 import io.ktor.client.HttpClient
@@ -277,7 +277,9 @@ actual typealias PlatformToolSet = ToolSet
 
 actual fun platformAgentTools(): ToolRegistry {
     return ToolRegistry {
-        SwitchTools(SuggestCookSwitch()).asTools()
+        tools(
+            SwitchTools(Switch()).asTools()
+        )
     }
 }
 

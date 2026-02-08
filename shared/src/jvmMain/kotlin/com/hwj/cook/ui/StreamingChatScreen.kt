@@ -1,9 +1,7 @@
 package com.hwj.cook.ui
 
 import ai.koog.agents.core.agent.AIAgent
-import ai.koog.agents.core.agent.isRunning
 import ai.koog.agents.core.tools.ToolRegistry
-import ai.koog.agents.core.tools.ToolRegistry.Companion.invoke
 import ai.koog.agents.core.tools.reflect.asTools
 import ai.koog.agents.features.eventHandler.feature.handleEvents
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
@@ -35,7 +33,7 @@ import com.hwj.cook.agent.provider.chatAiAgent
 import com.hwj.cook.agent.tools.SwitchTools
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
-import com.hwj.cook.models.SuggestCookSwitch
+import com.hwj.cook.models.Switch
 import kotlinx.coroutines.launch
 
 /**
@@ -54,7 +52,7 @@ fun StreamingChatScreen() {
     // 处理事件回调
     LaunchedEffect(Unit) {
         subScope.launch {
-            val switch = SuggestCookSwitch()
+            val switch = Switch()
 
             val toolRegistry = ToolRegistry {
                 tools(SwitchTools(switch).asTools())

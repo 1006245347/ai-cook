@@ -10,21 +10,18 @@ import com.hwj.cook.global.DATA_MCP_KEY
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
 import com.hwj.cook.models.DeviceInfoCell
-import com.hwj.cook.models.SuggestCookSwitch
+import com.hwj.cook.models.Switch
 import io.ktor.client.plugins.sse.sse
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.encodedPath
-import io.ktor.http.headers
-import io.ktor.utils.io.readUTF8Line
 import kotlinx.serialization.Serializable
 
 /**
@@ -84,7 +81,7 @@ object UserInfoTool : Tool<UserInfoTool.Args, UserInfoTool.Result>(
 //need more time ,dep real rag.
 
 //??使用TooSet设计一个开关，agent去操作开关。不能直接用ToolSet只在jvm
-class SuggestSwitchTools(val switch: SuggestCookSwitch) : KmpToolSet {
+class SuggestSwitchTools(val switch: Switch) : KmpToolSet {
 
     fun change() {
 

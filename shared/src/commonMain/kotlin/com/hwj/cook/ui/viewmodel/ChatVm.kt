@@ -49,6 +49,7 @@ import com.hwj.cook.global.thinkingTip
 import com.hwj.cook.global.workInSub
 import com.hwj.cook.listResourceFiles
 import com.hwj.cook.models.AgentUiState
+import com.hwj.cook.platformAgentTools
 import com.hwj.cook.runLiteWork
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -130,10 +131,10 @@ class ChatVm(
         _agentModelObs.value = name ?: defAgentLabel
         agentProvider = if (name == null) {
             koin.get<AgentProvider<String, String>>(named(defAgentLabel))
-        } else {
-//            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
+        } else if (name == "suggest" || name == "cook") { //流式
             koin.get<AgentProvider<String, List<Message.Response>>>(named(name))  //(agentProvider is McpSearchProvider)
-
+        } else {
+            koin.get<AgentProvider<String, String>>(named(name))  //(agentProvider is McpSearchProvider)
         }
         _uiState.update {
             it.copy(
@@ -369,7 +370,7 @@ class ChatVm(
 
     //新建会话 不同模式
     fun createSession() {
-        if(isLLMAsk())agentProvider=null
+        if (isLLMAsk()) agentProvider = null
         promptMessages.clear()
         promptMessages += ChatMsg.SystemMsg(agentProvider?.description)
         reqPromptMsg.clear()
@@ -642,9 +643,9 @@ class ChatVm(
 //                }
             }
 //            testMcp2()
-            printList(promptMessages, "ppp")
-            delay(100)
-            printList(reqPromptMsg, "req")
+//            printList(promptMessages, "ppp")
+//            delay(100)
+//            printList(reqPromptMsg, "req")
 //            printList(agentInstance?.agentConfig?.prompt?.messages,"config")
 
         }

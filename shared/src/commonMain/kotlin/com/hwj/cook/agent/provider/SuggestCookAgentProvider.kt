@@ -28,6 +28,7 @@ import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.buildQwen3LLM
 import com.hwj.cook.global.DATA_APP_TOKEN
 import com.hwj.cook.global.getCacheString
+import com.hwj.cook.global.printList
 import com.hwj.cook.global.printLog
 import com.hwj.cook.platformAgentTools
 import io.ktor.client.request.invoke
@@ -35,7 +36,7 @@ import io.ktor.client.request.invoke
 class SuggestCookAgentProvider(
     override var title: String = "SwitchAgent",
     override val description: String = "You are a agent,you're responsible for running a Switch and perform operations on it by request"
-) : AgentProvider<String, String> {
+) : AgentProvider<String, List<Message.Response>> {
 
     override suspend fun provideAgent(prompt: Prompt,
         onToolCallEvent: suspend (Message.Tool.Call) -> Unit,
@@ -43,13 +44,13 @@ class SuggestCookAgentProvider(
         onLLMStreamFrameEvent: suspend (String) -> Unit,
         onErrorEvent: suspend (String) -> Unit,
         onAssistantMessage: suspend (String) -> String
-    ): AIAgent<String, String> {
+    ): AIAgent<String, List<Message.Response>> {
 
         val apiKey = getCacheString(DATA_APP_TOKEN)
         require(apiKey?.isNotEmpty() == true) { "apiKey is not configured." }
         val remoteAiExecutor = SingleLLMPromptExecutor(OpenAiRemoteLLMClient(apiKey))
 
-        val toolRegistry = ToolRegistry {}.plus(platformAgentTools())
+        val toolRegistry = platformAgentTools()
 
         val agent = openAiAgent(toolRegistry,prompt, remoteAiExecutor) {
             handleEvents {   //可流式的关键
@@ -165,10 +166,10 @@ class SuggestCookAgentProvider(
 //            ResponseStreamList(input) //covert bean
 //        }
 
-        val lastRequest by node<List<Message.Response>, String> { input ->
-            ResponseStreamList(input) //covert bean
-            input.toString()
-        }
+//        val lastRequest by node<List<Message.Response>, String> { input ->
+//           ResponseStreamList(input) //covert bean
+//            input.toString()
+//        }
 
         edge(nodeStart forwardTo mapStringToRequests)
         edge(mapStringToRequests forwardTo applyRequestToSession)
@@ -176,23 +177,23 @@ class SuggestCookAgentProvider(
         edge(nodeStreaming forwardTo executeMultipleTools onMultipleToolCalls { true })
         edge(executeMultipleTools forwardTo mapToolCallsToRequests)
         edge(mapToolCallsToRequests forwardTo applyRequestToSession)
-//        edge(
-//            nodeStreaming forwardTo nodeFinish onCondition {
-//                it.filterIsInstance<Message.Tool.Call>().isEmpty() //不再调用工具，就输出noteStreaming
-//            }
-//        )
-
-        //增加对数据类型的转换
         edge(
-            nodeStreaming forwardTo lastRequest onCondition { response ->
-                //AI又推荐一个判断，有流式回复一段话再调工具的情景
-                response.filterIsInstance<Message.Tool.Call>().isEmpty() //不再调用工具，就输出noteStreaming
+            nodeStreaming forwardTo nodeFinish onCondition {
+                it.filterIsInstance<Message.Tool.Call>().isEmpty() //不再调用工具，就输出noteStreaming
             }
         )
 
-        edge(
-            lastRequest forwardTo nodeFinish
-        )
+        //增加对数据类型的转换
+//        edge(
+//            nodeStreaming forwardTo lastRequest onCondition { response ->
+//                //AI又推荐一个判断，有流式回复一段话再调工具的情景
+//                response.filterIsInstance<Message.Tool.Call>().isEmpty() //不再调用工具，就输出noteStreaming
+//            }
+//        )
+//
+//        edge(
+//            lastRequest forwardTo nodeFinish
+//        )
 
     }
 }

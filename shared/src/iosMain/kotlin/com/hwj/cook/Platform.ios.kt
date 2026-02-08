@@ -244,7 +244,9 @@ actual interface PlatformToolSet
 actual interface KmpToolSet : PlatformToolSet
 
 actual fun platformAgentTools(): ToolRegistry {
-    return ToolRegistry { }
+    return ToolRegistry {
+//        tools()
+    }
 }
 
 actual fun plusAgentList(): List<AgentInfoCell> {

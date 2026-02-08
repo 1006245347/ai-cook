@@ -1,7 +1,7 @@
 package com.hwj.cook.agent.provider
 
 import com.hwj.cook.agent.tools.SwitchTools
-import com.hwj.cook.models.SuggestCookSwitch
+import com.hwj.cook.models.Switch
 
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.GraphAIAgent.FeatureContext
@@ -10,7 +10,6 @@ import ai.koog.agents.core.dsl.builder.forwardTo
 import ai.koog.agents.core.dsl.builder.strategy
 import ai.koog.agents.core.dsl.extension.nodeExecuteMultipleTools
 import ai.koog.agents.core.dsl.extension.nodeLLMRequestStreamingAndSendResults
-import ai.koog.agents.core.dsl.extension.nodeLLMSendToolResult
 import ai.koog.agents.core.dsl.extension.onMultipleToolCalls
 import ai.koog.agents.core.environment.ReceivedToolResult
 import ai.koog.agents.core.tools.ToolRegistry
@@ -26,11 +25,9 @@ import ai.koog.prompt.params.LLMParams
 import ai.koog.prompt.streaming.StreamFrame
 import com.hwj.cook.agent.OpenAiRemoteLLMClient
 import com.hwj.cook.agent.buildQwen3LLM
-import com.hwj.cook.global.DATA_APP_TOKEN
-import com.hwj.cook.global.getCacheString
 
 suspend fun testConsoleAgent1() {
-    val switch = SuggestCookSwitch()
+    val switch = Switch()
 
     val toolRegistry = ToolRegistry {
         tools(SwitchTools(switch).asTools())

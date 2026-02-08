@@ -1,6 +1,6 @@
 package com.hwj.cook.models
 
-class SuggestCookSwitch {
+class Switch {
 
     private var state : Boolean =false
     fun switch(on: Boolean){

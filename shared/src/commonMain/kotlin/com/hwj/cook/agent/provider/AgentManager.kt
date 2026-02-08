@@ -29,12 +29,13 @@ object AgentManager {
         val suggestCookAgent =
             AgentInfoCell("suggest", getPlatform().os != OsStatus.IOS)
         val calculatorAgent = AgentInfoCell("calculator")
+        val recipeAgent= AgentInfoCell("recipe")
         val list = listOf(
             cookAgent,
             chatAgent,
             searchAgent,
             memoryAgent,
-            suggestCookAgent,calculatorAgent
+            suggestCookAgent,calculatorAgent,recipeAgent
         ).filter { it.isSupport }.toMutableList()
         list.addAll(plusAgentList())
         return list

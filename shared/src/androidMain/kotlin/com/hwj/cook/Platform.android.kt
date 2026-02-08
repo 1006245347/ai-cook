@@ -1,6 +1,5 @@
 package com.hwj.cook
 
-import ai.koog.agents.core.tools.Tool
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.core.tools.reflect.ToolSet
 import ai.koog.agents.core.tools.reflect.asTools
@@ -26,10 +25,7 @@ import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -54,29 +50,21 @@ import com.hwj.cook.global.DarkColorScheme
 import com.hwj.cook.global.LightColorScheme
 import com.hwj.cook.global.MainApplication
 import com.hwj.cook.global.OsStatus
-import com.hwj.cook.global.askPermission
 import com.hwj.cook.global.baseHostUrl
 import com.hwj.cook.global.bookShouldIgnore
 import com.hwj.cook.global.getCacheString
 import com.hwj.cook.global.printD
-import com.hwj.cook.global.printLog
-import com.hwj.cook.global.purePermission
 import com.hwj.cook.models.BookNode
 import com.hwj.cook.models.DeviceInfoCell
 import com.hwj.cook.models.RagEvidence
 import com.hwj.cook.models.RagPayload
 import com.hwj.cook.models.RagResult
-import com.hwj.cook.models.SuggestCookSwitch
+import com.hwj.cook.models.Switch
 import com.permissionx.guolindev.PermissionX
 import dev.icerock.moko.permissions.Permission
-import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.gallery.GALLERY
 import dev.icerock.moko.permissions.notifications.REMOTE_NOTIFICATION
 import dev.icerock.moko.permissions.storage.STORAGE
-import dev.icerock.moko.permissions.storage.WRITE_STORAGE
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.readString
-import io.github.vinceglb.filekit.utils.toPath
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.HttpTimeout
@@ -96,20 +84,17 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
-import okio.Path.Companion.toPath
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Path
 import java.util.zip.ZipInputStream
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.extension
 import kotlin.io.path.name
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
 import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
-import kotlin.reflect.jvm.jvmName
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
@@ -360,7 +345,7 @@ actual typealias PlatformToolSet = ToolSet
 //jvm可用的tool
 actual fun platformAgentTools(): ToolRegistry {
     return ToolRegistry {
-        SwitchTools(SuggestCookSwitch()).asTools()
+        tools(SwitchTools(Switch()).asTools())
     }
 }
 
